@@ -30,6 +30,7 @@ docker run -it --rm --name w3g w3g
 ```
 
 ## Usage
+Below is an example of adding the `Content-Type` HTTP header to a simple Go server application.
 
 ```go
 package main
@@ -39,7 +40,7 @@ import (
 	"fmt"
 	"net/http"
 
-    "github.com/lindsaygelle/w3g"
+	"github.com/lindsaygelle/w3g"
 )
 
 const (
@@ -83,3 +84,5 @@ func main() {
 	})
 	http.ListenAndServe(fmt.Sprintf(":%s", address), nil)
 }
+
+```
