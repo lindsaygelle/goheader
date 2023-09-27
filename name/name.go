@@ -204,7 +204,7 @@ const IfNoneMatch Name = "If-None-Match"
 // IfRange refers to the If-Range Header, used in conditional range requests.
 const IfRange Name = "If-Range"
 
-// IfUnmodified-Since refers to the If-Unmodified-Since Header, indicating a conditional request based on unmodified time.
+// IfUnmodifiedSince refers to the If-Unmodified-Since Header, indicating a conditional request based on unmodified time.
 const IfUnmodifiedSince Name = "If-Unmodified-Since"
 
 // KeepAlive refers to the Keep-Alive Header, indicating options for persistent connections.
@@ -255,7 +255,7 @@ const ProxyAuthorization Name = "Proxy-Authorization"
 // ProxyConnection refers to the Proxy-Connection Header, indicating options for a proxy connection.
 const ProxyConnection Name = "Proxy-Connection"
 
-// PublicKey-Pins refers to the Public-Key-Pins Header, specifying public key pinning for a host.
+// PublicKeyPins refers to the Public-Key-Pins Header, specifying public key pinning for a host.
 const PublicKeyPins Name = "Public-Key-Pins"
 
 // RTT refers to the RTT (RoundTrip Time) Header, indicating the estimated round-trip time.
@@ -300,7 +300,7 @@ const SecCHUAArch Name = "Sec-CH-UA-Arch"
 // SecCHUABitness refers to the Sec-CH-UA-Bitness Header, indicating the client's bitness.
 const SecCHUABitness Name = "Sec-CH-UA-Bitness"
 
-// SecCHUAFull-Version refers to the Sec-CH-UA-Full-Version Header, indicating the client's full version.
+// SecCHUAFullVersion refers to the Sec-CH-UA-Full-Version Header, indicating the client's full version.
 const SecCHUAFullVersion Name = "Sec-CH-UA-Full-Version"
 
 // SecCHUAFullVersionList refers to the Sec-CH-UA-Full-Version-List Header, indicating a list of full versions.
@@ -405,8 +405,8 @@ const Warning Name = "Warning"
 // Width refers to the Width Header, indicating the width of the rendering surface.
 const Width Name = "Width"
 
-// XATTDeviceId refers to the X-ATT-DeviceId Header, indicating the AT&T device ID.
-const XATTDeviceId Name = "X-ATT-DeviceId"
+// XATTDeviceID refers to the X-ATT-DeviceId Header, indicating the AT&T device ID.
+const XATTDeviceID Name = "X-ATT-DeviceId"
 
 // XContentDuration refers to the X-Content-Duration Header, indicating the duration of media resources.
 const XContentDuration Name = "X-Content-Duration"
