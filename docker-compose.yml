@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  goheader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goheader
+    image: goheader:latest
