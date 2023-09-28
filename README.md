@@ -1,5 +1,5 @@
 # Goheader
-Goheader is a [Go](https://github.com/golang/go) package that provides a generic goheader with extended functionality. It abstracts common map operations, such as adding, deleting, iterating, and more, making it easier to work with maps in Go.
+Goheader is a [Go](https://github.com/golang/go) package.
 
 ![Goheader]()
 
