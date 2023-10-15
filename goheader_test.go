@@ -7,5 +7,5 @@ import (
 )
 
 func TestXxx(t *testing.T) {
-	goheader.NewAIMHeader()
+	goheader.NewAIM()
 }
