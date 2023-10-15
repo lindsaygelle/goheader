@@ -467,3 +467,8 @@ const XWebKitCSP Name = "X-WebKit-CSP"
 
 // XXSSProtection refers to the X-XSS-Protection Header, enabling or disabling cross-site scripting (XSS) protection.
 const XXSSProtection Name = "X-XSS-Protection"
+
+// New creates a new Name.
+func New(value string) Name {
+	return Name(value)
+}

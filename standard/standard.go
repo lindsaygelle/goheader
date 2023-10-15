@@ -90,3 +90,8 @@ const RFC9111 Standard = 9111
 // RFC9113 is the defined standard with the unique identifier 9113.
 // It refers to the Request for Comments (RFC) document available at https://www.rfc-editor.org/rfc/rfc9113.
 const RFC9113 Standard = 9113
+
+// New creates a new Standard.
+func New(value uint) Standard {
+	return Standard(value)
+}
