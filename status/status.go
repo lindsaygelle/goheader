@@ -18,3 +18,8 @@ const Proposed Status = "Proposed"
 
 // Provisional is a constant representing an entity with a "provisional" status.
 const Provisional Status = "provisional"
+
+// New creates a new Status.
+func New(value string) Status {
+	return Status(value)
+}

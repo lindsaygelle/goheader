@@ -1,1092 +1,1575 @@
 package goheader
 
-import "github.com/lindsaygelle/goheader/name"
+import (
+	"net/http"
 
+	"github.com/lindsaygelle/goheader/name"
+)
+
+// Header represents an HTTP header with its name, request and response indicators, and values.
 type Header struct {
-	Name name.Name
+	Name     name.Name // Name of the header.
+	Request  bool      // Indicates if the header is applicable for HTTP requests.
+	Response bool      // Indicates if the header is applicable for HTTP responses.
+	Values   []string  // Values associated with the header.
+}
+
+// NewHeaders creates an http.Header from a collection of Header instances.
+// It takes Header instances as parameters and returns an http.Header containing the specified headers.
+func NewHeaders(headers ...Header) http.Header {
+	httpHeaders := http.Header{}
+	for _, header := range headers {
+		httpHeaders[string(header.Name)] = header.Values
+	}
+	return httpHeaders
 }
 
 // NewAIMHeader creates a A-IM HTTP Header.
-func NewAIMHeader() Header {
+func NewAIMHeader(values ...string) Header {
 	header := Header{
-		Name: name.AIM}
+		Name:    name.AIM,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptHeader creates a Accept HTTP Header.
-func NewAcceptHeader() Header {
+func NewAcceptHeader(values ...string) Header {
 	header := Header{
-		Name: name.Accept}
+		Name:    name.Accept,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptCHHeader creates a Accept-CH HTTP Header.
-func NewAcceptCHHeader() Header {
+func NewAcceptCHHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptCH}
+		Name:    name.AcceptCH,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptCHLifetimeHeader creates a Accept-CH-Lifetime HTTP Header.
-func NewAcceptCHLifetimeHeader() Header {
+func NewAcceptCHLifetimeHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptCHLifetime}
+		Name:    name.AcceptCHLifetime,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptCharsetHeader creates a Accept-Charset HTTP Header.
-func NewAcceptCharsetHeader() Header {
+func NewAcceptCharsetHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptCharset}
+		Name:    name.AcceptCharset,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptDatetimeHeader creates a Accept-Datetime HTTP Header.
-func NewAcceptDatetimeHeader() Header {
+func NewAcceptDatetimeHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptDatetime}
+		Name:    name.AcceptDatetime,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptEncodingHeader creates a Accept-Encoding HTTP Header.
-func NewAcceptEncodingHeader() Header {
+func NewAcceptEncodingHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptEncoding}
+		Name:    name.AcceptEncoding,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptLanguageHeader creates a Accept-Language HTTP Header.
-func NewAcceptLanguageHeader() Header {
+func NewAcceptLanguageHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptLanguage}
+		Name:    name.AcceptLanguage,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptPatchHeader creates a Accept-Patch HTTP Header.
-func NewAcceptPatchHeader() Header {
+func NewAcceptPatchHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptPatch}
+		Name:    name.AcceptPatch,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptPostHeader creates a Accept-Post HTTP Header.
-func NewAcceptPostHeader() Header {
+func NewAcceptPostHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptPost}
+		Name:    name.AcceptPost,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAcceptRangesHeader creates a Accept-Ranges HTTP Header.
-func NewAcceptRangesHeader() Header {
+func NewAcceptRangesHeader(values ...string) Header {
 	header := Header{
-		Name: name.AcceptRanges}
+		Name: name.AcceptRanges,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlAllowCredentialsHeader creates a Access-Control-Allow-Credentials HTTP Header.
-func NewAccessControlAllowCredentialsHeader() Header {
+func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlAllowCredentials}
+		Name: name.AccessControlAllowCredentials,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlAllowHeadersHeader creates a Access-Control-Allow-Headers HTTP Header.
-func NewAccessControlAllowHeadersHeader() Header {
+func NewAccessControlAllowHeadersHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlAllowHeaders}
+		Name: name.AccessControlAllowHeaders,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlAllowMethodsHeader creates a Access-Control-Allow-Methods HTTP Header.
-func NewAccessControlAllowMethodsHeader() Header {
+func NewAccessControlAllowMethodsHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlAllowMethods}
+		Name: name.AccessControlAllowMethods,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlAllowOriginHeader creates a Access-Control-Allow-Origin HTTP Header.
-func NewAccessControlAllowOriginHeader() Header {
+func NewAccessControlAllowOriginHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlAllowOrigin}
+		Name: name.AccessControlAllowOrigin,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlExposeHeadersHeader creates a Access-Control-Expose-Headers HTTP Header.
-func NewAccessControlExposeHeadersHeader() Header {
+func NewAccessControlExposeHeadersHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlExposeHeaders}
+		Name: name.AccessControlExposeHeaders,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlMaxAgeHeader creates a Access-Control-Max-Age HTTP Header.
-func NewAccessControlMaxAgeHeader() Header {
+func NewAccessControlMaxAgeHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlMaxAge}
+		Name: name.AccessControlMaxAge,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAccessControlRequestHeadersHeader creates a Access-Control-Request-Headers HTTP Header.
-func NewAccessControlRequestHeadersHeader() Header {
+func NewAccessControlRequestHeadersHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlRequestHeaders}
+		Name:    name.AccessControlRequestHeaders,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAccessControlRequestMethodHeader creates a Access-Control-Request-Method HTTP Header.
-func NewAccessControlRequestMethodHeader() Header {
+func NewAccessControlRequestMethodHeader(values ...string) Header {
 	header := Header{
-		Name: name.AccessControlRequestMethod}
+		Name:    name.AccessControlRequestMethod,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewAgeHeader creates a Age HTTP Header.
-func NewAgeHeader() Header {
+func NewAgeHeader(values ...string) Header {
 	header := Header{
-		Name: name.Age}
+		Name: name.Age,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAllowHeader creates a Allow HTTP Header.
-func NewAllowHeader() Header {
+func NewAllowHeader(values ...string) Header {
 	header := Header{
-		Name: name.Allow}
+		Name: name.Allow,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAltSvcHeader creates a Alt-Svc HTTP Header.
-func NewAltSvcHeader() Header {
+func NewAltSvcHeader(values ...string) Header {
 	header := Header{
-		Name: name.AltSvc}
+		Name: name.AltSvc,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAltUsedHeader creates a Alt-Used HTTP Header.
-func NewAltUsedHeader() Header {
+func NewAltUsedHeader(values ...string) Header {
 	header := Header{
-		Name: name.AltUsed}
+		Name: name.AltUsed,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewAuthorizationHeader creates a Authorization HTTP Header.
-func NewAuthorizationHeader() Header {
+func NewAuthorizationHeader(values ...string) Header {
 	header := Header{
-		Name: name.Authorization}
+		Name:    name.Authorization,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewCacheControlHeader creates a Cache-Control HTTP Header.
-func NewCacheControlHeader() Header {
+func NewCacheControlHeader(values ...string) Header {
 	header := Header{
-		Name: name.CacheControl}
+		Name: name.CacheControl,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewClearSiteDataHeader creates a Clear-Site-Data HTTP Header.
-func NewClearSiteDataHeader() Header {
+func NewClearSiteDataHeader(values ...string) Header {
 	header := Header{
-		Name: name.ClearSiteData}
+		Name:    name.ClearSiteData,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewConnectionHeader creates a Connection HTTP Header.
-func NewConnectionHeader() Header {
+func NewConnectionHeader(values ...string) Header {
 	header := Header{
-		Name: name.Connection}
+		Name:    name.Connection,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentDPRHeader creates a Content-DPR HTTP Header.
-func NewContentDPRHeader() Header {
+func NewContentDPRHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentDPR}
+		Name:    name.ContentDPR,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentDispositionHeader creates a Content-Disposition HTTP Header.
-func NewContentDispositionHeader() Header {
+func NewContentDispositionHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentDisposition}
+		Name: name.ContentDisposition,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewContentEncodingHeader creates a Content-Encoding HTTP Header.
-func NewContentEncodingHeader() Header {
+func NewContentEncodingHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentEncoding}
+		Name:    name.ContentEncoding,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentLanguageHeader creates a Content-Language HTTP Header.
-func NewContentLanguageHeader() Header {
+func NewContentLanguageHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentLanguage}
+		Name:    name.ContentLanguage,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentLengthHeader creates a Content-Length HTTP Header.
-func NewContentLengthHeader() Header {
+func NewContentLengthHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentLength}
+		Name:    name.ContentLength,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentLocationHeader creates a Content-Location HTTP Header.
-func NewContentLocationHeader() Header {
+func NewContentLocationHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentLocation}
+		Name: name.ContentLocation,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewContentMD5Header creates a Content-MD5 HTTP Header.
-func NewContentMD5Header() Header {
+func NewContentMD5Header(values ...string) Header {
 	header := Header{
-		Name: name.ContentMD5}
+		Name:    name.ContentMD5,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentRangeHeader creates a Content-Range HTTP Header.
-func NewContentRangeHeader() Header {
+func NewContentRangeHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentRange}
+		Name:    name.ContentRange,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewContentSecurityPolicyHeader creates a Content-Security-Policy HTTP Header.
-func NewContentSecurityPolicyHeader() Header {
+func NewContentSecurityPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentSecurityPolicy}
+		Name: name.ContentSecurityPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewContentSecurityPolicyReportOnlyHeader creates a Content-Security-Policy-Report-Only HTTP Header.
-func NewContentSecurityPolicyReportOnlyHeader() Header {
+func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentSecurityPolicyReportOnly}
+		Name: name.ContentSecurityPolicyReportOnly,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewContentTypeHeader creates a Content-Type HTTP Header.
-func NewContentTypeHeader() Header {
+func NewContentTypeHeader(values ...string) Header {
 	header := Header{
-		Name: name.ContentType}
+		Name:    name.ContentType,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewCookieHeader creates a Cookie HTTP Header.
-func NewCookieHeader() Header {
+func NewCookieHeader(values ...string) Header {
 	header := Header{
-		Name: name.Cookie}
+		Name:    name.Cookie,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewCorrelationIDHeader creates a Correlation-ID HTTP Header.
-func NewCorrelationIDHeader() Header {
+func NewCorrelationIDHeader(values ...string) Header {
 	header := Header{
-		Name: name.CorrelationID}
+		Name:    name.CorrelationID,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewCriticalCHHeader creates a Critical-CH HTTP Header.
-func NewCriticalCHHeader() Header {
+func NewCriticalCHHeader(values ...string) Header {
 	header := Header{
-		Name: name.CriticalCH}
+		Name: name.CriticalCH,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewCrossOriginEmbedderPolicyHeader creates a Cross-Origin-Embedder-Policy HTTP Header.
-func NewCrossOriginEmbedderPolicyHeader() Header {
+func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.CrossOriginEmbedderPolicy}
+		Name: name.CrossOriginEmbedderPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewCrossOriginOpenerPolicyHeader creates a Cross-Origin-Opener-Policy HTTP Header.
-func NewCrossOriginOpenerPolicyHeader() Header {
+func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.CrossOriginOpenerPolicy}
+		Name: name.CrossOriginOpenerPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewCrossOriginResourcePolicyHeader creates a Cross-Origin-Resource-Policy HTTP Header.
-func NewCrossOriginResourcePolicyHeader() Header {
+func NewCrossOriginResourcePolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.CrossOriginResourcePolicy}
+		Name: name.CrossOriginResourcePolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewDNTHeader creates a DNT HTTP Header.
-func NewDNTHeader() Header {
+func NewDNTHeader(values ...string) Header {
 	header := Header{
-		Name: name.DNT}
+		Name:    name.DNT,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewDPRHeader creates a DPR HTTP Header.
-func NewDPRHeader() Header {
+func NewDPRHeader(values ...string) Header {
 	header := Header{
-		Name: name.DPR}
+		Name:    name.DPR,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewDateHeader creates a Date HTTP Header.
-func NewDateHeader() Header {
+func NewDateHeader(values ...string) Header {
 	header := Header{
-		Name: name.Date}
+		Name: name.Date,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewDeltaBaseHeader creates a Delta-Base HTTP Header.
-func NewDeltaBaseHeader() Header {
+func NewDeltaBaseHeader(values ...string) Header {
 	header := Header{
-		Name: name.DeltaBase}
+		Name: name.DeltaBase,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewDeviceMemoryHeader creates a Device-Memory HTTP Header.
-func NewDeviceMemoryHeader() Header {
+func NewDeviceMemoryHeader(values ...string) Header {
 	header := Header{
-		Name: name.DeviceMemory}
+		Name: name.DeviceMemory,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewDigestHeader creates a Digest HTTP Header.
-func NewDigestHeader() Header {
+func NewDigestHeader(values ...string) Header {
 	header := Header{
-		Name: name.Digest}
+		Name:    name.Digest,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewDownlinkHeader creates a Downlink HTTP Header.
-func NewDownlinkHeader() Header {
+func NewDownlinkHeader(values ...string) Header {
 	header := Header{
-		Name: name.Downlink}
+		Name:    name.Downlink,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewECTHeader creates a ECT HTTP Header.
-func NewECTHeader() Header {
+func NewECTHeader(values ...string) Header {
 	header := Header{
-		Name: name.ECT}
+		Name:    name.ECT,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewETagHeader creates a ETag HTTP Header.
-func NewETagHeader() Header {
+func NewETagHeader(values ...string) Header {
 	header := Header{
-		Name: name.ETag}
+		Name: name.ETag,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewEarlyDataHeader creates a Early-Data HTTP Header.
-func NewEarlyDataHeader() Header {
+func NewEarlyDataHeader(values ...string) Header {
 	header := Header{
-		Name: name.EarlyData}
+		Name: name.EarlyData,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewExpectHeader creates a Expect HTTP Header.
-func NewExpectHeader() Header {
+func NewExpectHeader(values ...string) Header {
 	header := Header{
-		Name: name.Expect}
+		Name:    name.Expect,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewExpectCTHeader creates a Expect-CT HTTP Header.
-func NewExpectCTHeader() Header {
+func NewExpectCTHeader(values ...string) Header {
 	header := Header{
-		Name: name.ExpectCT}
+		Name:    name.ExpectCT,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewExpiresHeader creates a Expires HTTP Header.
-func NewExpiresHeader() Header {
+func NewExpiresHeader(values ...string) Header {
 	header := Header{
-		Name: name.Expires}
+		Name: name.Expires,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewForwardedHeader creates a Forwarded HTTP Header.
-func NewForwardedHeader() Header {
+func NewForwardedHeader(values ...string) Header {
 	header := Header{
-		Name: name.Forwarded}
+		Name: name.Forwarded,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewFromHeader creates a From HTTP Header.
-func NewFromHeader() Header {
+func NewFromHeader(values ...string) Header {
 	header := Header{
-		Name: name.From}
+		Name:    name.From,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewFrontEndHTTPSHeader creates a Front-End-HTTPS HTTP Header.
-func NewFrontEndHTTPSHeader() Header {
+func NewFrontEndHTTPSHeader(values ...string) Header {
 	header := Header{
-		Name: name.FrontEndHTTPS}
+		Name: name.FrontEndHTTPS,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewHTTP2SettingsHeader creates a HTTP2-Settings HTTP Header.
-func NewHTTP2SettingsHeader() Header {
+func NewHTTP2SettingsHeader(values ...string) Header {
 	header := Header{
-		Name: name.HTTP2Settings}
+		Name: name.HTTP2Settings,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewHostHeader creates a Host HTTP Header.
-func NewHostHeader() Header {
+func NewHostHeader(values ...string) Header {
 	header := Header{
-		Name: name.Host}
+		Name: name.Host,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewIMHeader creates a IM HTTP Header.
-func NewIMHeader() Header {
+func NewIMHeader(values ...string) Header {
 	header := Header{
-		Name: name.IM}
+		Name: name.IM,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewIfMatchHeader creates a If-Match HTTP Header.
-func NewIfMatchHeader() Header {
+func NewIfMatchHeader(values ...string) Header {
 	header := Header{
-		Name: name.IfMatch}
+		Name:    name.IfMatch,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewIfModifiedSinceHeader creates a If-Modified-Since HTTP Header.
-func NewIfModifiedSinceHeader() Header {
+func NewIfModifiedSinceHeader(values ...string) Header {
 	header := Header{
-		Name: name.IfModifiedSince}
+		Name:    name.IfModifiedSince,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewIfNoneMatchHeader creates a If-None-Match HTTP Header.
-func NewIfNoneMatchHeader() Header {
+func NewIfNoneMatchHeader(values ...string) Header {
 	header := Header{
-		Name: name.IfNoneMatch}
+		Name:    name.IfNoneMatch,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewIfRangeHeader creates a If-Range HTTP Header.
-func NewIfRangeHeader() Header {
+func NewIfRangeHeader(values ...string) Header {
 	header := Header{
-		Name: name.IfRange}
+		Name:    name.IfRange,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewIfUnmodifiedSinceHeader creates a If-Unmodified-Since HTTP Header.
-func NewIfUnmodifiedSinceHeader() Header {
+func NewIfUnmodifiedSinceHeader(values ...string) Header {
 	header := Header{
-		Name: name.IfUnmodifiedSince}
+		Name:    name.IfUnmodifiedSince,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewKeepAliveHeader creates a Keep-Alive HTTP Header.
-func NewKeepAliveHeader() Header {
+func NewKeepAliveHeader(values ...string) Header {
 	header := Header{
-		Name: name.KeepAlive}
+		Name:    name.KeepAlive,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewLargeAllocationHeader creates a Large-Allocation HTTP Header.
-func NewLargeAllocationHeader() Header {
+func NewLargeAllocationHeader(values ...string) Header {
 	header := Header{
-		Name: name.LargeAllocation}
+		Name: name.LargeAllocation,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewLastModifiedHeader creates a Last-Modified HTTP Header.
-func NewLastModifiedHeader() Header {
+func NewLastModifiedHeader(values ...string) Header {
 	header := Header{
-		Name: name.LastModified}
+		Name: name.LastModified,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewLinkHeader creates a Link HTTP Header.
-func NewLinkHeader() Header {
+func NewLinkHeader(values ...string) Header {
 	header := Header{
-		Name: name.Link}
+		Name: name.Link,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewLocationHeader creates a Location HTTP Header.
-func NewLocationHeader() Header {
+func NewLocationHeader(values ...string) Header {
 	header := Header{
-		Name: name.Location}
+		Name: name.Location,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewMaxForwardsHeader creates a Max-Forwards HTTP Header.
-func NewMaxForwardsHeader() Header {
+func NewMaxForwardsHeader(values ...string) Header {
 	header := Header{
-		Name: name.MaxForwards}
+		Name:    name.MaxForwards,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewNELHeader creates a NEL HTTP Header.
-func NewNELHeader() Header {
+func NewNELHeader(values ...string) Header {
 	header := Header{
-		Name: name.NEL}
+		Name: name.NEL,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewOriginHeader creates a Origin HTTP Header.
-func NewOriginHeader() Header {
+func NewOriginHeader(values ...string) Header {
 	header := Header{
-		Name: name.Origin}
+		Name:    name.Origin,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewP3PHeader creates a P3P HTTP Header.
-func NewP3PHeader() Header {
+func NewP3PHeader(values ...string) Header {
 	header := Header{
-		Name: name.P3P}
+		Name: name.P3P,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewPermissionsPolicyHeader creates a Permissions-Policy HTTP Header.
-func NewPermissionsPolicyHeader() Header {
+func NewPermissionsPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.PermissionsPolicy}
+		Name: name.PermissionsPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewPragmaHeader creates a Pragma HTTP Header.
-func NewPragmaHeader() Header {
+func NewPragmaHeader(values ...string) Header {
 	header := Header{
-		Name: name.Pragma}
+		Name: name.Pragma,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewPreferHeader creates a Prefer HTTP Header.
-func NewPreferHeader() Header {
+func NewPreferHeader(values ...string) Header {
 	header := Header{
-		Name: name.Prefer}
+		Name: name.Prefer,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewPreferenceAppliedHeader creates a Preference-Applied HTTP Header.
-func NewPreferenceAppliedHeader() Header {
+func NewPreferenceAppliedHeader(values ...string) Header {
 	header := Header{
-		Name: name.PreferenceApplied}
+		Name: name.PreferenceApplied,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewProxyAuthenticateHeader creates a Proxy-Authenticate HTTP Header.
-func NewProxyAuthenticateHeader() Header {
+func NewProxyAuthenticateHeader(values ...string) Header {
 	header := Header{
-		Name: name.ProxyAuthenticate}
+		Name:    name.ProxyAuthenticate,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewProxyAuthorizationHeader creates a Proxy-Authorization HTTP Header.
-func NewProxyAuthorizationHeader() Header {
+func NewProxyAuthorizationHeader(values ...string) Header {
 	header := Header{
-		Name: name.ProxyAuthorization}
+		Name:    name.ProxyAuthorization,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewProxyConnectionHeader creates a Proxy-Connection HTTP Header.
-func NewProxyConnectionHeader() Header {
+func NewProxyConnectionHeader(values ...string) Header {
 	header := Header{
-		Name: name.ProxyConnection}
+		Name: name.ProxyConnection,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewPublicKeyPinsHeader creates a Public-Key-Pins HTTP Header.
-func NewPublicKeyPinsHeader() Header {
+func NewPublicKeyPinsHeader(values ...string) Header {
 	header := Header{
-		Name: name.PublicKeyPins}
+		Name: name.PublicKeyPins,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewRTTHeader creates a RTT HTTP Header.
-func NewRTTHeader() Header {
+func NewRTTHeader(values ...string) Header {
 	header := Header{
-		Name: name.RTT}
+		Name: name.RTT,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewRangeHeader creates a Range HTTP Header.
-func NewRangeHeader() Header {
+func NewRangeHeader(values ...string) Header {
 	header := Header{
-		Name: name.Range}
+		Name:    name.Range,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewRefererHeader creates a Referer HTTP Header.
-func NewRefererHeader() Header {
+func NewRefererHeader(values ...string) Header {
 	header := Header{
-		Name: name.Referer}
+		Name:    name.Referer,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewReferrerPolicyHeader creates a Referrer-Policy HTTP Header.
-func NewReferrerPolicyHeader() Header {
+func NewReferrerPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.ReferrerPolicy}
+		Name: name.ReferrerPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewRefreshHeader creates a Refresh HTTP Header.
-func NewRefreshHeader() Header {
+func NewRefreshHeader(values ...string) Header {
 	header := Header{
-		Name: name.Refresh}
+		Name: name.Refresh,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewReportToHeader creates a Report-To HTTP Header.
-func NewReportToHeader() Header {
+func NewReportToHeader(values ...string) Header {
 	header := Header{
-		Name: name.ReportTo}
+		Name: name.ReportTo,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewRetryAfterHeader creates a Retry-After HTTP Header.
-func NewRetryAfterHeader() Header {
+func NewRetryAfterHeader(values ...string) Header {
 	header := Header{
-		Name: name.RetryAfter}
+		Name: name.RetryAfter,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSaveDataHeader creates a Save-Data HTTP Header.
-func NewSaveDataHeader() Header {
+func NewSaveDataHeader(values ...string) Header {
 	header := Header{
-		Name: name.SaveData}
+		Name: name.SaveData,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHPrefersColorSchemeHeader creates a Sec-CH-Prefers-Color-Scheme HTTP Header.
-func NewSecCHPrefersColorSchemeHeader() Header {
+func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHPrefersColorScheme}
+		Name: name.SecCHPrefersColorScheme,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHPrefersReducedMotionHeader creates a Sec-CH-Prefers-Reduced-Motion HTTP Header.
-func NewSecCHPrefersReducedMotionHeader() Header {
+func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHPrefersReducedMotion}
+		Name: name.SecCHPrefersReducedMotion,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHPrefersReducedTransparencyHeader creates a Sec-CH-Prefers-Reduced-Transparency HTTP Header.
-func NewSecCHPrefersReducedTransparencyHeader() Header {
+func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHPrefersReducedTransparency}
+		Name: name.SecCHPrefersReducedTransparency,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAHeader creates a Sec-CH-UA HTTP Header.
-func NewSecCHUAHeader() Header {
+func NewSecCHUAHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUA}
+		Name: name.SecCHUA,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAArchHeader creates a Sec-CH-UA-Arch HTTP Header.
-func NewSecCHUAArchHeader() Header {
+func NewSecCHUAArchHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAArch}
+		Name: name.SecCHUAArch,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUABitnessHeader creates a Sec-CH-UA-Bitness HTTP Header.
-func NewSecCHUABitnessHeader() Header {
+func NewSecCHUABitnessHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUABitness}
+		Name: name.SecCHUABitness,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAFullVersionHeader creates a Sec-CH-UA-Full-Version HTTP Header.
-func NewSecCHUAFullVersionHeader() Header {
+func NewSecCHUAFullVersionHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAFullVersion}
+		Name: name.SecCHUAFullVersion,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAFullVersionListHeader creates a Sec-CH-UA-Full-Version-List HTTP Header.
-func NewSecCHUAFullVersionListHeader() Header {
+func NewSecCHUAFullVersionListHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAFullVersionList}
+		Name: name.SecCHUAFullVersionList,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAMobileHeader creates a Sec-CH-UA-Mobile HTTP Header.
-func NewSecCHUAMobileHeader() Header {
+func NewSecCHUAMobileHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAMobile}
+		Name: name.SecCHUAMobile,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAModelHeader creates a Sec-CH-UA-Model HTTP Header.
-func NewSecCHUAModelHeader() Header {
+func NewSecCHUAModelHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAModel}
+		Name: name.SecCHUAModel,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAPlatformHeader creates a Sec-CH-UA-Platform HTTP Header.
-func NewSecCHUAPlatformHeader() Header {
+func NewSecCHUAPlatformHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAPlatform}
+		Name: name.SecCHUAPlatform,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecCHUAPlatformVersionHeader creates a Sec-CH-UA-Platform-Version HTTP Header.
-func NewSecCHUAPlatformVersionHeader() Header {
+func NewSecCHUAPlatformVersionHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecCHUAPlatformVersion}
+		Name: name.SecCHUAPlatformVersion,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSecFetchDestHeader creates a Sec-Fetch-Dest HTTP Header.
-func NewSecFetchDestHeader() Header {
+func NewSecFetchDestHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecFetchDest}
+		Name:    name.SecFetchDest,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecFetchModeHeader creates a Sec-Fetch-Mode HTTP Header.
-func NewSecFetchModeHeader() Header {
+func NewSecFetchModeHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecFetchMode}
+		Name:    name.SecFetchMode,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecFetchSiteHeader creates a Sec-Fetch-Site HTTP Header.
-func NewSecFetchSiteHeader() Header {
+func NewSecFetchSiteHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecFetchSite}
+		Name:    name.SecFetchSite,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecFetchUserHeader creates a Sec-Fetch-User HTTP Header.
-func NewSecFetchUserHeader() Header {
+func NewSecFetchUserHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecFetchUser}
+		Name:    name.SecFetchUser,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecGPCHeader creates a Sec-GPC HTTP Header.
-func NewSecGPCHeader() Header {
+func NewSecGPCHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecGPC}
+		Name:    name.SecGPC,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecPurposeHeader creates a Sec-Purpose HTTP Header.
-func NewSecPurposeHeader() Header {
+func NewSecPurposeHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecPurpose}
+		Name:    name.SecPurpose,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewSecWebSocketAcceptHeader creates a Sec-WebSocket-Accept HTTP Header.
-func NewSecWebSocketAcceptHeader() Header {
+func NewSecWebSocketAcceptHeader(values ...string) Header {
 	header := Header{
-		Name: name.SecWebSocketAccept}
+		Name: name.SecWebSocketAccept,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewServerHeader creates a Server HTTP Header.
-func NewServerHeader() Header {
+func NewServerHeader(values ...string) Header {
 	header := Header{
-		Name: name.Server}
+		Name: name.Server,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewServerTimingHeader creates a Server-Timing HTTP Header.
-func NewServerTimingHeader() Header {
+func NewServerTimingHeader(values ...string) Header {
 	header := Header{
-		Name: name.ServerTiming}
+		Name: name.ServerTiming,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewServiceWorkerNavigationPreloadHeader creates a Service-Worker-Navigation-Preload HTTP Header.
-func NewServiceWorkerNavigationPreloadHeader() Header {
+func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
 	header := Header{
-		Name: name.ServiceWorkerNavigationPreload}
+		Name: name.ServiceWorkerNavigationPreload,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSetCookieHeader creates a Set-Cookie HTTP Header.
-func NewSetCookieHeader() Header {
+func NewSetCookieHeader(values ...string) Header {
 	header := Header{
-		Name: name.SetCookie}
+		Name: name.SetCookie,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewSourceMapHeader creates a SourceMap HTTP Header.
-func NewSourceMapHeader() Header {
+func NewSourceMapHeader(values ...string) Header {
 	header := Header{
-		Name: name.SourceMap}
+		Name: name.SourceMap,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewStatusHeader creates a Status HTTP Header.
-func NewStatusHeader() Header {
+func NewStatusHeader(values ...string) Header {
 	header := Header{
-		Name: name.Status}
+		Name: name.Status,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewStrictTransportSecurityHeader creates a Strict-Transport-Security HTTP Header.
-func NewStrictTransportSecurityHeader() Header {
+func NewStrictTransportSecurityHeader(values ...string) Header {
 	header := Header{
-		Name: name.StrictTransportSecurity}
+		Name: name.StrictTransportSecurity,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewTEHeader creates a TE HTTP Header.
-func NewTEHeader() Header {
+func NewTEHeader(values ...string) Header {
 	header := Header{
-		Name: name.TE}
+		Name: name.TE,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewTimingAllowOriginHeader creates a Timing-Allow-Origin HTTP Header.
-func NewTimingAllowOriginHeader() Header {
+func NewTimingAllowOriginHeader(values ...string) Header {
 	header := Header{
-		Name: name.TimingAllowOrigin}
+		Name: name.TimingAllowOrigin,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewTKHeader creates a Tk HTTP Header.
-func NewTKHeader() Header {
+func NewTKHeader(values ...string) Header {
 	header := Header{
-		Name: name.TK}
+		Name:    name.TK,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewTrailerHeader creates a Trailer HTTP Header.
-func NewTrailerHeader() Header {
+func NewTrailerHeader(values ...string) Header {
 	header := Header{
-		Name: name.Trailer}
+		Name:    name.Trailer,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewTransferEncodingHeader creates a Transfer-Encoding HTTP Header.
-func NewTransferEncodingHeader() Header {
+func NewTransferEncodingHeader(values ...string) Header {
 	header := Header{
-		Name: name.TransferEncoding}
+		Name:    name.TransferEncoding,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewUpgradeHeader creates a Upgrade HTTP Header.
-func NewUpgradeHeader() Header {
+func NewUpgradeHeader(values ...string) Header {
 	header := Header{
-		Name: name.Upgrade}
+		Name: name.Upgrade,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewUpgradeInsecureRequestsHeader creates a Upgrade-Insecure-Requests HTTP Header.
-func NewUpgradeInsecureRequestsHeader() Header {
+func NewUpgradeInsecureRequestsHeader(values ...string) Header {
 	header := Header{
-		Name: name.UpgradeInsecureRequests}
+		Name:    name.UpgradeInsecureRequests,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewUserAgentHeader creates a User-Agent HTTP Header.
-func NewUserAgentHeader() Header {
+func NewUserAgentHeader(values ...string) Header {
 	header := Header{
-		Name: name.UserAgent}
+		Name:    name.UserAgent,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewVaryHeader creates a Vary HTTP Header.
-func NewVaryHeader() Header {
+func NewVaryHeader(values ...string) Header {
 	header := Header{
-		Name: name.Vary}
+		Name: name.Vary,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewViaHeader creates a Via HTTP Header.
-func NewViaHeader() Header {
+func NewViaHeader(values ...string) Header {
 	header := Header{
-		Name: name.Via}
+		Name: name.Via,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewViewportWidthHeader creates a Viewport-Width HTTP Header.
-func NewViewportWidthHeader() Header {
+func NewViewportWidthHeader(values ...string) Header {
 	header := Header{
-		Name: name.ViewportWidth}
+		Name: name.ViewportWidth,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewWWWAuthenticateHeader creates a WWW-Authenticate HTTP Header.
-func NewWWWAuthenticateHeader() Header {
+func NewWWWAuthenticateHeader(values ...string) Header {
 	header := Header{
-		Name: name.WWWAuthenticate}
+		Name: name.WWWAuthenticate,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewWantDigestHeader creates a Want-Digest HTTP Header.
-func NewWantDigestHeader() Header {
+func NewWantDigestHeader(values ...string) Header {
 	header := Header{
-		Name: name.WantDigest}
+		Name: name.WantDigest,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewWarningHeader creates a Warning HTTP Header.
-func NewWarningHeader() Header {
+func NewWarningHeader(values ...string) Header {
 	header := Header{
-		Name: name.Warning}
+		Name: name.Warning,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewWidthHeader creates a Width HTTP Header.
-func NewWidthHeader() Header {
+func NewWidthHeader(values ...string) Header {
 	header := Header{
-		Name: name.Width}
+		Name: name.Width,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXATTDeviceIDHeader creates a X-ATT-DeviceId HTTP Header.
-func NewXATTDeviceIDHeader() Header {
+func NewXATTDeviceIDHeader(values ...string) Header {
 	header := Header{
-		Name: name.XATTDeviceID}
+		Name:    name.XATTDeviceID,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXContentDurationHeader creates a X-Content-Duration HTTP Header.
-func NewXContentDurationHeader() Header {
+func NewXContentDurationHeader(values ...string) Header {
 	header := Header{
-		Name: name.XContentDuration}
+		Name: name.XContentDuration,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXContentSecurityPolicyHeader creates a X-Content-Security-Policy HTTP Header.
-func NewXContentSecurityPolicyHeader() Header {
+func NewXContentSecurityPolicyHeader(values ...string) Header {
 	header := Header{
-		Name: name.XContentSecurityPolicy}
+		Name: name.XContentSecurityPolicy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXContentTypeOptionsHeader creates a X-Content-Type-Options HTTP Header.
-func NewXContentTypeOptionsHeader() Header {
+func NewXContentTypeOptionsHeader(values ...string) Header {
 	header := Header{
-		Name: name.XContentTypeOptions}
+		Name: name.XContentTypeOptions,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXCorrelationIDHeader creates a X-Correlation-ID HTTP Header.
-func NewXCorrelationIDHeader() Header {
+func NewXCorrelationIDHeader(values ...string) Header {
 	header := Header{
-		Name: name.XCorrelationID}
+		Name: name.XCorrelationID,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXCSRFTokenHeader creates a X-CSRF-Token HTTP Header.
-func NewXCSRFTokenHeader() Header {
+func NewXCSRFTokenHeader(values ...string) Header {
 	header := Header{
-		Name: name.XCSRFToken}
+		Name:    name.XCSRFToken,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXDNSPrefetchControlHeader creates a X-DNS-Prefetch-Control HTTP Header.
-func NewXDNSPrefetchControlHeader() Header {
+func NewXDNSPrefetchControlHeader(values ...string) Header {
 	header := Header{
-		Name: name.XDNSPrefetchControl}
+		Name:    name.XDNSPrefetchControl,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXForwardedForHeader creates a X-Forwarded-For HTTP Header.
-func NewXForwardedForHeader() Header {
+func NewXForwardedForHeader(values ...string) Header {
 	header := Header{
-		Name: name.XForwardedFor}
+		Name:    name.XForwardedFor,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXForwardedHostHeader creates a X-Forwarded-Host HTTP Header.
-func NewXForwardedHostHeader() Header {
+func NewXForwardedHostHeader(values ...string) Header {
 	header := Header{
-		Name: name.XForwardedHost}
+		Name:    name.XForwardedHost,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXForwardedProtoHeader creates a X-Forwarded-Proto HTTP Header.
-func NewXForwardedProtoHeader() Header {
+func NewXForwardedProtoHeader(values ...string) Header {
 	header := Header{
-		Name: name.XForwardedProto}
+		Name:    name.XForwardedProto,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXFrameOptionsHeader creates a X-Frame-Options HTTP Header.
-func NewXFrameOptionsHeader() Header {
+func NewXFrameOptionsHeader(values ...string) Header {
 	header := Header{
-		Name: name.XFrameOptions}
+		Name: name.XFrameOptions,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXHTTPMethodOverrideHeader creates a X-HTTP-Method-Override HTTP Header.
-func NewXHTTPMethodOverrideHeader() Header {
+func NewXHTTPMethodOverrideHeader(values ...string) Header {
 	header := Header{
-		Name: name.XHTTPMethodOverride}
+		Name:    name.XHTTPMethodOverride,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXPoweredByHeader creates a X-Powered-By HTTP Header.
-func NewXPoweredByHeader() Header {
+func NewXPoweredByHeader(values ...string) Header {
 	header := Header{
-		Name: name.XPoweredBy}
+		Name:    name.XPoweredBy,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXRedirectByHeader creates a X-Redirect-By HTTP Header.
-func NewXRedirectByHeader() Header {
+func NewXRedirectByHeader(values ...string) Header {
 	header := Header{
-		Name: name.XRedirectBy}
+		Name: name.XRedirectBy,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXRequestIDHeader creates a X-Request-ID HTTP Header.
-func NewXRequestIDHeader() Header {
+func NewXRequestIDHeader(values ...string) Header {
 	header := Header{
-		Name: name.XRequestID}
+		Name:    name.XRequestID,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXRequestedWithHeader creates a X-Requested-With HTTP Header.
-func NewXRequestedWithHeader() Header {
+func NewXRequestedWithHeader(values ...string) Header {
 	header := Header{
-		Name: name.XRequestedWith}
+		Name:    name.XRequestedWith,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXUACompatibleHeader creates a X-UA-Compatible HTTP Header.
-func NewXUACompatibleHeader() Header {
+func NewXUACompatibleHeader(values ...string) Header {
 	header := Header{
-		Name: name.XUACompatible}
+		Name: name.XUACompatible,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXUIDHHeader creates a X-UIDH HTTP Header.
-func NewXUIDHHeader() Header {
+func NewXUIDHHeader(values ...string) Header {
 	header := Header{
-		Name: name.XUIDH}
+		Name:    name.XUIDH,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXWapProfileHeader creates a X-Wap-Profile HTTP Header.
-func NewXWapProfileHeader() Header {
+func NewXWapProfileHeader(values ...string) Header {
 	header := Header{
-		Name: name.XWapProfile}
+		Name:    name.XWapProfile,
+		Request: true,
+		// Response: false,
+		Values: values}
 	return header
 }
 
 // NewXWebKitCSPHeader creates a X-WebKit-CSP HTTP Header.
-func NewXWebKitCSPHeader() Header {
+func NewXWebKitCSPHeader(values ...string) Header {
 	header := Header{
-		Name: name.XWebKitCSP}
+		Name: name.XWebKitCSP,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
 
 // NewXXSSProtectionHeader creates a X-XSS-Protection HTTP Header.
-func NewXXSSProtectionHeader() Header {
+func NewXXSSProtectionHeader(values ...string) Header {
 	header := Header{
-		Name: name.XXSSProtection}
+		Name: name.XXSSProtection,
+		// Request: false,
+		Response: true,
+		Values:   values}
 	return header
 }
