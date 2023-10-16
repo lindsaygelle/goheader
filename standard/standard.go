@@ -92,6 +92,6 @@ const RFC9111 Standard = 9111
 const RFC9113 Standard = 9113
 
 // New creates a new Standard.
-func New(value uint) Standard {
+func New(value uint16) Standard {
 	return Standard(value)
 }
