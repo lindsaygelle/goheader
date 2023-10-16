@@ -46,7 +46,7 @@ func NewAIMHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
+		Standards: slice.New[standard.Standard](standard.RFC3229),
 		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
@@ -63,8 +63,8 @@ func NewAcceptHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -80,8 +80,8 @@ func NewAcceptCHHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC8942),
+		Status:    status.Experimental,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -114,8 +114,8 @@ func NewAcceptCharsetHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -131,8 +131,8 @@ func NewAcceptDatetimeHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7089),
+		Status:    status.Provisional,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -148,8 +148,8 @@ func NewAcceptEncodingHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -165,8 +165,8 @@ func NewAcceptLanguageHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -182,8 +182,8 @@ func NewAcceptPatchHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC5789),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -199,7 +199,7 @@ func NewAcceptPostHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
+		Standards: slice.New[standard.Standard](standard.RFC9110),
 		Status:    status.Unknown,
 		Values:    slice.New[string](values...)}
 	return header
@@ -216,8 +216,8 @@ func NewAcceptRangesHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -234,7 +234,7 @@ func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -250,8 +250,8 @@ func NewAccessControlAllowHeadersHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -267,8 +267,8 @@ func NewAccessControlAllowMethodsHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -284,8 +284,8 @@ func NewAccessControlAllowOriginHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7480),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -301,8 +301,8 @@ func NewAccessControlExposeHeadersHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7480),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -318,8 +318,8 @@ func NewAccessControlMaxAgeHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7480),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -335,8 +335,8 @@ func NewAccessControlRequestHeadersHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7480),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -352,8 +352,8 @@ func NewAccessControlRequestMethodHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7480),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -369,7 +369,7 @@ func NewAgeHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
+		Standards: slice.New[standard.Standard](standard.RFC9111),
 		Status:    status.Unknown,
 		Values:    slice.New[string](values...)}
 	return header
@@ -386,8 +386,8 @@ func NewAllowHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -404,7 +404,7 @@ func NewAltSvcHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -437,8 +437,8 @@ func NewAuthorizationHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -454,8 +454,8 @@ func NewCacheControlHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9111),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -488,8 +488,8 @@ func NewConnectionHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -522,8 +522,8 @@ func NewContentDispositionHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC2616, standard.RFC4021, standard.RFC6266),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -539,8 +539,8 @@ func NewContentEncodingHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -556,8 +556,8 @@ func NewContentLanguageHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -573,8 +573,8 @@ func NewContentLengthHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -590,8 +590,8 @@ func NewContentLocationHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -607,8 +607,8 @@ func NewContentMD5Header(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC1544, standard.RFC1864, standard.RFC4021),
+		Status:    status.Obsolete,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -624,8 +624,8 @@ func NewContentRangeHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -675,8 +675,8 @@ func NewContentTypeHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -692,8 +692,8 @@ func NewCookieHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC2965, standard.RFC6265),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -828,8 +828,8 @@ func NewDateHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -845,8 +845,8 @@ func NewDeltaBaseHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC3229),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -930,8 +930,8 @@ func NewETagHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -964,8 +964,8 @@ func NewExpectHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -998,8 +998,8 @@ func NewExpiresHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9111),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1015,8 +1015,8 @@ func NewForwardedHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7239),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1032,8 +1032,8 @@ func NewFromHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1066,8 +1066,8 @@ func NewHTTP2SettingsHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7540, standard.RFC9113),
+		Status:    status.Obsolete,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1084,7 +1084,7 @@ func NewHostHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1100,8 +1100,8 @@ func NewIMHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC3229),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1117,8 +1117,8 @@ func NewIfMatchHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1134,8 +1134,8 @@ func NewIfModifiedSinceHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1151,8 +1151,8 @@ func NewIfNoneMatchHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1168,8 +1168,8 @@ func NewIfRangeHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1185,8 +1185,8 @@ func NewIfUnmodifiedSinceHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1236,8 +1236,8 @@ func NewLastModifiedHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1253,8 +1253,8 @@ func NewLinkHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC5988),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1270,8 +1270,8 @@ func NewLocationHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1287,8 +1287,8 @@ func NewMaxForwardsHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1321,8 +1321,8 @@ func NewOriginHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC6454),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1339,7 +1339,7 @@ func NewP3PHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1372,8 +1372,8 @@ func NewPragmaHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9111),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1390,7 +1390,7 @@ func NewPreferHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1406,8 +1406,8 @@ func NewPreferenceAppliedHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7240),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1423,8 +1423,8 @@ func NewProxyAuthenticateHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1440,8 +1440,8 @@ func NewProxyAuthorizationHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1474,8 +1474,8 @@ func NewPublicKeyPinsHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7469),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1508,8 +1508,8 @@ func NewRangeHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1525,8 +1525,8 @@ func NewRefererHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1593,8 +1593,8 @@ func NewRetryAfterHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -1950,8 +1950,8 @@ func NewServerHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2001,8 +2001,8 @@ func NewSetCookieHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC6265),
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2053,7 +2053,7 @@ func NewStrictTransportSecurityHeader(values ...string) Header {
 		Response:  true,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.PermanentStandard,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2069,8 +2069,8 @@ func NewTEHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2104,7 +2104,7 @@ func NewTKHeader(values ...string) Header {
 		// Response:     false,
 		Standard:  true,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2120,8 +2120,8 @@ func NewTrailerHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2137,8 +2137,8 @@ func NewTransferEncodingHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2154,8 +2154,8 @@ func NewUpgradeHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2188,8 +2188,8 @@ func NewUserAgentHeader(values ...string) Header {
 		Request: true,
 		// Response:     false,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2205,8 +2205,8 @@ func NewVaryHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2222,8 +2222,8 @@ func NewViaHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2256,8 +2256,8 @@ func NewWWWAuthenticateHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC9110),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2290,8 +2290,8 @@ func NewWarningHeader(values ...string) Header {
 		// Request:      false,
 		Response:  true,
 		Standard:  true,
-		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Standards: slice.New[standard.Standard](standard.RFC7234, standard.RFC9111),
+		Status:    status.Permanent,
 		Values:    slice.New[string](values...)}
 	return header
 }
@@ -2495,7 +2495,7 @@ func NewXFrameOptionsHeader(values ...string) Header {
 		Response: true,
 		// Standard:  false,
 		Standards: slice.New[standard.Standard](),
-		Status:    status.Unknown,
+		Status:    status.Obsolete,
 		Values:    slice.New[string](values...)}
 	return header
 }
