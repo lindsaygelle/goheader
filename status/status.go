@@ -4,6 +4,9 @@ package status
 // Status represents the status of an entity, typically used for indicating the state or category of something.
 type Status string
 
+// Experimental is a constant representing an entity with an "experimental" status.
+const Experimental Status = "Experimental"
+
 // Obsolete is a constant representing an entity with an "obsolete" status.
 const Obsolete Status = "Obsolete"
 
