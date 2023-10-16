@@ -5,10 +5,10 @@ package status
 type Status string
 
 // Obsolete is a constant representing an entity with an "obsolete" status.
-const Obsolete Status = "obsolete"
+const Obsolete Status = "Obsolete"
 
 // Permanent is a constant representing an entity with a "permanent" status.
-const Permanent Status = "permanent"
+const Permanent Status = "Permanent"
 
 // PermanentStandard is a constant representing an entity with a "permanent:standard" status.
 const PermanentStandard Status = (Permanent + ":standard")
@@ -17,7 +17,10 @@ const PermanentStandard Status = (Permanent + ":standard")
 const Proposed Status = "Proposed"
 
 // Provisional is a constant representing an entity with a "provisional" status.
-const Provisional Status = "provisional"
+const Provisional Status = "Provisional"
+
+// Unknown is a constant representing an entity with an "Unknown" status.
+const Unknown Status = "Unknown"
 
 // New creates a new Status.
 func New(value string) Status {
