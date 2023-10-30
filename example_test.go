@@ -9,413 +9,414 @@ import (
 // ExampleNewAIMHeader creates an example for function NewAIMHeader.
 func ExampleNewAIMHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAIMHeader()
+	header := goheader.NewAIMHeader("feed")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptHeader creates an example for function NewAcceptHeader.
 func ExampleNewAcceptHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptHeader()
+	header := goheader.NewAcceptHeader("text/html")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptCHHeader creates an example for function NewAcceptCHHeader.
 func ExampleNewAcceptCHHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptCHHeader()
+	header := goheader.NewAcceptCHHeader("width")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptCHLifetimeHeader creates an example for function NewAcceptCHLifetimeHeader.
 func ExampleNewAcceptCHLifetimeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptCHLifetimeHeader()
+	header := goheader.NewAcceptCHLifetimeHeader("86400")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptCharsetHeader creates an example for function NewAcceptCharsetHeader.
+
 func ExampleNewAcceptCharsetHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptCharsetHeader()
+	header := goheader.NewAcceptCharsetHeader("UTF-8")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptDatetimeHeader creates an example for function NewAcceptDatetimeHeader.
 func ExampleNewAcceptDatetimeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptDatetimeHeader()
+	header := goheader.NewAcceptDatetimeHeader("Thu, 31 May 2007 20:35:00 GMT")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptEncodingHeader creates an example for function NewAcceptEncodingHeader.
 func ExampleNewAcceptEncodingHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptEncodingHeader()
+	header := goheader.NewAcceptEncodingHeader("gzip")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptLanguageHeader creates an example for function NewAcceptLanguageHeader.
 func ExampleNewAcceptLanguageHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptLanguageHeader()
+	header := goheader.NewAcceptLanguageHeader("en-AU")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptPatchHeader creates an example for function NewAcceptPatchHeader.
 func ExampleNewAcceptPatchHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptPatchHeader()
+	header := goheader.NewAcceptPatchHeader("application/example", "text/example")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptPostHeader creates an example for function NewAcceptPostHeader.
 func ExampleNewAcceptPostHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptPostHeader()
+	header := goheader.NewAcceptPostHeader("application/example", "text/example")
 	fmt.Println(header)
 }
 
 // ExampleNewAcceptRangesHeader creates an example for function NewAcceptRangesHeader.
 func ExampleNewAcceptRangesHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAcceptRangesHeader()
+	header := goheader.NewAcceptRangesHeader("bytes")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlAllowCredentialsHeader creates an example for function NewAccessControlAllowCredentialsHeader.
 func ExampleNewAccessControlAllowCredentialsHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlAllowCredentialsHeader()
+	header := goheader.NewAccessControlAllowCredentialsHeader("true")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlAllowHeadersHeader creates an example for function NewAccessControlAllowHeadersHeader.
 func ExampleNewAccessControlAllowHeadersHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlAllowHeadersHeader()
+	header := goheader.NewAccessControlAllowHeadersHeader("*")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlAllowMethodsHeader creates an example for function NewAccessControlAllowMethodsHeader.
 func ExampleNewAccessControlAllowMethodsHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlAllowMethodsHeader()
+	header := goheader.NewAccessControlAllowMethodsHeader("POST", "GET")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlAllowOriginHeader creates an example for function NewAccessControlAllowOriginHeader.
 func ExampleNewAccessControlAllowOriginHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlAllowOriginHeader()
+	header := goheader.NewAccessControlAllowOriginHeader("*")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlExposeHeadersHeader creates an example for function NewAccessControlExposeHeadersHeader.
 func ExampleNewAccessControlExposeHeadersHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlExposeHeadersHeader()
+	header := goheader.NewAccessControlExposeHeadersHeader("https://github.com")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlMaxAgeHeader creates an example for function NewAccessControlMaxAgeHeader.
 func ExampleNewAccessControlMaxAgeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlMaxAgeHeader()
+	header := goheader.NewAccessControlMaxAgeHeader("600")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlRequestHeadersHeader creates an example for function NewAccessControlRequestHeadersHeader.
 func ExampleNewAccessControlRequestHeadersHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlRequestHeadersHeader()
+	header := goheader.NewAccessControlRequestHeadersHeader("Content-Type", "X-User-Addr")
 	fmt.Println(header)
 }
 
 // ExampleNewAccessControlRequestMethodHeader creates an example for function NewAccessControlRequestMethodHeader.
 func ExampleNewAccessControlRequestMethodHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAccessControlRequestMethodHeader()
+	header := goheader.NewAccessControlRequestMethodHeader("GET")
 	fmt.Println(header)
 }
 
 // ExampleNewAgeHeader creates an example for function NewAgeHeader.
 func ExampleNewAgeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAgeHeader()
+	header := goheader.NewAgeHeader("15")
 	fmt.Println(header)
 }
 
 // ExampleNewAllowHeader creates an example for function NewAllowHeader.
 func ExampleNewAllowHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAllowHeader()
+	header := goheader.NewAllowHeader("HEAD", "GET")
 	fmt.Println(header)
 }
 
 // ExampleNewAltSvcHeader creates an example for function NewAltSvcHeader.
 func ExampleNewAltSvcHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAltSvcHeader()
+	header := goheader.NewAltSvcHeader("h2=\"alt.example.com:443\"", "h2=\":443\"")
 	fmt.Println(header)
 }
 
 // ExampleNewAltUsedHeader creates an example for function NewAltUsedHeader.
 func ExampleNewAltUsedHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAltUsedHeader()
+	header := goheader.NewAltUsedHeader("alternate.example.net")
 	fmt.Println(header)
 }
 
 // ExampleNewAuthorizationHeader creates an example for function NewAuthorizationHeader.
 func ExampleNewAuthorizationHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewAuthorizationHeader()
+	header := goheader.NewAuthorizationHeader("Basic RXhhbXBsZTphaQ==")
 	fmt.Println(header)
 }
 
 // ExampleNewCacheControlHeader creates an example for function NewCacheControlHeader.
 func ExampleNewCacheControlHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCacheControlHeader()
+	header := goheader.NewCacheControlHeader("max-age=604800")
 	fmt.Println(header)
 }
 
 // ExampleNewClearSiteDataHeader creates an example for function NewClearSiteDataHeader.
 func ExampleNewClearSiteDataHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewClearSiteDataHeader()
+	header := goheader.NewClearSiteDataHeader("*")
 	fmt.Println(header)
 }
 
 // ExampleNewConnectionHeader creates an example for function NewConnectionHeader.
 func ExampleNewConnectionHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewConnectionHeader()
+	header := goheader.NewConnectionHeader("keep-alive")
 	fmt.Println(header)
 }
 
 // ExampleNewContentDPRHeader creates an example for function NewContentDPRHeader.
 func ExampleNewContentDPRHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentDPRHeader()
+	header := goheader.NewContentDPRHeader("1")
 	fmt.Println(header)
 }
 
 // ExampleNewContentDispositionHeader creates an example for function NewContentDispositionHeader.
 func ExampleNewContentDispositionHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentDispositionHeader()
+	header := goheader.NewContentDispositionHeader("attachment; filename=\"document.doc\"")
 	fmt.Println(header)
 }
 
 // ExampleNewContentEncodingHeader creates an example for function NewContentEncodingHeader.
 func ExampleNewContentEncodingHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentEncodingHeader()
+	header := goheader.NewContentEncodingHeader("deflate", "br")
 	fmt.Println(header)
 }
 
 // ExampleNewContentLanguageHeader creates an example for function NewContentLanguageHeader.
 func ExampleNewContentLanguageHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentLanguageHeader()
+	header := goheader.NewContentLanguageHeader("en-AU")
 	fmt.Println(header)
 }
 
 // ExampleNewContentLengthHeader creates an example for function NewContentLengthHeader.
 func ExampleNewContentLengthHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentLengthHeader()
+	header := goheader.NewContentLengthHeader("128")
 	fmt.Println(header)
 }
 
 // ExampleNewContentLocationHeader creates an example for function NewContentLocationHeader.
 func ExampleNewContentLocationHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentLocationHeader()
+	header := goheader.NewContentLocationHeader("https://example.com/documents/foo")
 	fmt.Println(header)
 }
 
 // ExampleNewContentMD5Header creates an example for function NewContentMD5Header.
 func ExampleNewContentMD5Header() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentMD5Header()
+	header := goheader.NewContentMD5Header("b89f948e98f3a113dc13fdbd3bdb17ef")
 	fmt.Println(header)
 }
 
 // ExampleNewContentRangeHeader creates an example for function NewContentRangeHeader.
 func ExampleNewContentRangeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentRangeHeader()
+	header := goheader.NewContentRangeHeader("1000-2000/*")
 	fmt.Println(header)
 }
 
 // ExampleNewContentSecurityPolicyHeader creates an example for function NewContentSecurityPolicyHeader.
 func ExampleNewContentSecurityPolicyHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentSecurityPolicyHeader()
+	header := goheader.NewContentSecurityPolicyHeader("default-src 'self'; font-src fonts.gstatic.com; style-src 'self' fonts.googleapis.com")
 	fmt.Println(header)
 }
 
 // ExampleNewContentSecurityPolicyReportOnlyHeader creates an example for function NewContentSecurityPolicyReportOnlyHeader.
 func ExampleNewContentSecurityPolicyReportOnlyHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentSecurityPolicyReportOnlyHeader()
+	header := goheader.NewContentSecurityPolicyReportOnlyHeader("default-src https:; report-to /csp-violation-report-endpoint/")
 	fmt.Println(header)
 }
 
 // ExampleNewContentTypeHeader creates an example for function NewContentTypeHeader.
 func ExampleNewContentTypeHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewContentTypeHeader()
+	header := goheader.NewContentTypeHeader("text/html; charset=utf-8")
 	fmt.Println(header)
 }
 
 // ExampleNewCookieHeader creates an example for function NewCookieHeader.
 func ExampleNewCookieHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCookieHeader()
+	header := goheader.NewCookieHeader("PHPSESSID=298zf09hf012fh2; csrftoken=u32t4o3tb3gg43; _gat=1")
 	fmt.Println(header)
 }
 
 // ExampleNewCorrelationIDHeader creates an example for function NewCorrelationIDHeader.
 func ExampleNewCorrelationIDHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCorrelationIDHeader()
+	header := goheader.NewCorrelationIDHeader("93dba609-c615-4513-b95b-0d3468ec20d0")
 	fmt.Println(header)
 }
 
 // ExampleNewCriticalCHHeader creates an example for function NewCriticalCHHeader.
 func ExampleNewCriticalCHHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCriticalCHHeader()
+	header := goheader.NewCriticalCHHeader("Sec-CH-Prefers-Reduced-Motion")
 	fmt.Println(header)
 }
 
 // ExampleNewCrossOriginEmbedderPolicyHeader creates an example for function NewCrossOriginEmbedderPolicyHeader.
 func ExampleNewCrossOriginEmbedderPolicyHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCrossOriginEmbedderPolicyHeader()
+	header := goheader.NewCrossOriginEmbedderPolicyHeader("require-corp")
 	fmt.Println(header)
 }
 
 // ExampleNewCrossOriginOpenerPolicyHeader creates an example for function NewCrossOriginOpenerPolicyHeader.
 func ExampleNewCrossOriginOpenerPolicyHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCrossOriginOpenerPolicyHeader()
+	header := goheader.NewCrossOriginOpenerPolicyHeader("same-origin-allow-popups")
 	fmt.Println(header)
 }
 
 // ExampleNewCrossOriginResourcePolicyHeader creates an example for function NewCrossOriginResourcePolicyHeader.
 func ExampleNewCrossOriginResourcePolicyHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewCrossOriginResourcePolicyHeader()
+	header := goheader.NewCrossOriginResourcePolicyHeader("same-origin")
 	fmt.Println(header)
 }
 
 // ExampleNewDNTHeader creates an example for function NewDNTHeader.
 func ExampleNewDNTHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDNTHeader()
+	header := goheader.NewDNTHeader("1")
 	fmt.Println(header)
 }
 
 // ExampleNewDPRHeader creates an example for function NewDPRHeader.
 func ExampleNewDPRHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDPRHeader()
+	header := goheader.NewDPRHeader("2.0")
 	fmt.Println(header)
 }
 
 // ExampleNewDateHeader creates an example for function NewDateHeader.
 func ExampleNewDateHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDateHeader()
+	header := goheader.NewDateHeader("Wed, 21 Oct 2015 07:28:00 GMT")
 	fmt.Println(header)
 }
 
 // ExampleNewDeltaBaseHeader creates an example for function NewDeltaBaseHeader.
 func ExampleNewDeltaBaseHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDeltaBaseHeader()
+	header := goheader.NewDeltaBaseHeader("12340001")
 	fmt.Println(header)
 }
 
 // ExampleNewDeviceMemoryHeader creates an example for function NewDeviceMemoryHeader.
 func ExampleNewDeviceMemoryHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDeviceMemoryHeader()
+	header := goheader.NewDeviceMemoryHeader("2")
 	fmt.Println(header)
 }
 
 // ExampleNewDigestHeader creates an example for function NewDigestHeader.
 func ExampleNewDigestHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDigestHeader()
+	header := goheader.NewDigestHeader("sha-512= 3b761a2a9a96e1c430236dc31378a3450ea189ae1449c3c8eac25cfa8b25381661317968a54cf46bfced09ae6b49f8512832182ac2d087b22380fcb760d802a3")
 	fmt.Println(header)
 }
 
 // ExampleNewDownlinkHeader creates an example for function NewDownlinkHeader.
 func ExampleNewDownlinkHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewDownlinkHeader()
+	header := goheader.NewDownlinkHeader("1.7")
 	fmt.Println(header)
 }
 
 // ExampleNewECTHeader creates an example for function NewECTHeader.
 func ExampleNewECTHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewECTHeader()
+	header := goheader.NewECTHeader("2g")
 	fmt.Println(header)
 }
 
 // ExampleNewETagHeader creates an example for function NewETagHeader.
 func ExampleNewETagHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewETagHeader()
+	header := goheader.NewETagHeader("33a64df551425fcc55e4d42a148795d9f25f89d4")
 	fmt.Println(header)
 }
 
 // ExampleNewEarlyDataHeader creates an example for function NewEarlyDataHeader.
 func ExampleNewEarlyDataHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewEarlyDataHeader()
+	header := goheader.NewEarlyDataHeader("1")
 	fmt.Println(header)
 }
 
 // ExampleNewExpectHeader creates an example for function NewExpectHeader.
 func ExampleNewExpectHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewExpectHeader()
+	header := goheader.NewExpectHeader("100-continue")
 	fmt.Println(header)
 }
 
 // ExampleNewExpectCTHeader creates an example for function NewExpectCTHeader.
 func ExampleNewExpectCTHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewExpectCTHeader()
+	header := goheader.NewExpectCTHeader("max-age=86400", "enforce", "report-uri=\"https://foo.example.com/report\"")
 	fmt.Println(header)
 }
 
 // ExampleNewExpiresHeader creates an example for function NewExpiresHeader.
 func ExampleNewExpiresHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewExpiresHeader()
+	header := goheader.NewExpiresHeader("Wed, 21 Oct 2015 07:28:00 GMT")
 	fmt.Println(header)
 }
 
 // ExampleNewForwardedHeader creates an example for function NewForwardedHeader.
 func ExampleNewForwardedHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewForwardedHeader()
+	header := goheader.NewForwardedHeader("for=192.0.2.43", "for=198.51.100.17")
 	fmt.Println(header)
 }
 
 // ExampleNewFromHeader creates an example for function NewFromHeader.
 func ExampleNewFromHeader() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewFromHeader()
+	header := goheader.NewFromHeader("webmaster@example.org")
 	fmt.Println(header)
 }
 
