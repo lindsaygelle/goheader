@@ -1,6 +1,7 @@
 package goheader_test
 
 import (
+	"net/http"
 	"reflect"
 	"strings"
 	"testing"
@@ -353,4 +354,10 @@ func TestConstructors(t *testing.T) {
 			}
 		})
 	}
+}
+
+ // TODO
+func TestWriteHeaders(t *testing.T) {
+	// Test case 1: Add header to http.ResponseWriter
+	// header := goheader.Header{Name: "Test", Values: []string{"Test"}} // Create an example Header.
 }
