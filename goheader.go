@@ -3300,14 +3300,21 @@ func NewXXSSProtectionHeader(values ...string) Header {
 
 // WriteHeaders writes new headers to an existing ResponseWriter.
 //
-//  // http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-//  goheader.WriteHeaders(w, goheader.NewContentLanguageHeader("en-AU"), goheader.NewContentTypeHeader("application/json"), goheader.NewCookieHeader("Hello=World"))
-//    w.WriteHeader(http.StatusOK)
-//    json.NewEncoder(w).Encode(w.Headers())
+//  // Create a default http handler function.
+//  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+//
+//    // Create some new Header instances.
+//    headers := []goheader.Header{goheader.NewContentLanguageHeader("en-AU"), goheader.NewContentTypeHeader("application/json"), goheader.NewCookieHeader("hello=world")}
+//
+//    // Pass the headers slice to the writer headers function.
+//    goheader.WriteHeaders(w, headers...)
+//      w.WriteHeader(http.StatusOK)
+//      json.NewEncoder(w).Encode(w.Headers())
 //  })
-func WriteHeaders(writer http.ResponseWriter, headers ...Header) nil {
+func WriteHeaders(w http.ResponseWriter, headers ...Header) {
 	httpHeaders := w.Header()
 	for _, header := range headers {
 		httpHeaders[header.Name] = header.Values
 	}
 }
+
