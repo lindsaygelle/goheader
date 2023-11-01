@@ -3298,23 +3298,30 @@ func NewXXSSProtectionHeader(values ...string) Header {
 		Values:       values}
 }
 
-// WriteHeaders writes new headers to an existing http.ResponseWriter.
+// WriteHeaders adds the key value pairs from a Header to an an interface providing access to standard Go http.Header type.
+// It accepts a variadic number of headers, where each header adds or replaces a key, value within the writers headers.
 //
 //  // Create a default http handler function.
 //  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 //
-//    // Create some new Header instances.
-//    headers := []goheader.Header{goheader.NewContentLanguageHeader("en-AU"), goheader.NewContentTypeHeader("application/json"), goheader.NewCookieHeader("hello=world")}
+//    // Create new Header instances.
+//    headers := []goheader.Header{
+//      goheader.NewContentLanguageHeader("en-AU"),
+//      goheader.NewContentTypeHeader("application/json"),
+//      goheader.NewCookieHeader("hello=world")}
 //
-//    // Pass the headers slice to the writer headers function.
+//    // Add the new headers to the http.ResponseWriter's headers instance.
 //    goheader.WriteHeaders(w, headers...)
-//      w.WriteHeader(http.StatusOK)
-//      json.NewEncoder(w).Encode(w.Headers())
+//
+//    // Write the HTTP status code to the outbound response.
+//    w.WriteHeader(http.StatusOK)
+//
+//    // Write the response back to the client.
+//    json.NewEncoder(w).Encode(w.Headers())
 //  })
-func WriteHeaders(w http.ResponseWriter, headers ...Header) {
-	httpHeaders := w.Header()
+func WriteHeaders(writer interface{ Header() http.Header }, headers ...Header) {
+	writerHeaders := writer.Header()
 	for _, header := range headers {
-		httpHeaders[header.Name] = header.Values
+		writerHeaders[header.Name] = header.Values
 	}
 }
-
