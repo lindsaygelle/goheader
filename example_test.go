@@ -2,7 +2,10 @@
 package goheader_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/lindsaygelle/goheader"
 )
@@ -1095,17 +1098,23 @@ func ExampleNewXXSSProtectionHeader() {
 
 // ExampleWriteHeaders is an example function for WriteHeaders.
 func ExampleWriteHeaders() {
+	// Create a default handler.
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		goheader.WriteHeaders(
-			w,
+		// Create a new set of goheader.Header instances.
+		headers := []goheader.Header{
 			goheader.NewContentLanguageHeader("en-AU"),
 			goheader.NewContentTypeHeader("application/json"),
-			goheader.NewCookieHeader("Hello=World"))
+			goheader.NewCookieHeader("language=golang")}
 
+		// Add the headers to the http.ResponseWriter.
+		goheader.WriteHeaders(w, headers...)
+		// Write the HTTP status code.
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(w.Headers())
+		// Write the HTTP response.
+		json.NewEncoder(w).Encode(w.Header())
 	})
-
+	// Set the port for the server.
 	serverAddress := fmt.Sprintf(":%d", 8080)
+	// Serve content.
 	log.Println(http.ListenAndServe(serverAddress, nil))
 }

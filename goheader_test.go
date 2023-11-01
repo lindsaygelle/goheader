@@ -9,6 +9,24 @@ import (
 	"github.com/lindsaygelle/goheader"
 )
 
+// mockResponseWriter is a mock implementation of http.ResponseWriter for testing.
+type mockResponseWriter struct {
+	headers http.Header
+}
+
+// Header returns the headers set in the mock ResponseWriter.
+func (m *mockResponseWriter) Header() http.Header {
+	return m.headers
+}
+
+// Write method of mockResponseWriter, not implemented for this test.
+func (m *mockResponseWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+
+// WriteHeader method of mockResponseWriter, not implemented for this test.
+func (m *mockResponseWriter) WriteHeader(int) {}
+
 // TestHeaderConstants tests the goheader HTTP header name constants.
 func TestHeaderConstants(t *testing.T) {
 	tests := []struct {
@@ -357,19 +375,39 @@ func TestHeaderFunctions(t *testing.T) {
 	}
 }
 
- // TestWriteHeaders tests WriteHeaders. 
+// TestWriteHeaders tests the WriteHeaders function.
 func TestWriteHeaders(t *testing.T) {
-	// Test case 1: Add header to http.ResponseWriter
-	header := goheader.Header{Name: "Key", Values: []string{"Value"}} // Create an example Header.
-	writerHeaders := http.Header{}
-	goheader.WriteHeaders(func() http.Header { return writerHeaders }, header)
 
-	values, ok := writerHeaders["Key"]
-	expectedValues := []string{"Value"}
-	if !ok {
-		t.Errorf("Expected ok to be true, got %t", ok)
+	// Create a mock http.Header instance.
+	mockHeader := http.Header{}
+
+	// Create a mock http.ResponseWriter instance.
+	mockWriter := &mockResponseWriter{headers: mockHeader}
+
+	// Headers to be written.
+	headers := []goheader.Header{
+		goheader.Header{
+			Name:   "Content-Type",
+			Values: []string{"application/json"}},
+		goheader.Header{
+			Name:   "Cache-Control",
+			Values: []string{"no-cache"}}}
+
+	// Call the WriteHeaders function.
+	goheader.WriteHeaders(mockWriter, headers...)
+
+	// Verify that the headers have been set correctly in the mock ResponseWriter.
+	expectedHeaders := map[string][]string{
+		"Content-Type":  {"application/json"},
+		"Cache-Control": {"no-cache"},
 	}
-	if !reflect.DeepEqual(values, expectedValues)
-		t.Errorf("Expected value to be %v, but got %v", expectedValue, values)
+
+	for name, expectedValues := range expectedHeaders {
+		actualValues, ok := mockHeader[name]
+		if !ok {
+			t.Errorf("Expected header '%s' to be set, but it was not found.", name)
+		} else if !reflect.DeepEqual(actualValues, expectedValues) {
+			t.Errorf("Expected values %v for header '%s', but got %v", expectedValues, name, actualValues)
+		}
 	}
 }
