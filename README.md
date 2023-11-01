@@ -2515,7 +2515,8 @@ func main() {
 ## Examples
 
 ### ResponseWriter
-Adding new Headers to a http.ResponseWriter.
+Adding new Headers to an existing http.ResponseWriter.
+
 ```Go
 // GitHub goheader example.
 package main

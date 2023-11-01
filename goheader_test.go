@@ -359,5 +359,6 @@ func TestConstructors(t *testing.T) {
  // TODO
 func TestWriteHeaders(t *testing.T) {
 	// Test case 1: Add header to http.ResponseWriter
-	// header := goheader.Header{Name: "Test", Values: []string{"Test"}} // Create an example Header.
+	header := goheader.Header{Name: "Test", Values: []string{"Test"}} // Create an example Header.
+	goheader.WriteHeaders(http.Headers{}, header)
 }

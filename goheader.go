@@ -3298,7 +3298,7 @@ func NewXXSSProtectionHeader(values ...string) Header {
 		Values:       values}
 }
 
-// WriteHeaders writes new headers to an existing ResponseWriter.
+// WriteHeaders writes new headers to an existing http.ResponseWriter.
 //
 //  // Create a default http handler function.
 //  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
