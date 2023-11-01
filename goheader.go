@@ -470,16 +470,34 @@ const XWebKitCSP = "X-WebKit-CSP"
 // XXSSProtection header field is used to enable or disable the Cross-site Scripting (XSS) filter in the user agent.
 const XXSSProtection = "X-XSS-Protection"
 
-// Header represents a HTTP header.
+// Header represents an HTTP header.
 type Header struct {
-	Name     string   // Name represents the name of the header.
-	Request  bool     // Request indicates whether the header is applicable for HTTP requests.
-	Response bool     // Response indicates whether the header is applicable for HTTP responses.
-	Values   []string // Values contains the associated values of the header.
+	Experimental bool     // Experimental indicates whether the header is an experimental HTTP header.
+	Name         string   // Name represents the name of the header.
+	Request      bool     // Request indicates whether the header is applicable for HTTP requests.
+	Response     bool     // Response indicates whether the header is applicable for HTTP responses.
+	Standard     bool     // Standard indicates whether the header is a standard HTTP header.
+	Values       []string // Values contains the associated values of the header.
 }
 
-// NewHeaders creates an http.Header from a collection of Header instances.
-// It takes Header instances as parameters and returns an http.Header containing the specified headers.
+// NewHeaders creates a new http.Header instance from a collection of Header structs.
+// It takes a variadic number of *Header pointers as input, where each Header contains
+// information about an HTTP header including its name and associated values. The function
+// creates an http.Header instance and populates it with the provided headers' names as keys
+// and their associated values as slices of strings.
+//
+//  // Create a new Header instance.
+//  header1 := goheader.Header{
+//    Name: "Content-Type",
+//    Values: []string{"application/json"}}
+//
+//  // Create another Header instance.
+//  header2 := goheader.Header{
+//    Name: "Authorization",
+//    Values: []string{"Bearer Token"}}
+//
+//  headers := goheader.NewHeaders(header1, header2)
+//  fmt.Println(headers) // Output: map[Content-Type:[application/json] Authorization:[Bearer Token]]
 func NewHeaders(headers ...*Header) http.Header {
 	HTTPHeader := http.Header{}
 	for _, header := range headers {
@@ -498,10 +516,12 @@ func NewHeaders(headers ...*Header) http.Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAIMHeader(values ...string) Header {
 	return Header{
-		Name:     AIM,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AIM,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptHeader creates a new Accept Header with the specified values.
@@ -514,10 +534,12 @@ func NewAIMHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptHeader(values ...string) Header {
 	return Header{
-		Name:     Accept,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Accept,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptCHHeader creates a new Accept-CH Header with the specified values.
@@ -530,10 +552,12 @@ func NewAcceptHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptCHHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptCH,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptCH,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptCHLifetimeHeader creates a new Accept-CH-Lifetime Header with the specified values.
@@ -546,10 +570,12 @@ func NewAcceptCHHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptCHLifetimeHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptCHLifetime,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: true,
+		Name:         AcceptCHLifetime,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewAcceptCharsetHeader creates a new Accept-Charset Header with the specified values.
@@ -562,10 +588,12 @@ func NewAcceptCHLifetimeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptCharsetHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptCharset,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptCharset,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptDatetimeHeader creates a new Accept-Datetime Header with the specified values.
@@ -578,10 +606,12 @@ func NewAcceptCharsetHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptDatetimeHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptDatetime,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptDatetime,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptEncodingHeader creates a new Accept-Encoding Header with the specified values.
@@ -594,10 +624,12 @@ func NewAcceptDatetimeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptEncodingHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptEncoding,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptEncoding,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptLanguageHeader creates a new Accept-Language Header with the specified values.
@@ -610,10 +642,12 @@ func NewAcceptEncodingHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptLanguageHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptLanguage,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptLanguage,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptPatchHeader creates a new Accept-Patch Header with the specified values.
@@ -626,10 +660,12 @@ func NewAcceptLanguageHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptPatchHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptPatch,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptPatch,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptPostHeader creates a new Accept-Post Header with the specified values.
@@ -642,10 +678,12 @@ func NewAcceptPatchHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptPostHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptPost,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptPost,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAcceptRangesHeader creates a new Accept-Ranges Header with the specified values.
@@ -658,10 +696,12 @@ func NewAcceptPostHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptRangesHeader(values ...string) Header {
 	return Header{
-		Name:     AcceptRanges,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AcceptRanges,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlAllowCredentialsHeader creates a new Access-Control-Allow-Credentials Header with the specified values.
@@ -674,10 +714,12 @@ func NewAcceptRangesHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlAllowCredentials,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlAllowCredentials,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlAllowHeadersHeader creates a new Access-Control-Allow-Headers Header with the specified values.
@@ -690,10 +732,12 @@ func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowHeadersHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlAllowHeaders,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlAllowHeaders,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlAllowMethodsHeader creates a new Access-Control-Allow-Methods Header with the specified values.
@@ -706,10 +750,12 @@ func NewAccessControlAllowHeadersHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowMethodsHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlAllowMethods,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlAllowMethods,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlAllowOriginHeader creates a new Access-Control-Allow-Origin Header with the specified values.
@@ -722,10 +768,12 @@ func NewAccessControlAllowMethodsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowOriginHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlAllowOrigin,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlAllowOrigin,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlExposeHeadersHeader creates a new Access-Control-Expose-Headers Header with the specified values.
@@ -738,10 +786,12 @@ func NewAccessControlAllowOriginHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlExposeHeadersHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlExposeHeaders,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlExposeHeaders,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlMaxAgeHeader creates a new Access-Control-Max-Age Header with the specified values.
@@ -754,10 +804,12 @@ func NewAccessControlExposeHeadersHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlMaxAgeHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlMaxAge,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlMaxAge,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlRequestHeadersHeader creates a new Access-Control-Request-Headers Header with the specified values.
@@ -770,10 +822,12 @@ func NewAccessControlMaxAgeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlRequestHeadersHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlRequestHeaders,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlRequestHeaders,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAccessControlRequestMethodHeader creates a new Access-Control-Request-Method Header with the specified values.
@@ -786,10 +840,12 @@ func NewAccessControlRequestHeadersHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlRequestMethodHeader(values ...string) Header {
 	return Header{
-		Name:     AccessControlRequestMethod,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AccessControlRequestMethod,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAgeHeader creates a new Age Header with the specified values.
@@ -802,10 +858,12 @@ func NewAccessControlRequestMethodHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAgeHeader(values ...string) Header {
 	return Header{
-		Name:     Age,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Age,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAllowHeader creates a new Allow Header with the specified values.
@@ -818,10 +876,12 @@ func NewAgeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAllowHeader(values ...string) Header {
 	return Header{
-		Name:     Allow,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Allow,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAltSvcHeader creates a new Alt-Svc Header with the specified values.
@@ -834,10 +894,12 @@ func NewAllowHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAltSvcHeader(values ...string) Header {
 	return Header{
-		Name:     AltSvc,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         AltSvc,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAltUsedHeader creates a new Alt-Used Header with the specified values.
@@ -850,10 +912,12 @@ func NewAltSvcHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAltUsedHeader(values ...string) Header {
 	return Header{
-		Name:     AltUsed,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         AltUsed,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewAuthorizationHeader creates a new Authorization Header with the specified values.
@@ -866,10 +930,12 @@ func NewAltUsedHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAuthorizationHeader(values ...string) Header {
 	return Header{
-		Name:     Authorization,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Authorization,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCacheControlHeader creates a new Cache-Control Header with the specified values.
@@ -882,10 +948,12 @@ func NewAuthorizationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCacheControlHeader(values ...string) Header {
 	return Header{
-		Name:     CacheControl,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         CacheControl,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewClearSiteDataHeader creates a new Clear-Site-Data Header with the specified values.
@@ -898,10 +966,12 @@ func NewCacheControlHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewClearSiteDataHeader(values ...string) Header {
 	return Header{
-		Name:     ClearSiteData,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ClearSiteData,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewConnectionHeader creates a new Connection Header with the specified values.
@@ -914,10 +984,12 @@ func NewClearSiteDataHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewConnectionHeader(values ...string) Header {
 	return Header{
-		Name:     Connection,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Connection,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentDPRHeader creates a new Content-DPR Header with the specified values.
@@ -930,10 +1002,12 @@ func NewConnectionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentDPRHeader(values ...string) Header {
 	return Header{
-		Name:     ContentDPR,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: true,
+		Name:         ContentDPR,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewContentDispositionHeader creates a new Content-Disposition Header with the specified values.
@@ -946,10 +1020,12 @@ func NewContentDPRHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentDispositionHeader(values ...string) Header {
 	return Header{
-		Name:     ContentDisposition,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentDisposition,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentEncodingHeader creates a new Content-Encoding Header with the specified values.
@@ -962,10 +1038,12 @@ func NewContentDispositionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentEncodingHeader(values ...string) Header {
 	return Header{
-		Name:     ContentEncoding,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentEncoding,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentLanguageHeader creates a new Content-Language Header with the specified values.
@@ -978,10 +1056,12 @@ func NewContentEncodingHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLanguageHeader(values ...string) Header {
 	return Header{
-		Name:     ContentLanguage,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentLanguage,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentLengthHeader creates a new Content-Length Header with the specified values.
@@ -994,10 +1074,12 @@ func NewContentLanguageHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLengthHeader(values ...string) Header {
 	return Header{
-		Name:     ContentLength,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentLength,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentLocationHeader creates a new Content-Location Header with the specified values.
@@ -1010,10 +1092,12 @@ func NewContentLengthHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLocationHeader(values ...string) Header {
 	return Header{
-		Name:     ContentLocation,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentLocation,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentMD5Header creates a new Content-MD5 Header with the specified values.
@@ -1026,10 +1110,12 @@ func NewContentLocationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentMD5Header(values ...string) Header {
 	return Header{
-		Name:     ContentMD5,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentMD5,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentRangeHeader creates a new Content-Range Header with the specified values.
@@ -1042,10 +1128,12 @@ func NewContentMD5Header(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentRangeHeader(values ...string) Header {
 	return Header{
-		Name:     ContentRange,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentRange,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentSecurityPolicyHeader creates a new Content-Security-Policy Header with the specified values.
@@ -1058,10 +1146,12 @@ func NewContentRangeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentSecurityPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     ContentSecurityPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentSecurityPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewContentSecurityPolicyReportOnlyHeader creates a new Content-Security-Policy-Report-Only Header with the specified values.
@@ -1074,10 +1164,12 @@ func NewContentSecurityPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
 	return Header{
-		Name:     ContentSecurityPolicyReportOnly,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentSecurityPolicyReportOnly,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewContentTypeHeader creates a new Content-Type Header with the specified values.
@@ -1090,10 +1182,12 @@ func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentTypeHeader(values ...string) Header {
 	return Header{
-		Name:     ContentType,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ContentType,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCookieHeader creates a new Cookie Header with the specified values.
@@ -1106,10 +1200,12 @@ func NewContentTypeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCookieHeader(values ...string) Header {
 	return Header{
-		Name:     Cookie,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Cookie,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCorrelationIDHeader creates a new Correlation-ID Header with the specified values.
@@ -1122,10 +1218,12 @@ func NewCookieHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCorrelationIDHeader(values ...string) Header {
 	return Header{
-		Name:     CorrelationID,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         CorrelationID,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCriticalCHHeader creates a new Critical-CH Header with the specified values.
@@ -1138,10 +1236,12 @@ func NewCorrelationIDHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCriticalCHHeader(values ...string) Header {
 	return Header{
-		Name:     CriticalCH,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: true,
+		Name:         CriticalCH,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewCrossOriginEmbedderPolicyHeader creates a new Cross-Origin-Embedder-Policy Header with the specified values.
@@ -1154,10 +1254,12 @@ func NewCriticalCHHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     CrossOriginEmbedderPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         CrossOriginEmbedderPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCrossOriginOpenerPolicyHeader creates a new Cross-Origin-Opener-Policy Header with the specified values.
@@ -1170,10 +1272,12 @@ func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     CrossOriginOpenerPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         CrossOriginOpenerPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewCrossOriginResourcePolicyHeader creates a new Cross-Origin-Resource-Policy Header with the specified values.
@@ -1186,10 +1290,12 @@ func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginResourcePolicyHeader(values ...string) Header {
 	return Header{
-		Name:     CrossOriginResourcePolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         CrossOriginResourcePolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewDNTHeader creates a new DNT Header with the specified values.
@@ -1202,10 +1308,12 @@ func NewCrossOriginResourcePolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDNTHeader(values ...string) Header {
 	return Header{
-		Name:     DNT,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         DNT,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewDPRHeader creates a new DPR Header with the specified values.
@@ -1218,10 +1326,12 @@ func NewDNTHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDPRHeader(values ...string) Header {
 	return Header{
-		Name:     DPR,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         DPR,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewDateHeader creates a new Date Header with the specified values.
@@ -1234,10 +1344,12 @@ func NewDPRHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDateHeader(values ...string) Header {
 	return Header{
-		Name:     Date,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Date,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewDeltaBaseHeader creates a new Delta-Base Header with the specified values.
@@ -1250,10 +1362,12 @@ func NewDateHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDeltaBaseHeader(values ...string) Header {
 	return Header{
-		Name:     DeltaBase,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         DeltaBase,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewDeviceMemoryHeader creates a new Device-Memory Header with the specified values.
@@ -1266,10 +1380,12 @@ func NewDeltaBaseHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDeviceMemoryHeader(values ...string) Header {
 	return Header{
-		Name:     DeviceMemory,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         DeviceMemory,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewDigestHeader creates a new Digest Header with the specified values.
@@ -1282,10 +1398,12 @@ func NewDeviceMemoryHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDigestHeader(values ...string) Header {
 	return Header{
-		Name:     Digest,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Digest,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewDownlinkHeader creates a new Downlink Header with the specified values.
@@ -1298,10 +1416,12 @@ func NewDigestHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDownlinkHeader(values ...string) Header {
 	return Header{
-		Name:     Downlink,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         Downlink,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewECTHeader creates a new ECT Header with the specified values.
@@ -1314,10 +1434,12 @@ func NewDownlinkHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewECTHeader(values ...string) Header {
 	return Header{
-		Name:     ECT,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         ECT,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewETagHeader creates a new ETag Header with the specified values.
@@ -1330,10 +1452,12 @@ func NewECTHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewETagHeader(values ...string) Header {
 	return Header{
-		Name:     ETag,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ETag,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewEarlyDataHeader creates a new Early-Data Header with the specified values.
@@ -1346,10 +1470,12 @@ func NewETagHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewEarlyDataHeader(values ...string) Header {
 	return Header{
-		Name:     EarlyData,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         EarlyData,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewExpectHeader creates a new Expect Header with the specified values.
@@ -1362,10 +1488,12 @@ func NewEarlyDataHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpectHeader(values ...string) Header {
 	return Header{
-		Name:     Expect,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Expect,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewExpectCTHeader creates a new Expect-CT Header with the specified values.
@@ -1378,10 +1506,12 @@ func NewExpectHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpectCTHeader(values ...string) Header {
 	return Header{
-		Name:     ExpectCT,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ExpectCT,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewExpiresHeader creates a new Expires Header with the specified values.
@@ -1394,10 +1524,12 @@ func NewExpectCTHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpiresHeader(values ...string) Header {
 	return Header{
-		Name:     Expires,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Expires,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewForwardedHeader creates a new Forwarded Header with the specified values.
@@ -1410,10 +1542,12 @@ func NewExpiresHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewForwardedHeader(values ...string) Header {
 	return Header{
-		Name:     Forwarded,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Forwarded,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewFromHeader creates a new From Header with the specified values.
@@ -1426,10 +1560,12 @@ func NewForwardedHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewFromHeader(values ...string) Header {
 	return Header{
-		Name:     From,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         From,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewFrontEndHTTPSHeader creates a new Front-End-Https Header with the specified values.
@@ -1442,10 +1578,12 @@ func NewFromHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewFrontEndHTTPSHeader(values ...string) Header {
 	return Header{
-		Name:     FrontEndHTTPS,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         FrontEndHTTPS,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewHTTP2SettingsHeader creates a new HTTP2-Settings Header with the specified values.
@@ -1458,10 +1596,12 @@ func NewFrontEndHTTPSHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewHTTP2SettingsHeader(values ...string) Header {
 	return Header{
-		Name:     HTTP2Settings,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         HTTP2Settings,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewHostHeader creates a new Host Header with the specified values.
@@ -1474,10 +1614,12 @@ func NewHTTP2SettingsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewHostHeader(values ...string) Header {
 	return Header{
-		Name:     Host,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Host,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIMHeader creates a new IM Header with the specified values.
@@ -1490,10 +1632,12 @@ func NewHostHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIMHeader(values ...string) Header {
 	return Header{
-		Name:     IM,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         IM,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIfMatchHeader creates a new If-Match Header with the specified values.
@@ -1506,10 +1650,12 @@ func NewIMHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfMatchHeader(values ...string) Header {
 	return Header{
-		Name:     IfMatch,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         IfMatch,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIfModifiedSinceHeader creates a new If-Modified-Since Header with the specified values.
@@ -1522,10 +1668,12 @@ func NewIfMatchHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfModifiedSinceHeader(values ...string) Header {
 	return Header{
-		Name:     IfModifiedSince,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         IfModifiedSince,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIfNoneMatchHeader creates a new If-None-Match Header with the specified values.
@@ -1538,10 +1686,12 @@ func NewIfModifiedSinceHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfNoneMatchHeader(values ...string) Header {
 	return Header{
-		Name:     IfNoneMatch,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         IfNoneMatch,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIfRangeHeader creates a new If-Range Header with the specified values.
@@ -1554,10 +1704,12 @@ func NewIfNoneMatchHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfRangeHeader(values ...string) Header {
 	return Header{
-		Name:     IfRange,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         IfRange,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewIfUnmodifiedSinceHeader creates a new If-Unmodified-Since Header with the specified values.
@@ -1570,10 +1722,12 @@ func NewIfRangeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfUnmodifiedSinceHeader(values ...string) Header {
 	return Header{
-		Name:     IfUnmodifiedSince,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         IfUnmodifiedSince,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewKeepAliveHeader creates a new Keep-Alive Header with the specified values.
@@ -1586,10 +1740,12 @@ func NewIfUnmodifiedSinceHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewKeepAliveHeader(values ...string) Header {
 	return Header{
-		Name:     KeepAlive,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         KeepAlive,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewLargeAllocationHeader creates a new Large-Allocation Header with the specified values.
@@ -1602,10 +1758,12 @@ func NewKeepAliveHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLargeAllocationHeader(values ...string) Header {
 	return Header{
-		Name:     LargeAllocation,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         LargeAllocation,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewLastModifiedHeader creates a new Last-Modified Header with the specified values.
@@ -1618,10 +1776,12 @@ func NewLargeAllocationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLastModifiedHeader(values ...string) Header {
 	return Header{
-		Name:     LastModified,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         LastModified,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewLinkHeader creates a new Link Header with the specified values.
@@ -1634,10 +1794,12 @@ func NewLastModifiedHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLinkHeader(values ...string) Header {
 	return Header{
-		Name:     Link,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Link,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewLocationHeader creates a new Location Header with the specified values.
@@ -1650,10 +1812,12 @@ func NewLinkHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLocationHeader(values ...string) Header {
 	return Header{
-		Name:     Location,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Location,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewMaxForwardsHeader creates a new Max-Forwards Header with the specified values.
@@ -1666,10 +1830,12 @@ func NewLocationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewMaxForwardsHeader(values ...string) Header {
 	return Header{
-		Name:     MaxForwards,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         MaxForwards,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewNELHeader creates a new NEL Header with the specified values.
@@ -1682,10 +1848,12 @@ func NewMaxForwardsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewNELHeader(values ...string) Header {
 	return Header{
-		Name:     NEL,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: true,
+		Name:         NEL,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewOriginHeader creates a new Origin Header with the specified values.
@@ -1698,10 +1866,12 @@ func NewNELHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewOriginHeader(values ...string) Header {
 	return Header{
-		Name:     Origin,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Origin,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewP3PHeader creates a new P3P Header with the specified values.
@@ -1714,10 +1884,12 @@ func NewOriginHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewP3PHeader(values ...string) Header {
 	return Header{
-		Name:     P3P,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         P3P,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewPermissionsPolicyHeader creates a new Permissions-Policy Header with the specified values.
@@ -1730,10 +1902,12 @@ func NewP3PHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPermissionsPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     PermissionsPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         PermissionsPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewPragmaHeader creates a new Pragma Header with the specified values.
@@ -1746,10 +1920,12 @@ func NewPermissionsPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPragmaHeader(values ...string) Header {
 	return Header{
-		Name:     Pragma,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Pragma,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewPreferHeader creates a new Prefer Header with the specified values.
@@ -1762,10 +1938,12 @@ func NewPragmaHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPreferHeader(values ...string) Header {
 	return Header{
-		Name:     Prefer,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Prefer,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewPreferenceAppliedHeader creates a new Preference-Applied Header with the specified values.
@@ -1778,10 +1956,12 @@ func NewPreferHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPreferenceAppliedHeader(values ...string) Header {
 	return Header{
-		Name:     PreferenceApplied,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         PreferenceApplied,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewProxyAuthenticateHeader creates a new Proxy-Authenticate Header with the specified values.
@@ -1794,10 +1974,12 @@ func NewPreferenceAppliedHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyAuthenticateHeader(values ...string) Header {
 	return Header{
-		Name:     ProxyAuthenticate,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ProxyAuthenticate,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewProxyAuthorizationHeader creates a new Proxy-Authorization Header with the specified values.
@@ -1810,10 +1992,12 @@ func NewProxyAuthenticateHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyAuthorizationHeader(values ...string) Header {
 	return Header{
-		Name:     ProxyAuthorization,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         ProxyAuthorization,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewProxyConnectionHeader creates a new Proxy-Connection Header with the specified values.
@@ -1826,10 +2010,12 @@ func NewProxyAuthorizationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyConnectionHeader(values ...string) Header {
 	return Header{
-		Name:     ProxyConnection,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         ProxyConnection,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewPublicKeyPinsHeader creates a new Public-Key-Pins Header with the specified values.
@@ -1842,10 +2028,12 @@ func NewProxyConnectionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPublicKeyPinsHeader(values ...string) Header {
 	return Header{
-		Name:     PublicKeyPins,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         PublicKeyPins,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewRTTHeader creates a new RTT Header with the specified values.
@@ -1858,10 +2046,12 @@ func NewPublicKeyPinsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRTTHeader(values ...string) Header {
 	return Header{
-		Name:     RTT,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         RTT,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewRangeHeader creates a new Range Header with the specified values.
@@ -1874,10 +2064,12 @@ func NewRTTHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRangeHeader(values ...string) Header {
 	return Header{
-		Name:     Range,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Range,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewRefererHeader creates a new Referer Header with the specified values.
@@ -1890,10 +2082,12 @@ func NewRangeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRefererHeader(values ...string) Header {
 	return Header{
-		Name:     Referer,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Referer,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewReferrerPolicyHeader creates a new Referrer-Policy Header with the specified values.
@@ -1906,10 +2100,12 @@ func NewRefererHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewReferrerPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     ReferrerPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ReferrerPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewRefreshHeader creates a new Refresh Header with the specified values.
@@ -1922,10 +2118,12 @@ func NewReferrerPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRefreshHeader(values ...string) Header {
 	return Header{
-		Name:     Refresh,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Refresh,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewReportToHeader creates a new Report-To Header with the specified values.
@@ -1938,10 +2136,12 @@ func NewRefreshHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewReportToHeader(values ...string) Header {
 	return Header{
-		Name:     ReportTo,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ReportTo,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewRetryAfterHeader creates a new Retry-After Header with the specified values.
@@ -1954,10 +2154,12 @@ func NewReportToHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRetryAfterHeader(values ...string) Header {
 	return Header{
-		Name:     RetryAfter,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         RetryAfter,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSaveDataHeader creates a new Save-Data Header with the specified values.
@@ -1970,10 +2172,12 @@ func NewRetryAfterHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSaveDataHeader(values ...string) Header {
 	return Header{
-		Name:     SaveData,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SaveData,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHPrefersColorSchemeHeader creates a new Sec-CH-Prefers-Color-Scheme Header with the specified values.
@@ -1986,10 +2190,12 @@ func NewSaveDataHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHPrefersColorScheme,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHPrefersColorScheme,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHPrefersReducedMotionHeader creates a new Sec-CH-Prefers-Reduced-Motion Header with the specified values.
@@ -2002,10 +2208,12 @@ func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHPrefersReducedMotion,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHPrefersReducedMotion,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHPrefersReducedTransparencyHeader creates a new Sec-CH-Prefers-Reduced-Transparency Header with the specified values.
@@ -2018,10 +2226,12 @@ func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHPrefersReducedTransparency,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHPrefersReducedTransparency,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAHeader creates a new Sec-CH-UA Header with the specified values.
@@ -2034,10 +2244,12 @@ func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUA,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUA,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAArchHeader creates a new Sec-CH-UA-Arch Header with the specified values.
@@ -2050,10 +2262,12 @@ func NewSecCHUAHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAArchHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAArch,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAArch,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUABitnessHeader creates a new Sec-CH-UA-Bitness Header with the specified values.
@@ -2066,10 +2280,12 @@ func NewSecCHUAArchHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUABitnessHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUABitness,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUABitness,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAFullVersionHeader creates a new Sec-CH-UA-Full-Version Header with the specified values.
@@ -2082,10 +2298,12 @@ func NewSecCHUABitnessHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAFullVersionHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAFullVersion,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAFullVersion,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAFullVersionListHeader creates a new Sec-CH-UA-Full-Version-List Header with the specified values.
@@ -2098,10 +2316,12 @@ func NewSecCHUAFullVersionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAFullVersionListHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAFullVersionList,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAFullVersionList,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAMobileHeader creates a new Sec-CH-UA-Mobile Header with the specified values.
@@ -2114,10 +2334,12 @@ func NewSecCHUAFullVersionListHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAMobileHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAMobile,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAMobile,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAModelHeader creates a new Sec-CH-UA-Model Header with the specified values.
@@ -2130,10 +2352,12 @@ func NewSecCHUAMobileHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAModelHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAModel,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAModel,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAPlatformHeader creates a new Sec-CH-UA-Platform Header with the specified values.
@@ -2146,10 +2370,12 @@ func NewSecCHUAModelHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAPlatformHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAPlatform,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAPlatform,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecCHUAPlatformVersionHeader creates a new Sec-CH-UA-Platform-Version Header with the specified values.
@@ -2162,10 +2388,12 @@ func NewSecCHUAPlatformHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAPlatformVersionHeader(values ...string) Header {
 	return Header{
-		Name:     SecCHUAPlatformVersion,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecCHUAPlatformVersion,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecFetchDestHeader creates a new Sec-Fetch-Dest Header with the specified values.
@@ -2178,10 +2406,12 @@ func NewSecCHUAPlatformVersionHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchDestHeader(values ...string) Header {
 	return Header{
-		Name:     SecFetchDest,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         SecFetchDest,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSecFetchModeHeader creates a new Sec-Fetch-Mode Header with the specified values.
@@ -2194,10 +2424,12 @@ func NewSecFetchDestHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchModeHeader(values ...string) Header {
 	return Header{
-		Name:     SecFetchMode,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         SecFetchMode,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSecFetchSiteHeader creates a new Sec-Fetch-Site Header with the specified values.
@@ -2210,10 +2442,12 @@ func NewSecFetchModeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchSiteHeader(values ...string) Header {
 	return Header{
-		Name:     SecFetchSite,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         SecFetchSite,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSecFetchUserHeader creates a new Sec-Fetch-User Header with the specified values.
@@ -2226,10 +2460,12 @@ func NewSecFetchSiteHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchUserHeader(values ...string) Header {
 	return Header{
-		Name:     SecFetchUser,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         SecFetchUser,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSecGPCHeader creates a new Sec-GPC Header with the specified values.
@@ -2242,10 +2478,12 @@ func NewSecFetchUserHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecGPCHeader(values ...string) Header {
 	return Header{
-		Name:     SecGPC,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: true,
+		Name:         SecGPC,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewSecPurposeHeader creates a new Sec-Purpose Header with the specified values.
@@ -2258,10 +2496,12 @@ func NewSecGPCHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecPurposeHeader(values ...string) Header {
 	return Header{
-		Name:     SecPurpose,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         SecPurpose,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSecWebSocketAcceptHeader creates a new Sec-WebSocket-Accept Header with the specified values.
@@ -2274,10 +2514,12 @@ func NewSecPurposeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecWebSocketAcceptHeader(values ...string) Header {
 	return Header{
-		Name:     SecWebSocketAccept,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         SecWebSocketAccept,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewServerHeader creates a new Server Header with the specified values.
@@ -2290,10 +2532,12 @@ func NewSecWebSocketAcceptHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServerHeader(values ...string) Header {
 	return Header{
-		Name:     Server,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Server,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewServerTimingHeader creates a new Server-Timing Header with the specified values.
@@ -2306,10 +2550,12 @@ func NewServerHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServerTimingHeader(values ...string) Header {
 	return Header{
-		Name:     ServerTiming,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         ServerTiming,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewServiceWorkerNavigationPreloadHeader creates a new Service-Worker-Navigation-Preload Header with the specified values.
@@ -2322,10 +2568,12 @@ func NewServerTimingHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
 	return Header{
-		Name:     ServiceWorkerNavigationPreload,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         ServiceWorkerNavigationPreload,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSetCookieHeader creates a new Set-Cookie Header with the specified values.
@@ -2338,10 +2586,12 @@ func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSetCookieHeader(values ...string) Header {
 	return Header{
-		Name:     SetCookie,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         SetCookie,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSourceMapHeader creates a new SourceMap Header with the specified values.
@@ -2354,10 +2604,12 @@ func NewSetCookieHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSourceMapHeader(values ...string) Header {
 	return Header{
-		Name:     SourceMap,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         SourceMap,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewStatusHeader creates a new Status Header with the specified values.
@@ -2370,10 +2622,12 @@ func NewSourceMapHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewStatusHeader(values ...string) Header {
 	return Header{
-		Name:     Status,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Status,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewStrictTransportSecurityHeader creates a new Strict-Transport-Security Header with the specified values.
@@ -2386,10 +2640,12 @@ func NewStatusHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewStrictTransportSecurityHeader(values ...string) Header {
 	return Header{
-		Name:     StrictTransportSecurity,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         StrictTransportSecurity,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewSupportsLoadingModeHeader creates a new Supports-Loading-Mode Header with the specified values.
@@ -2402,10 +2658,12 @@ func NewStrictTransportSecurityHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSupportsLoadingModeHeader(values ...string) Header {
 	return Header{
-		Name:     SupportsLoadingMode,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: true,
+		Name:         SupportsLoadingMode,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewTEHeader creates a new TE Header with the specified values.
@@ -2418,10 +2676,12 @@ func NewSupportsLoadingModeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTEHeader(values ...string) Header {
 	return Header{
-		Name:     TE,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         TE,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewTimingAllowOriginHeader creates a new Timing-Allow-Origin Header with the specified values.
@@ -2434,10 +2694,12 @@ func NewTEHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTimingAllowOriginHeader(values ...string) Header {
 	return Header{
-		Name:     TimingAllowOrigin,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         TimingAllowOrigin,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewTKHeader creates a new Tk Header with the specified values.
@@ -2450,10 +2712,12 @@ func NewTimingAllowOriginHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTKHeader(values ...string) Header {
 	return Header{
-		Name:     TK,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         TK,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewTrailerHeader creates a new Trailer Header with the specified values.
@@ -2466,10 +2730,12 @@ func NewTKHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTrailerHeader(values ...string) Header {
 	return Header{
-		Name:     Trailer,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Trailer,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewTransferEncodingHeader creates a new Transfer-Encoding Header with the specified values.
@@ -2482,10 +2748,12 @@ func NewTrailerHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTransferEncodingHeader(values ...string) Header {
 	return Header{
-		Name:     TransferEncoding,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         TransferEncoding,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewUpgradeHeader creates a new Upgrade Header with the specified values.
@@ -2498,10 +2766,12 @@ func NewTransferEncodingHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUpgradeHeader(values ...string) Header {
 	return Header{
-		Name:     Upgrade,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Upgrade,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewUpgradeInsecureRequestsHeader creates a new Upgrade-Insecure-Requests Header with the specified values.
@@ -2514,10 +2784,12 @@ func NewUpgradeHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUpgradeInsecureRequestsHeader(values ...string) Header {
 	return Header{
-		Name:     UpgradeInsecureRequests,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         UpgradeInsecureRequests,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewUserAgentHeader creates a new User-Agent Header with the specified values.
@@ -2530,10 +2802,12 @@ func NewUpgradeInsecureRequestsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUserAgentHeader(values ...string) Header {
 	return Header{
-		Name:     UserAgent,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         UserAgent,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewVaryHeader creates a new Vary Header with the specified values.
@@ -2546,10 +2820,12 @@ func NewUserAgentHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewVaryHeader(values ...string) Header {
 	return Header{
-		Name:     Vary,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Vary,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewViaHeader creates a new Via Header with the specified values.
@@ -2562,10 +2838,12 @@ func NewVaryHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewViaHeader(values ...string) Header {
 	return Header{
-		Name:     Via,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Via,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewViewportWidthHeader creates a new Viewport-Width Header with the specified values.
@@ -2578,10 +2856,12 @@ func NewViaHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewViewportWidthHeader(values ...string) Header {
 	return Header{
-		Name:     ViewportWidth,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         ViewportWidth,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewWWWAuthenticateHeader creates a new WWW-Authenticate Header with the specified values.
@@ -2594,10 +2874,12 @@ func NewViewportWidthHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWWWAuthenticateHeader(values ...string) Header {
 	return Header{
-		Name:     WWWAuthenticate,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         WWWAuthenticate,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewWantDigestHeader creates a new Want-Digest Header with the specified values.
@@ -2610,10 +2892,12 @@ func NewWWWAuthenticateHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWantDigestHeader(values ...string) Header {
 	return Header{
-		Name:     WantDigest,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         WantDigest,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewWarningHeader creates a new Warning Header with the specified values.
@@ -2626,10 +2910,12 @@ func NewWantDigestHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWarningHeader(values ...string) Header {
 	return Header{
-		Name:     Warning,
-		Request:  true,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         Warning,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       values}
 }
 
 // NewWidthHeader creates a new Width Header with the specified values.
@@ -2642,10 +2928,12 @@ func NewWarningHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWidthHeader(values ...string) Header {
 	return Header{
-		Name:     Width,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         Width,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXATTDeviceIDHeader creates a new X-ATT-DeviceId Header with the specified values.
@@ -2658,10 +2946,12 @@ func NewWidthHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXATTDeviceIDHeader(values ...string) Header {
 	return Header{
-		Name:     XATTDeviceID,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XATTDeviceID,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXContentDurationHeader creates a new X-Content-Duration Header with the specified values.
@@ -2674,10 +2964,12 @@ func NewXATTDeviceIDHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentDurationHeader(values ...string) Header {
 	return Header{
-		Name:     XContentDuration,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XContentDuration,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXContentSecurityPolicyHeader creates a new X-Content-Security-Policy Header with the specified values.
@@ -2690,10 +2982,12 @@ func NewXContentDurationHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentSecurityPolicyHeader(values ...string) Header {
 	return Header{
-		Name:     XContentSecurityPolicy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XContentSecurityPolicy,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXContentTypeOptionsHeader creates a new X-Content-Type-Options Header with the specified values.
@@ -2706,10 +3000,12 @@ func NewXContentSecurityPolicyHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentTypeOptionsHeader(values ...string) Header {
 	return Header{
-		Name:     XContentTypeOptions,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XContentTypeOptions,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXCorrelationIDHeader creates a new X-Correlation-ID Header with the specified values.
@@ -2722,10 +3018,12 @@ func NewXContentTypeOptionsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXCorrelationIDHeader(values ...string) Header {
 	return Header{
-		Name:     XCorrelationID,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XCorrelationID,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXCSRFTokenHeader creates a new X-Csrf-Token Header with the specified values.
@@ -2738,10 +3036,12 @@ func NewXCorrelationIDHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXCSRFTokenHeader(values ...string) Header {
 	return Header{
-		Name:     XCSRFToken,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XCSRFToken,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXDNSPrefetchControlHeader creates a new X-DNS-Prefetch-Control Header with the specified values.
@@ -2754,10 +3054,12 @@ func NewXCSRFTokenHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXDNSPrefetchControlHeader(values ...string) Header {
 	return Header{
-		Name:     XDNSPrefetchControl,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XDNSPrefetchControl,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXForwardedForHeader creates a new X-Forwarded-For Header with the specified values.
@@ -2770,10 +3072,12 @@ func NewXDNSPrefetchControlHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedForHeader(values ...string) Header {
 	return Header{
-		Name:     XForwardedFor,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XForwardedFor,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXForwardedHostHeader creates a new X-Forwarded-Host Header with the specified values.
@@ -2786,10 +3090,12 @@ func NewXForwardedForHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedHostHeader(values ...string) Header {
 	return Header{
-		Name:     XForwardedHost,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XForwardedHost,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXForwardedProtoHeader creates a new X-Forwarded-Proto Header with the specified values.
@@ -2802,10 +3108,12 @@ func NewXForwardedHostHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedProtoHeader(values ...string) Header {
 	return Header{
-		Name:     XForwardedProto,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XForwardedProto,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXFrameOptionsHeader creates a new X-Frame-Options Header with the specified values.
@@ -2818,10 +3126,12 @@ func NewXForwardedProtoHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXFrameOptionsHeader(values ...string) Header {
 	return Header{
-		Name:     XFrameOptions,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XFrameOptions,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXHTTPMethodOverrideHeader creates a new X-Http-Method-Override Header with the specified values.
@@ -2834,10 +3144,12 @@ func NewXFrameOptionsHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXHTTPMethodOverrideHeader(values ...string) Header {
 	return Header{
-		Name:     XHTTPMethodOverride,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XHTTPMethodOverride,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXPoweredByHeader creates a new X-Powered-By Header with the specified values.
@@ -2850,10 +3162,12 @@ func NewXHTTPMethodOverrideHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXPoweredByHeader(values ...string) Header {
 	return Header{
-		Name:     XPoweredBy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XPoweredBy,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXRedirectByHeader creates a new X-Redirect-By Header with the specified values.
@@ -2866,10 +3180,12 @@ func NewXPoweredByHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRedirectByHeader(values ...string) Header {
 	return Header{
-		Name:     XRedirectBy,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XRedirectBy,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXRequestIDHeader creates a new X-Request-ID Header with the specified values.
@@ -2882,10 +3198,12 @@ func NewXRedirectByHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRequestIDHeader(values ...string) Header {
 	return Header{
-		Name:     XRequestID,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XRequestID,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXRequestedWithHeader creates a new X-Requested-With Header with the specified values.
@@ -2898,10 +3216,12 @@ func NewXRequestIDHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRequestedWithHeader(values ...string) Header {
 	return Header{
-		Name:     XRequestedWith,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XRequestedWith,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXUACompatibleHeader creates a new X-UA-Compatible Header with the specified values.
@@ -2914,10 +3234,12 @@ func NewXRequestedWithHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXUACompatibleHeader(values ...string) Header {
 	return Header{
-		Name:     XUACompatible,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XUACompatible,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXUIDHHeader creates a new X-UIDH Header with the specified values.
@@ -2930,10 +3252,12 @@ func NewXUACompatibleHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXUIDHHeader(values ...string) Header {
 	return Header{
-		Name:     XUIDH,
-		Request:  true,
-		Response: false,
-		Values:   values}
+		Experimental: false,
+		Name:         XUIDH,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXWapProfileHeader creates a new X-Wap-Profile Header with the specified values.
@@ -2946,10 +3270,12 @@ func NewXUIDHHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXWapProfileHeader(values ...string) Header {
 	return Header{
-		Name:     XWapProfile,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XWapProfile,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXWebKitCSPHeader creates a new X-WebKit-CSP Header with the specified values.
@@ -2962,10 +3288,12 @@ func NewXWapProfileHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXWebKitCSPHeader(values ...string) Header {
 	return Header{
-		Name:     XWebKitCSP,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XWebKitCSP,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
 }
 
 // NewXXSSProtectionHeader creates a new X-XSS-Protection Header with the specified values.
@@ -2978,8 +3306,21 @@ func NewXWebKitCSPHeader(values ...string) Header {
 //  fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXXSSProtectionHeader(values ...string) Header {
 	return Header{
-		Name:     XXSSProtection,
-		Request:  false,
-		Response: true,
-		Values:   values}
+		Experimental: false,
+		Name:         XXSSProtection,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       values}
+}
+
+// WriteHeaders writes the provided headers to the given http.ResponseWriter object.
+// It maps the headers based on their names to the corresponding values and sets them
+// in the http.ResponseWriter object's header. If a header with the same name already exists,
+// its values will be updated with the new ones provided.
+func WriteHeaders(writer interface{ Header() http.Header }, headers ...Header) {
+	writerHeaders := writer.Header()
+	for _, header := range headers {
+		writerHeaders[header.Name] = header.Values
+	}
 }

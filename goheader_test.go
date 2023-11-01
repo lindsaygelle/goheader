@@ -1,6 +1,7 @@
 package goheader_test
 
 import (
+	"net/http"
 	"reflect"
 	"strings"
 	"testing"
@@ -8,8 +9,26 @@ import (
 	"github.com/lindsaygelle/goheader"
 )
 
-// TestContsants tests the defined package constants.
-func TestConstants(t *testing.T) {
+// mockResponseWriter is a mock implementation of http.ResponseWriter for testing.
+type mockResponseWriter struct {
+	headers http.Header
+}
+
+// Header returns the headers set in the mock ResponseWriter.
+func (m *mockResponseWriter) Header() http.Header {
+	return m.headers
+}
+
+// Write method of mockResponseWriter, not implemented for this test.
+func (m *mockResponseWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+
+// WriteHeader method of mockResponseWriter, not implemented for this test.
+func (m *mockResponseWriter) WriteHeader(int) {}
+
+// TestHeaderConstants tests the goheader HTTP header name constants.
+func TestHeaderConstants(t *testing.T) {
 	tests := []struct {
 		Value          string
 		ValueExepected string
@@ -179,7 +198,8 @@ func TestConstants(t *testing.T) {
 	}
 }
 
-func TestConstructors(t *testing.T) {
+// TestHeaderFunctions tests the goheader Header constructor functions.
+func TestHeaderFunctions(t *testing.T) {
 	tests := []struct {
 		ValueName         string
 		ValueNameFunction func(values ...string) goheader.Header
@@ -352,5 +372,42 @@ func TestConstructors(t *testing.T) {
 				t.Errorf("Expected Header.Value to be %s, but got %s", headerValues, header.Values)
 			}
 		})
+	}
+}
+
+// TestWriteHeaders tests the WriteHeaders function.
+func TestWriteHeaders(t *testing.T) {
+
+	// Create a mock http.Header instance.
+	mockHeader := http.Header{}
+
+	// Create a mock http.ResponseWriter instance.
+	mockWriter := &mockResponseWriter{headers: mockHeader}
+
+	// Headers to be written.
+	headers := []goheader.Header{
+		goheader.Header{
+			Name:   "Content-Type",
+			Values: []string{"application/json"}},
+		goheader.Header{
+			Name:   "Cache-Control",
+			Values: []string{"no-cache"}}}
+
+	// Call the WriteHeaders function.
+	goheader.WriteHeaders(mockWriter, headers...)
+
+	// Verify that the headers have been set correctly in the mock ResponseWriter.
+	expectedHeaders := map[string][]string{
+		"Content-Type":  {"application/json"},
+		"Cache-Control": {"no-cache"},
+	}
+
+	for name, expectedValues := range expectedHeaders {
+		actualValues, ok := mockHeader[name]
+		if !ok {
+			t.Errorf("Expected header '%s' to be set, but it was not found.", name)
+		} else if !reflect.DeepEqual(actualValues, expectedValues) {
+			t.Errorf("Expected values %v for header '%s', but got %v", expectedValues, name, actualValues)
+		}
 	}
 }
