@@ -1,6 +1,7 @@
 package goheader_test
 
 import (
+	"net/http"
 	"reflect"
 	"strings"
 	"testing"
@@ -8,8 +9,8 @@ import (
 	"github.com/lindsaygelle/goheader"
 )
 
-// TestContsants tests the defined package constants.
-func TestConstants(t *testing.T) {
+// TestHeaderConstants tests the goheader HTTP header name constants.
+func TestHeaderConstants(t *testing.T) {
 	tests := []struct {
 		Value          string
 		ValueExepected string
@@ -179,7 +180,8 @@ func TestConstants(t *testing.T) {
 	}
 }
 
-func TestConstructors(t *testing.T) {
+// TestHeaderFunctions tests the goheader Header constructor functions.
+func TestHeaderFunctions(t *testing.T) {
 	tests := []struct {
 		ValueName         string
 		ValueNameFunction func(values ...string) goheader.Header
@@ -352,5 +354,22 @@ func TestConstructors(t *testing.T) {
 				t.Errorf("Expected Header.Value to be %s, but got %s", headerValues, header.Values)
 			}
 		})
+	}
+}
+
+ // TestWriteHeaders tests WriteHeaders. 
+func TestWriteHeaders(t *testing.T) {
+	// Test case 1: Add header to http.ResponseWriter
+	header := goheader.Header{Name: "Key", Values: []string{"Value"}} // Create an example Header.
+	writerHeaders := http.Header{}
+	goheader.WriteHeaders(func() http.Header { return writerHeaders }, header)
+
+	values, ok := writerHeaders["Key"]
+	expectedValues := []string{"Value"}
+	if !ok {
+		t.Errorf("Expected ok to be true, got %t", ok)
+	}
+	if !reflect.DeepEqual(values, expectedValues)
+		t.Errorf("Expected value to be %v, but got %v", expectedValue, values)
 	}
 }
