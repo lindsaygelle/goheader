@@ -2511,7 +2511,6 @@ func main() {
 }
 ```
 
-
 ## Examples
 
 ### ResponseWriter
@@ -2531,19 +2530,24 @@ import (
 )
 
 func main() {
-
+	// Create a default handler.
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		goheader.WriteHeaders(
-			w,
+		// Create a new set of goheader.Header instances.
+		headers := []goheader.Header{
 			goheader.NewContentLanguageHeader("en-AU"),
 			goheader.NewContentTypeHeader("application/json"),
-			goheader.NewCookieHeader("Hello=World"))
+			goheader.NewCookieHeader("language=golang")}
 
+		// Add the headers to the http.ResponseWriter.
+		goheader.WriteHeaders(w, headers...)
+		// Write the HTTP status code.
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(w.Headers())
+		// Write the HTTP response.
+		json.NewEncoder(w).Encode(w.Header()) // { "Content-Language": [ "en-AU" ], "Content-Type": [ "application/json" ], "Cookie": [ "language=golang" ] }
 	})
-
+	// Set the port for the server.
 	serverAddress := fmt.Sprintf(":%d", 8080)
+	// Serve content.
 	log.Println(http.ListenAndServe(serverAddress, nil))
 }
 ```
@@ -2587,3 +2591,4 @@ If you discover a security vulnerability within this project, please consult the
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct). For additional information, please review the [CODE_OF_CONDUCT](./CODE_OF_CONDUCT.md) file.
 
 ## Acknowledgements
+Big thanks to [egonelbre/gophers](https://github.com/egonelbre/gophers) for providing the delightful Gopher artwork used in the social preview. Don't hesitate to pay them a visit!
