@@ -1,7 +1,7 @@
 # Goheader
-Goheader is a [Go](https://github.com/golang/go) package for building out (most) standard and non-standard HTTP headers.
+Goheader is a [Go](https://github.com/golang/go) package designed to simplify the management of HTTP headers in web applications. It offers a comprehensive collection of constants, each representing a standard HTTP header field, facilitating easy reference and usage. The package introduces a Header struct that encapsulates vital information about headers, such as name, values, and applicability, streamlining header manipulation. GoHeader provides a set of convenient functions for creating headers, allowing developers to specify multiple values efficiently. Headers are categorized based on their relevance to HTTP requests and responses, enhancing clarity in their usage context. With support for experimental headers and well-documented usage examples, GoHeader helps developers quickly integrate custom headers into their applications.
 
-![Goheader]()
+![Goheader](https://repository-images.githubusercontent.com/398801126/5de79de0-f8f1-4c15-83bb-be249a772b01)
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/lindsaygelle/goheader)](https://pkg.go.dev/github.com/lindsaygelle/goheader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lindsaygelle/goheader)](https://goreportcard.com/report/github.com/lindsaygelle/goheader)
@@ -10,6 +10,15 @@ Goheader is a [Go](https://github.com/golang/go) package for building out (most)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
 ## Features
+
+### Comprehensive List
+GoHeader provides a comprehensive list of constants for standard HTTP headers, making it easy to reference and use common headers in your applications.
+
+### Header Representation
+Provides a Header struct that encapsulates important information about HTTP headers, including name, values, and applicability properties.
+
+### Header Creation Functions
+Offers helper functions like NewHeaders, NewAIMHeader, NewAcceptHeader, and many more, allowing developers to create headers with specified values efficiently.
 
 ## Installation
 You can install it in your Go project using `go get`:
