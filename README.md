@@ -11,13 +11,13 @@ Goheader is a [Go](https://github.com/golang/go) package designed to simplify th
 
 ## Features
 
-### Comprehensive List
+### 🏷️ Comprehensive List
 GoHeader provides a comprehensive list of constants for standard HTTP headers, making it easy to reference and use common headers in your applications.
 
-### Header Representation
+### 📂 Header Definition
 Provides a Header struct that encapsulates important information about HTTP headers, including name, values, and applicability properties.
 
-### Header Creation Functions
+### 📦 Header Constructors
 Offers helper functions like NewHeaders, NewAIMHeader, NewAcceptHeader, and many more, allowing developers to create headers with specified values efficiently.
 
 ## Installation
