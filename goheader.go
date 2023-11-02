@@ -3318,6 +3318,22 @@ func NewXXSSProtectionHeader(values ...string) Header {
 // It maps the headers based on their names to the corresponding values and sets them
 // in the http.ResponseWriter object's header. If a header with the same name already exists,
 // its values will be updated with the new ones provided.
+//
+//  // Create a default handler.
+//  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+//  	// Create a new set of goheader.Header instances.
+//  	headers := []goheader.Header{
+//  		goheader.NewContentLanguageHeader("en-AU"),
+//  		goheader.NewContentTypeHeader("application/json"),
+//  		goheader.NewCookieHeader("language=golang")}
+//
+//  	// Add the headers to the http.ResponseWriter.
+//  	goheader.WriteHeaders(w, headers...)
+//  	// Write the HTTP status code.
+//  	w.WriteHeader(http.StatusOK)
+//  	// Write the HTTP response.
+//  	json.NewEncoder(w).Encode(w.Header()) // { "Content-Language": [ "en-AU" ], "Content-Type": [ "application/json" ], "Cookie": [ "language=golang" ] }
+//  })
 func WriteHeaders(writer interface{ Header() http.Header }, headers ...Header) {
 	writerHeaders := writer.Header()
 	for _, header := range headers {

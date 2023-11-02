@@ -1,7 +1,7 @@
 # Goheader
-Goheader is a [Go](https://github.com/golang/go) package for building out (most) standard and non-standard HTTP headers.
+Goheader is a [Go](https://github.com/golang/go) package designed to simplify the management of HTTP headers in web applications. It offers a comprehensive collection of constants, each representing a standard HTTP header field, facilitating easy reference and usage. The package introduces a Header struct that encapsulates vital information about headers, such as name, values, and applicability, streamlining header manipulation. GoHeader provides a set of convenient functions for creating headers, allowing developers to specify multiple values efficiently. Headers are categorized based on their relevance to HTTP requests and responses, enhancing clarity in their usage context. With support for experimental headers and well-documented usage examples, GoHeader helps developers quickly integrate custom headers into their applications.
 
-![Goheader]()
+![Goheader](https://repository-images.githubusercontent.com/398801126/5de79de0-f8f1-4c15-83bb-be249a772b01)
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/lindsaygelle/goheader)](https://pkg.go.dev/github.com/lindsaygelle/goheader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lindsaygelle/goheader)](https://goreportcard.com/report/github.com/lindsaygelle/goheader)
@@ -10,6 +10,15 @@ Goheader is a [Go](https://github.com/golang/go) package for building out (most)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
 ## Features
+
+### 🏷️ Comprehensive List
+GoHeader provides a comprehensive list of constants for standard HTTP headers, making it easy to reference and use common headers in your applications.
+
+### 📂 Header Definition
+Provides a Header struct that encapsulates important information about HTTP headers, including name, values, and applicability properties.
+
+### 📦 Header Constructors
+Offers helper functions like NewHeaders, NewAIMHeader, NewAcceptHeader, and many more, allowing developers to create headers with specified values efficiently.
 
 ## Installation
 You can install it in your Go project using `go get`:
@@ -2511,7 +2520,6 @@ func main() {
 }
 ```
 
-
 ## Examples
 
 ### ResponseWriter
@@ -2531,19 +2539,24 @@ import (
 )
 
 func main() {
-
+	// Create a default handler.
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		goheader.WriteHeaders(
-			w,
+		// Create a new set of goheader.Header instances.
+		headers := []goheader.Header{
 			goheader.NewContentLanguageHeader("en-AU"),
 			goheader.NewContentTypeHeader("application/json"),
-			goheader.NewCookieHeader("Hello=World"))
+			goheader.NewCookieHeader("language=golang")}
 
+		// Add the headers to the http.ResponseWriter.
+		goheader.WriteHeaders(w, headers...)
+		// Write the HTTP status code.
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(w.Headers())
+		// Write the HTTP response.
+		json.NewEncoder(w).Encode(w.Header()) // { "Content-Language": [ "en-AU" ], "Content-Type": [ "application/json" ], "Cookie": [ "language=golang" ] }
 	})
-
+	// Set the port for the server.
 	serverAddress := fmt.Sprintf(":%d", 8080)
+	// Serve content.
 	log.Println(http.ListenAndServe(serverAddress, nil))
 }
 ```
@@ -2587,3 +2600,18 @@ If you discover a security vulnerability within this project, please consult the
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct). For additional information, please review the [CODE_OF_CONDUCT](./CODE_OF_CONDUCT.md) file.
 
 ## Acknowledgements
+Big thanks to [egonelbre/gophers](https://github.com/egonelbre/gophers) for providing the delightful Gopher artwork used in the social preview. Don't hesitate to pay them a visit!
+
+## References
+The information for this package was sourced from the following sites.
+
+[Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
+The go-to resource for comprehensive HTTP header information.
+
+[Wikipedia](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields)
+A reliable reference providing detailed insights into various HTTP header fields.
+
+[http.dev](https://http.dev/)
+A valuable platform offering expert guidance and best practices in HTTP development.
+
+If you spot any discrepancies or have additional insights, don't hesitate to reach out!

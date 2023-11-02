@@ -386,10 +386,10 @@ func TestWriteHeaders(t *testing.T) {
 
 	// Headers to be written.
 	headers := []goheader.Header{
-		goheader.Header{
+		{
 			Name:   "Content-Type",
 			Values: []string{"application/json"}},
-		goheader.Header{
+		{
 			Name:   "Cache-Control",
 			Values: []string{"no-cache"}}}
 
