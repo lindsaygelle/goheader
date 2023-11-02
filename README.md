@@ -2601,3 +2601,9 @@ This project has adopted the [Amazon Open Source Code of Conduct](https://aws.gi
 
 ## Acknowledgements
 Big thanks to [egonelbre/gophers](https://github.com/egonelbre/gophers) for providing the delightful Gopher artwork used in the social preview. Don't hesitate to pay them a visit!
+
+## References
+The information for this package was sourced from the following sites. If there are corrections or additions, please do let me know.
+- [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
+- [Wikipedia](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields)
+- [HTTPDev](https://http.dev/) 
