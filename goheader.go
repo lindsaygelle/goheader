@@ -1,6 +1,10 @@
 package goheader
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"strings"
+)
 
 // AIM header field is used to indicate acceptable instance-manipulations for the request.
 const AIM = "A-IM"
@@ -486,18 +490,18 @@ type Header struct {
 // creates an http.Header instance and populates it with the provided headers' names as keys
 // and their associated values as slices of strings.
 //
-//  // Create a new Header instance.
-//  header1 := goheader.Header{
-//    Name: "Content-Type",
-//    Values: []string{"application/json"}}
+//	// Create a new Header instance.
+//	header1 := goheader.Header{
+//	  Name: "Content-Type",
+//	  Values: []string{"application/json"}}
 //
-//  // Create another Header instance.
-//  header2 := goheader.Header{
-//    Name: "Authorization",
-//    Values: []string{"Bearer Token"}}
+//	// Create another Header instance.
+//	header2 := goheader.Header{
+//	  Name: "Authorization",
+//	  Values: []string{"Bearer Token"}}
 //
-//  headers := goheader.NewHeaders(header1, header2)
-//  fmt.Println(headers) // Output: map[Content-Type:[application/json] Authorization:[Bearer Token]]
+//	headers := goheader.NewHeaders(header1, header2)
+//	fmt.Println(headers) // Output: map[Content-Type:[application/json] Authorization:[Bearer Token]]
 func NewHeaders(headers ...*Header) http.Header {
 	HTTPHeader := http.Header{}
 	for _, header := range headers {
@@ -506,104 +510,282 @@ func NewHeaders(headers ...*Header) http.Header {
 	return HTTPHeader
 }
 
-// NewAIMHeader creates a new A-IM Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/A-IM
+// AIMValue represents one A-IM token with optional quality and extensions.
+type AIMValue struct {
+	Token      string   // The instance manipulation name (e.g., "gzip", "vcdiff")
+	Quality    float64  // Optional quality factor (0.0 - 1.0). Ignored if <= 0.
+	Extensions []string // Optional extensions, e.g., custom parameters.
+}
+
+// String renders a single A-IM value.
+func (v AIMValue) String() string {
+	result := v.Token
+	if v.Quality > 0 {
+		result += fmt.Sprintf(";q=%.1f", v.Quality)
+	}
+	if len(v.Extensions) > 0 {
+		result += ";" + strings.Join(v.Extensions, ";")
+	}
+	return result
+}
+
+// AIMConfig defines the configuration for the A-IM header.
+type AIMConfig struct {
+	Values []AIMValue
+}
+
+// String renders the full A-IM header value from the config.
+func (cfg AIMConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAIMHeader creates a new A-IM header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/A-IM
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAIMHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // A-IM
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAIMHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AIMConfig{
+//	    Values: []goheader.AIMValue{
+//	        {Token: "gzip", Quality: 1.0},
+//	        {Token: "vcdiff", Quality: 0.5, Extensions: []string{"custom=1"}},
+//	    },
+//	}
+//	header := goheader.NewAIMHeader(cfg)
+//	fmt.Println(header.Name)   // A-IM
+//	fmt.Println(header.Values) // ["gzip;q=1.0, vcdiff;q=0.5;custom=1"]
+func NewAIMHeader(cfg AIMConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AIM,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptHeader creates a new Accept Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
+// AcceptValue represents one media type in the Accept header.
+type AcceptValue struct {
+	MediaType string            // e.g., "application/json"
+	Quality   float64           // Optional quality factor (0.0 - 1.0). Ignored if <= 0.
+	Params    map[string]string // Optional parameters, e.g., charset=utf-8
+}
+
+// String renders a single Accept value.
+func (v AcceptValue) String() string {
+	if v.MediaType == "" {
+		v.MediaType = "*/*" // Default to wildcard if none provided
+	}
+
+	result := v.MediaType
+
+	if len(v.Params) > 0 {
+		var params []string
+		for k, val := range v.Params {
+			params = append(params, fmt.Sprintf("%s=%s", k, val))
+		}
+		result += ";" + strings.Join(params, ";")
+	}
+
+	if v.Quality > 0 && v.Quality < 1 {
+		result += fmt.Sprintf(";q=%.1f", v.Quality)
+	}
+
+	return result
+}
+
+// AcceptConfig defines the configuration for the Accept header.
+type AcceptConfig struct {
+	Values []AcceptValue
+}
+
+// String renders the full Accept header value from the config.
+func (cfg AcceptConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptHeader creates a new Accept header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptConfig{
+//	    Values: []goheader.AcceptValue{
+//	        {MediaType: "application/json", Quality: 1.0},
+//	        {MediaType: "text/html", Quality: 0.8, Params: map[string]string{"charset": "utf-8"}},
+//	    },
+//	}
+//	header := goheader.NewAcceptHeader(cfg)
+//	fmt.Println(header.Name)   // Accept
+//	fmt.Println(header.Values) // ["application/json;q=1.0, text/html;charset=utf-8;q=0.8"]
+func NewAcceptHeader(cfg AcceptConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Accept,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptCHHeader creates a new Accept-CH Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
+// AcceptCHValue represents one token in the Accept-CH header.
+type AcceptCHValue struct {
+	Token      string   // The client hint token, e.g., "DPR", "Width"
+	Extensions []string // Optional future-proof extensions, rarely used
+}
+
+// String renders a single Accept-CH value.
+func (v AcceptCHValue) String() string {
+	if len(v.Extensions) > 0 {
+		return v.Token + ";" + strings.Join(v.Extensions, ";")
+	}
+	return v.Token
+}
+
+// AcceptCHConfig defines the configuration for the Accept-CH header.
+type AcceptCHConfig struct {
+	Values []AcceptCHValue
+}
+
+// String renders the full Accept-CH header value from the config.
+func (cfg AcceptCHConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptCHHeader creates a new Accept-CH header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptCHHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-CH
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptCHHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptCHConfig{
+//	    Values: []goheader.AcceptCHValue{
+//	        {Token: "DPR"},
+//	        {Token: "Viewport-Width"},
+//	    },
+//	}
+//	header := goheader.NewAcceptCHHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-CH
+//	fmt.Println(header.Values) // ["DPR, Viewport-Width"]
+func NewAcceptCHHeader(cfg AcceptCHConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptCH,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptCHLifetimeHeader creates a new Accept-CH-Lifetime Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH-Lifetime
+// AcceptCHLifetimeConfig defines the configuration for the Accept-CH-Lifetime header.
+type AcceptCHLifetimeConfig struct {
+	Lifetime int // Lifetime in seconds
+}
+
+// String renders the Accept-CH-Lifetime header value.
+func (cfg AcceptCHLifetimeConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Lifetime)
+}
+
+// NewAcceptCHLifetimeHeader creates a new Accept-CH-Lifetime header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH-Lifetime
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptCHLifetimeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-CH-Lifetime
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptCHLifetimeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
+//	header := goheader.NewAcceptCHLifetimeHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-CH-Lifetime
+//	fmt.Println(header.Values) // ["86400"]
+func NewAcceptCHLifetimeHeader(cfg AcceptCHLifetimeConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         AcceptCHLifetime,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptCharsetHeader creates a new Accept-Charset Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Charset
+// AcceptCharsetValue represents one charset entry in the Accept-Charset header.
+type AcceptCharsetValue struct {
+	Charset string  // e.g., "utf-8"
+	Quality float64 // Optional quality factor (0.0 - 1.0). Ignored if <= 0.
+}
+
+// String renders a single Accept-Charset value.
+func (v AcceptCharsetValue) String() string {
+	if v.Charset == "" {
+		v.Charset = "*" // Default to wildcard if none provided
+	}
+
+	result := v.Charset
+	if v.Quality > 0 && v.Quality < 1 {
+		result += fmt.Sprintf(";q=%.1f", v.Quality)
+	}
+	return result
+}
+
+// AcceptCharsetConfig defines the configuration for the Accept-Charset header.
+type AcceptCharsetConfig struct {
+	Values []AcceptCharsetValue
+}
+
+// String renders the full Accept-Charset header value from the config.
+func (cfg AcceptCharsetConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptCharsetHeader creates a new Accept-Charset header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Charset
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptCharsetHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Charset
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptCharsetHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptCharsetConfig{
+//	    Values: []goheader.AcceptCharsetValue{
+//	        {Charset: "utf-8", Quality: 1.0},
+//	        {Charset: "iso-8859-1", Quality: 0.5},
+//	    },
+//	}
+//	header := goheader.NewAcceptCharsetHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Charset
+//	fmt.Println(header.Values) // ["utf-8;q=1.0, iso-8859-1;q=0.5"]
+func NewAcceptCharsetHeader(cfg AcceptCharsetConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptCharset,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewAcceptDatetimeHeader creates a new Accept-Datetime Header with the specified values.
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Datetime
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptDatetimeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Datetime
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptDatetimeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Datetime
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptDatetimeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -618,10 +800,10 @@ func NewAcceptDatetimeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptEncodingHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Encoding
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptEncodingHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Encoding
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptEncodingHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -636,10 +818,10 @@ func NewAcceptEncodingHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptLanguageHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Language
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptLanguageHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Language
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptLanguageHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -654,10 +836,10 @@ func NewAcceptLanguageHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Patch
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptPatchHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Patch
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptPatchHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Patch
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptPatchHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -672,10 +854,10 @@ func NewAcceptPatchHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Post
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptPostHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Post
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptPostHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Post
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptPostHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -690,10 +872,10 @@ func NewAcceptPostHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAcceptRangesHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Accept-Ranges
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAcceptRangesHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Accept-Ranges
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAcceptRangesHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -708,10 +890,10 @@ func NewAcceptRangesHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlAllowCredentialsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Allow-Credentials
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlAllowCredentialsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Allow-Credentials
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -726,10 +908,10 @@ func NewAccessControlAllowCredentialsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlAllowHeadersHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Allow-Headers
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlAllowHeadersHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Allow-Headers
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowHeadersHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -744,10 +926,10 @@ func NewAccessControlAllowHeadersHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlAllowMethodsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Allow-Methods
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlAllowMethodsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Allow-Methods
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowMethodsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -762,10 +944,10 @@ func NewAccessControlAllowMethodsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlAllowOriginHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Allow-Origin
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlAllowOriginHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Allow-Origin
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlAllowOriginHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -780,10 +962,10 @@ func NewAccessControlAllowOriginHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlExposeHeadersHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Expose-Headers
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlExposeHeadersHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Expose-Headers
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlExposeHeadersHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -798,10 +980,10 @@ func NewAccessControlExposeHeadersHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlMaxAgeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Max-Age
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlMaxAgeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Max-Age
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlMaxAgeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -816,10 +998,10 @@ func NewAccessControlMaxAgeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Headers
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlRequestHeadersHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Request-Headers
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlRequestHeadersHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Request-Headers
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlRequestHeadersHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -834,10 +1016,10 @@ func NewAccessControlRequestHeadersHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Method
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAccessControlRequestMethodHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Access-Control-Request-Method
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAccessControlRequestMethodHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Access-Control-Request-Method
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAccessControlRequestMethodHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -852,10 +1034,10 @@ func NewAccessControlRequestMethodHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Age
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAgeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Age
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAgeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Age
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAgeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -870,10 +1052,10 @@ func NewAgeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Allow
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAllowHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Allow
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAllowHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Allow
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAllowHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -888,10 +1070,10 @@ func NewAllowHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAltSvcHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Alt-Svc
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAltSvcHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Alt-Svc
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAltSvcHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -906,10 +1088,10 @@ func NewAltSvcHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Used
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAltUsedHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Alt-Used
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAltUsedHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Alt-Used
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAltUsedHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -924,10 +1106,10 @@ func NewAltUsedHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewAuthorizationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Authorization
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewAuthorizationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Authorization
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewAuthorizationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -942,10 +1124,10 @@ func NewAuthorizationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCacheControlHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Cache-Control
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCacheControlHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Cache-Control
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCacheControlHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -960,10 +1142,10 @@ func NewCacheControlHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Clear-Site-Data
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewClearSiteDataHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Clear-Site-Data
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewClearSiteDataHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Clear-Site-Data
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewClearSiteDataHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -978,10 +1160,10 @@ func NewClearSiteDataHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewConnectionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Connection
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewConnectionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Connection
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewConnectionHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -996,10 +1178,10 @@ func NewConnectionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-DPR
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentDPRHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-DPR
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentDPRHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-DPR
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentDPRHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1014,10 +1196,10 @@ func NewContentDPRHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentDispositionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Disposition
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentDispositionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Disposition
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentDispositionHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1032,10 +1214,10 @@ func NewContentDispositionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentEncodingHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Encoding
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentEncodingHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Encoding
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentEncodingHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1050,10 +1232,10 @@ func NewContentEncodingHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Language
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentLanguageHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Language
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentLanguageHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Language
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLanguageHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1068,10 +1250,10 @@ func NewContentLanguageHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentLengthHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Length
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentLengthHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Length
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLengthHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1086,10 +1268,10 @@ func NewContentLengthHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Location
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentLocationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Location
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentLocationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Location
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentLocationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1104,10 +1286,10 @@ func NewContentLocationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-MD5
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentMD5Header("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-MD5
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentMD5Header("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-MD5
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentMD5Header(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1122,10 +1304,10 @@ func NewContentMD5Header(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentRangeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Range
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentRangeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Range
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentRangeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1140,10 +1322,10 @@ func NewContentRangeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentSecurityPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Security-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentSecurityPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Security-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentSecurityPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1158,10 +1340,10 @@ func NewContentSecurityPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentSecurityPolicyReportOnlyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Security-Policy-Report-Only
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentSecurityPolicyReportOnlyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Security-Policy-Report-Only
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1176,10 +1358,10 @@ func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewContentTypeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Content-Type
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewContentTypeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Content-Type
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewContentTypeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1194,10 +1376,10 @@ func NewContentTypeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCookieHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Cookie
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCookieHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Cookie
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCookieHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1212,10 +1394,10 @@ func NewCookieHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Correlation-ID
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCorrelationIDHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Correlation-ID
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCorrelationIDHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Correlation-ID
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCorrelationIDHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1230,10 +1412,10 @@ func NewCorrelationIDHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Critical-CH
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCriticalCHHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Critical-CH
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCriticalCHHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Critical-CH
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCriticalCHHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1248,10 +1430,10 @@ func NewCriticalCHHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCrossOriginEmbedderPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Cross-Origin-Embedder-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCrossOriginEmbedderPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Cross-Origin-Embedder-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1266,10 +1448,10 @@ func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCrossOriginOpenerPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Cross-Origin-Opener-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCrossOriginOpenerPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Cross-Origin-Opener-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1284,10 +1466,10 @@ func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewCrossOriginResourcePolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Cross-Origin-Resource-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewCrossOriginResourcePolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Cross-Origin-Resource-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewCrossOriginResourcePolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1302,10 +1484,10 @@ func NewCrossOriginResourcePolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDNTHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // DNT
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDNTHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // DNT
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDNTHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1320,10 +1502,10 @@ func NewDNTHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DPR
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDPRHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // DPR
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDPRHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // DPR
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDPRHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1338,10 +1520,10 @@ func NewDPRHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDateHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Date
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDateHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Date
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDateHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1356,10 +1538,10 @@ func NewDateHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Delta-Base
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDeltaBaseHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Delta-Base
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDeltaBaseHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Delta-Base
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDeltaBaseHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1374,10 +1556,10 @@ func NewDeltaBaseHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Device-Memory
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDeviceMemoryHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Device-Memory
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDeviceMemoryHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Device-Memory
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDeviceMemoryHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1392,10 +1574,10 @@ func NewDeviceMemoryHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDigestHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Digest
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDigestHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Digest
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDigestHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1410,10 +1592,10 @@ func NewDigestHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Downlink
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewDownlinkHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Downlink
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewDownlinkHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Downlink
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewDownlinkHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1428,10 +1610,10 @@ func NewDownlinkHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ECT
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewECTHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // ECT
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewECTHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // ECT
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewECTHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1446,10 +1628,10 @@ func NewECTHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewETagHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // ETag
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewETagHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // ETag
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewETagHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1464,10 +1646,10 @@ func NewETagHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Early-Data
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewEarlyDataHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Early-Data
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewEarlyDataHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Early-Data
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewEarlyDataHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1482,10 +1664,10 @@ func NewEarlyDataHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewExpectHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Expect
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewExpectHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Expect
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpectHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1500,10 +1682,10 @@ func NewExpectHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewExpectCTHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Expect-CT
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewExpectCTHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Expect-CT
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpectCTHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1518,10 +1700,10 @@ func NewExpectCTHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewExpiresHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Expires
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewExpiresHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Expires
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewExpiresHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1536,10 +1718,10 @@ func NewExpiresHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewForwardedHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Forwarded
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewForwardedHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Forwarded
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewForwardedHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1554,10 +1736,10 @@ func NewForwardedHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewFromHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // From
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewFromHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // From
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewFromHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1572,10 +1754,10 @@ func NewFromHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Front-End-Https
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewFrontEndHTTPSHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Front-End-Https
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewFrontEndHTTPSHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Front-End-Https
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewFrontEndHTTPSHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1590,10 +1772,10 @@ func NewFrontEndHTTPSHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/HTTP2-Settings
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewHTTP2SettingsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // HTTP2-Settings
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewHTTP2SettingsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // HTTP2-Settings
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewHTTP2SettingsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1608,10 +1790,10 @@ func NewHTTP2SettingsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewHostHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Host
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewHostHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Host
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewHostHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1626,10 +1808,10 @@ func NewHostHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/IM
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIMHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // IM
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIMHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // IM
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIMHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1644,10 +1826,10 @@ func NewIMHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIfMatchHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // If-Match
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIfMatchHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // If-Match
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfMatchHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1662,10 +1844,10 @@ func NewIfMatchHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIfModifiedSinceHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // If-Modified-Since
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIfModifiedSinceHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // If-Modified-Since
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfModifiedSinceHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1680,10 +1862,10 @@ func NewIfModifiedSinceHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIfNoneMatchHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // If-None-Match
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIfNoneMatchHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // If-None-Match
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfNoneMatchHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1698,10 +1880,10 @@ func NewIfNoneMatchHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Range
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIfRangeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // If-Range
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIfRangeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // If-Range
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfRangeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1716,10 +1898,10 @@ func NewIfRangeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewIfUnmodifiedSinceHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // If-Unmodified-Since
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewIfUnmodifiedSinceHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // If-Unmodified-Since
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewIfUnmodifiedSinceHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1734,10 +1916,10 @@ func NewIfUnmodifiedSinceHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Keep-Alive
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewKeepAliveHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Keep-Alive
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewKeepAliveHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Keep-Alive
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewKeepAliveHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1752,10 +1934,10 @@ func NewKeepAliveHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Large-Allocation
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewLargeAllocationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Large-Allocation
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewLargeAllocationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Large-Allocation
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLargeAllocationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1770,10 +1952,10 @@ func NewLargeAllocationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewLastModifiedHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Last-Modified
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewLastModifiedHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Last-Modified
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLastModifiedHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1788,10 +1970,10 @@ func NewLastModifiedHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewLinkHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Link
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewLinkHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Link
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLinkHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1806,10 +1988,10 @@ func NewLinkHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewLocationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Location
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewLocationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Location
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewLocationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1824,10 +2006,10 @@ func NewLocationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Max-Forwards
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewMaxForwardsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Max-Forwards
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewMaxForwardsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Max-Forwards
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewMaxForwardsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1842,10 +2024,10 @@ func NewMaxForwardsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/NEL
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewNELHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // NEL
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewNELHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // NEL
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewNELHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -1860,10 +2042,10 @@ func NewNELHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewOriginHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Origin
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewOriginHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Origin
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewOriginHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1878,10 +2060,10 @@ func NewOriginHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/P3P
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewP3PHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // P3P
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewP3PHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // P3P
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewP3PHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1896,10 +2078,10 @@ func NewP3PHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewPermissionsPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Permissions-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewPermissionsPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Permissions-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPermissionsPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1914,10 +2096,10 @@ func NewPermissionsPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewPragmaHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Pragma
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewPragmaHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Pragma
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPragmaHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1932,10 +2114,10 @@ func NewPragmaHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Prefer
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewPreferHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Prefer
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewPreferHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Prefer
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPreferHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1950,10 +2132,10 @@ func NewPreferHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Preference-Applied
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewPreferenceAppliedHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Preference-Applied
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewPreferenceAppliedHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Preference-Applied
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPreferenceAppliedHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1968,10 +2150,10 @@ func NewPreferenceAppliedHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewProxyAuthenticateHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Proxy-Authenticate
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewProxyAuthenticateHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Proxy-Authenticate
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyAuthenticateHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -1986,10 +2168,10 @@ func NewProxyAuthenticateHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewProxyAuthorizationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Proxy-Authorization
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewProxyAuthorizationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Proxy-Authorization
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyAuthorizationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2004,10 +2186,10 @@ func NewProxyAuthorizationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Connection
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewProxyConnectionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Proxy-Connection
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewProxyConnectionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Proxy-Connection
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewProxyConnectionHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2022,10 +2204,10 @@ func NewProxyConnectionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewPublicKeyPinsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Public-Key-Pins
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewPublicKeyPinsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Public-Key-Pins
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewPublicKeyPinsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2040,10 +2222,10 @@ func NewPublicKeyPinsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/RTT
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewRTTHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // RTT
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewRTTHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // RTT
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRTTHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2058,10 +2240,10 @@ func NewRTTHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewRangeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Range
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewRangeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Range
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRangeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2076,10 +2258,10 @@ func NewRangeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewRefererHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Referer
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewRefererHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Referer
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRefererHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2094,10 +2276,10 @@ func NewRefererHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewReferrerPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Referrer-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewReferrerPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Referrer-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewReferrerPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2112,10 +2294,10 @@ func NewReferrerPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Refresh
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewRefreshHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Refresh
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewRefreshHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Refresh
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRefreshHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2130,10 +2312,10 @@ func NewRefreshHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Report-To
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewReportToHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Report-To
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewReportToHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Report-To
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewReportToHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2148,10 +2330,10 @@ func NewReportToHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewRetryAfterHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Retry-After
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewRetryAfterHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Retry-After
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewRetryAfterHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2166,10 +2348,10 @@ func NewRetryAfterHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Save-Data
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSaveDataHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Save-Data
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSaveDataHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Save-Data
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSaveDataHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2184,10 +2366,10 @@ func NewSaveDataHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Color-Scheme
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHPrefersColorSchemeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-Prefers-Color-Scheme
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHPrefersColorSchemeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Color-Scheme
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2202,10 +2384,10 @@ func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Reduced-Motion
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHPrefersReducedMotionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Motion
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHPrefersReducedMotionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Motion
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2220,10 +2402,10 @@ func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Reduced-Transparency
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHPrefersReducedTransparencyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Transparency
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHPrefersReducedTransparencyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Transparency
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2238,10 +2420,10 @@ func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2256,10 +2438,10 @@ func NewSecCHUAHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Arch
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAArchHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Arch
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAArchHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Arch
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAArchHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2274,10 +2456,10 @@ func NewSecCHUAArchHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Bitness
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUABitnessHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Bitness
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUABitnessHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Bitness
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUABitnessHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2292,10 +2474,10 @@ func NewSecCHUABitnessHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAFullVersionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAFullVersionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAFullVersionHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2310,10 +2492,10 @@ func NewSecCHUAFullVersionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version-List
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAFullVersionListHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version-List
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAFullVersionListHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version-List
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAFullVersionListHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2328,10 +2510,10 @@ func NewSecCHUAFullVersionListHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAMobileHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Mobile
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAMobileHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Mobile
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAMobileHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2346,10 +2528,10 @@ func NewSecCHUAMobileHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Model
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAModelHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Model
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAModelHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Model
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAModelHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2364,10 +2546,10 @@ func NewSecCHUAModelHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAPlatformHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Platform
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAPlatformHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Platform
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAPlatformHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2382,10 +2564,10 @@ func NewSecCHUAPlatformHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform-Version
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecCHUAPlatformVersionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-CH-UA-Platform-Version
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecCHUAPlatformVersionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-CH-UA-Platform-Version
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecCHUAPlatformVersionHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2400,10 +2582,10 @@ func NewSecCHUAPlatformVersionHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Dest
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecFetchDestHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-Fetch-Dest
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecFetchDestHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-Fetch-Dest
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchDestHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2418,10 +2600,10 @@ func NewSecFetchDestHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecFetchModeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-Fetch-Mode
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecFetchModeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-Fetch-Mode
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchModeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2436,10 +2618,10 @@ func NewSecFetchModeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecFetchSiteHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-Fetch-Site
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecFetchSiteHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-Fetch-Site
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchSiteHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2454,10 +2636,10 @@ func NewSecFetchSiteHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-User
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecFetchUserHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-Fetch-User
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecFetchUserHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-Fetch-User
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecFetchUserHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2472,10 +2654,10 @@ func NewSecFetchUserHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-GPC
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecGPCHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-GPC
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecGPCHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-GPC
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecGPCHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2490,10 +2672,10 @@ func NewSecGPCHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Purpose
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecPurposeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-Purpose
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecPurposeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-Purpose
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecPurposeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2508,10 +2690,10 @@ func NewSecPurposeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Accept
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSecWebSocketAcceptHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Sec-WebSocket-Accept
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSecWebSocketAcceptHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Sec-WebSocket-Accept
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSecWebSocketAcceptHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2526,10 +2708,10 @@ func NewSecWebSocketAcceptHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewServerHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Server
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewServerHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Server
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServerHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2544,10 +2726,10 @@ func NewServerHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewServerTimingHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Server-Timing
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewServerTimingHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Server-Timing
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServerTimingHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2562,10 +2744,10 @@ func NewServerTimingHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Service-Worker-Navigation-Preload
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewServiceWorkerNavigationPreloadHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Service-Worker-Navigation-Preload
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewServiceWorkerNavigationPreloadHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Service-Worker-Navigation-Preload
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2580,10 +2762,10 @@ func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSetCookieHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Set-Cookie
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSetCookieHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Set-Cookie
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSetCookieHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2598,10 +2780,10 @@ func NewSetCookieHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/SourceMap
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSourceMapHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // SourceMap
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSourceMapHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // SourceMap
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSourceMapHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2616,10 +2798,10 @@ func NewSourceMapHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Status
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewStatusHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Status
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewStatusHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Status
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewStatusHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2634,10 +2816,10 @@ func NewStatusHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewStrictTransportSecurityHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Strict-Transport-Security
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewStrictTransportSecurityHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Strict-Transport-Security
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewStrictTransportSecurityHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2652,10 +2834,10 @@ func NewStrictTransportSecurityHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Supports-Loading-Mode
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewSupportsLoadingModeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Supports-Loading-Mode
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewSupportsLoadingModeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Supports-Loading-Mode
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewSupportsLoadingModeHeader(values ...string) Header {
 	return Header{
 		Experimental: true,
@@ -2670,10 +2852,10 @@ func NewSupportsLoadingModeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/TE
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewTEHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // TE
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewTEHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // TE
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTEHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2688,10 +2870,10 @@ func NewTEHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewTimingAllowOriginHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Timing-Allow-Origin
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewTimingAllowOriginHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Timing-Allow-Origin
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTimingAllowOriginHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2706,10 +2888,10 @@ func NewTimingAllowOriginHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Tk
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewTKHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Tk
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewTKHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Tk
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTKHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2724,10 +2906,10 @@ func NewTKHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Trailer
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewTrailerHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Trailer
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewTrailerHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Trailer
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTrailerHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2742,10 +2924,10 @@ func NewTrailerHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewTransferEncodingHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Transfer-Encoding
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewTransferEncodingHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Transfer-Encoding
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewTransferEncodingHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2760,10 +2942,10 @@ func NewTransferEncodingHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewUpgradeHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Upgrade
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewUpgradeHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Upgrade
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUpgradeHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2778,10 +2960,10 @@ func NewUpgradeHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewUpgradeInsecureRequestsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Upgrade-Insecure-Requests
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewUpgradeInsecureRequestsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Upgrade-Insecure-Requests
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUpgradeInsecureRequestsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2796,10 +2978,10 @@ func NewUpgradeInsecureRequestsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewUserAgentHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // User-Agent
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewUserAgentHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // User-Agent
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewUserAgentHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2814,10 +2996,10 @@ func NewUserAgentHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewVaryHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Vary
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewVaryHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Vary
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewVaryHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2832,10 +3014,10 @@ func NewVaryHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Via
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewViaHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Via
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewViaHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Via
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewViaHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2850,10 +3032,10 @@ func NewViaHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Viewport-Width
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewViewportWidthHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Viewport-Width
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewViewportWidthHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Viewport-Width
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewViewportWidthHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2868,10 +3050,10 @@ func NewViewportWidthHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewWWWAuthenticateHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // WWW-Authenticate
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewWWWAuthenticateHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // WWW-Authenticate
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWWWAuthenticateHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2886,10 +3068,10 @@ func NewWWWAuthenticateHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Want-Digest
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewWantDigestHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Want-Digest
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewWantDigestHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Want-Digest
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWantDigestHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2904,10 +3086,10 @@ func NewWantDigestHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewWarningHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Warning
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewWarningHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Warning
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWarningHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2922,10 +3104,10 @@ func NewWarningHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Width
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewWidthHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // Width
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewWidthHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // Width
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewWidthHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2940,10 +3122,10 @@ func NewWidthHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-ATT-DeviceId
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXATTDeviceIDHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-ATT-DeviceId
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXATTDeviceIDHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-ATT-DeviceId
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXATTDeviceIDHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2958,10 +3140,10 @@ func NewXATTDeviceIDHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Duration
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXContentDurationHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Content-Duration
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXContentDurationHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Content-Duration
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentDurationHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2976,10 +3158,10 @@ func NewXContentDurationHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Security-Policy
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXContentSecurityPolicyHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Content-Security-Policy
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXContentSecurityPolicyHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Content-Security-Policy
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentSecurityPolicyHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -2994,10 +3176,10 @@ func NewXContentSecurityPolicyHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXContentTypeOptionsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Content-Type-Options
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXContentTypeOptionsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Content-Type-Options
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXContentTypeOptionsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3012,10 +3194,10 @@ func NewXContentTypeOptionsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Correlation-ID
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXCorrelationIDHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Correlation-ID
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXCorrelationIDHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Correlation-ID
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXCorrelationIDHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3030,10 +3212,10 @@ func NewXCorrelationIDHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Csrf-Token
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXCSRFTokenHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Csrf-Token
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXCSRFTokenHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Csrf-Token
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXCSRFTokenHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3048,10 +3230,10 @@ func NewXCSRFTokenHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXDNSPrefetchControlHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-DNS-Prefetch-Control
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXDNSPrefetchControlHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-DNS-Prefetch-Control
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXDNSPrefetchControlHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3066,10 +3248,10 @@ func NewXDNSPrefetchControlHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXForwardedForHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Forwarded-For
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXForwardedForHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Forwarded-For
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedForHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3084,10 +3266,10 @@ func NewXForwardedForHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXForwardedHostHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Forwarded-Host
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXForwardedHostHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Forwarded-Host
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedHostHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3102,10 +3284,10 @@ func NewXForwardedHostHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXForwardedProtoHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Forwarded-Proto
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXForwardedProtoHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Forwarded-Proto
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXForwardedProtoHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3120,10 +3302,10 @@ func NewXForwardedProtoHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXFrameOptionsHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Frame-Options
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXFrameOptionsHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Frame-Options
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXFrameOptionsHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3138,10 +3320,10 @@ func NewXFrameOptionsHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Http-Method-Override
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXHTTPMethodOverrideHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Http-Method-Override
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXHTTPMethodOverrideHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Http-Method-Override
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXHTTPMethodOverrideHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3156,10 +3338,10 @@ func NewXHTTPMethodOverrideHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Powered-By
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXPoweredByHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Powered-By
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXPoweredByHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Powered-By
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXPoweredByHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3174,10 +3356,10 @@ func NewXPoweredByHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Redirect-By
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXRedirectByHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Redirect-By
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXRedirectByHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Redirect-By
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRedirectByHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3192,10 +3374,10 @@ func NewXRedirectByHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Request-ID
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXRequestIDHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Request-ID
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXRequestIDHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Request-ID
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRequestIDHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3210,10 +3392,10 @@ func NewXRequestIDHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Requested-With
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXRequestedWithHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Requested-With
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXRequestedWithHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Requested-With
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXRequestedWithHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3228,10 +3410,10 @@ func NewXRequestedWithHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-UA-Compatible
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXUACompatibleHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-UA-Compatible
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXUACompatibleHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-UA-Compatible
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXUACompatibleHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3246,10 +3428,10 @@ func NewXUACompatibleHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-UIDH
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXUIDHHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-UIDH
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXUIDHHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-UIDH
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXUIDHHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3264,10 +3446,10 @@ func NewXUIDHHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Wap-Profile
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXWapProfileHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-Wap-Profile
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXWapProfileHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-Wap-Profile
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXWapProfileHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3282,10 +3464,10 @@ func NewXWapProfileHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-WebKit-CSP
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXWebKitCSPHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-WebKit-CSP
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXWebKitCSPHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-WebKit-CSP
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXWebKitCSPHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3300,10 +3482,10 @@ func NewXWebKitCSPHeader(values ...string) Header {
 // It accepts a variadic number of strings, where each value represents an item to be added to the Header.
 // More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
 //
-//  // Create a new Header instance.
-//  newHeader := goheader.NewXXSSProtectionHeader("Example", "Values")
-//  fmt.Println(newHeader.Name) // X-XSS-Protection
-//  fmt.Println(newHeader.Value) // ["Example", "Value"]
+//	// Create a new Header instance.
+//	newHeader := goheader.NewXXSSProtectionHeader("Example", "Values")
+//	fmt.Println(newHeader.Name) // X-XSS-Protection
+//	fmt.Println(newHeader.Value) // ["Example", "Value"]
 func NewXXSSProtectionHeader(values ...string) Header {
 	return Header{
 		Experimental: false,
@@ -3319,21 +3501,21 @@ func NewXXSSProtectionHeader(values ...string) Header {
 // in the http.ResponseWriter object's header. If a header with the same name already exists,
 // its values will be updated with the new ones provided.
 //
-//  // Create a default handler.
-//  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-//  	// Create a new set of goheader.Header instances.
-//  	headers := []goheader.Header{
-//  		goheader.NewContentLanguageHeader("en-AU"),
-//  		goheader.NewContentTypeHeader("application/json"),
-//  		goheader.NewCookieHeader("language=golang")}
+//	// Create a default handler.
+//	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+//		// Create a new set of goheader.Header instances.
+//		headers := []goheader.Header{
+//			goheader.NewContentLanguageHeader("en-AU"),
+//			goheader.NewContentTypeHeader("application/json"),
+//			goheader.NewCookieHeader("language=golang")}
 //
-//  	// Add the headers to the http.ResponseWriter.
-//  	goheader.WriteHeaders(w, headers...)
-//  	// Write the HTTP status code.
-//  	w.WriteHeader(http.StatusOK)
-//  	// Write the HTTP response.
-//  	json.NewEncoder(w).Encode(w.Header()) // { "Content-Language": [ "en-AU" ], "Content-Type": [ "application/json" ], "Cookie": [ "language=golang" ] }
-//  })
+//		// Add the headers to the http.ResponseWriter.
+//		goheader.WriteHeaders(w, headers...)
+//		// Write the HTTP status code.
+//		w.WriteHeader(http.StatusOK)
+//		// Write the HTTP response.
+//		json.NewEncoder(w).Encode(w.Header()) // { "Content-Language": [ "en-AU" ], "Content-Type": [ "application/json" ], "Cookie": [ "language=golang" ] }
+//	})
 func WriteHeaders(writer interface{ Header() http.Header }, headers ...Header) {
 	writerHeaders := writer.Header()
 	for _, header := range headers {
