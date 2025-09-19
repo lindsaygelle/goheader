@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // AIM header field is used to indicate acceptable instance-manipulations for the request.
@@ -778,184 +779,491 @@ func NewAcceptCharsetHeader(cfg AcceptCharsetConfig) Header {
 	}
 }
 
-// NewAcceptDatetimeHeader creates a new Accept-Datetime Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Datetime
+// AcceptDatetimeConfig defines the configuration for the Accept-Datetime header.
+type AcceptDatetimeConfig struct {
+	Datetime time.Time
+}
+
+// String renders the Accept-Datetime header value as an RFC 7231 HTTP-date.
+func (cfg AcceptDatetimeConfig) String() string {
+	// RFC1123 is the correct format for HTTP-date (RFC 7231 section 7.1.1.1)
+	return cfg.Datetime.UTC().Format(time.RFC1123)
+}
+
+// NewAcceptDatetimeHeader creates a new Accept-Datetime header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Datetime
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptDatetimeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Datetime
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptDatetimeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptDatetimeConfig{
+//	    Datetime: time.Date(2023, 5, 1, 12, 30, 0, 0, time.UTC),
+//	}
+//	header := goheader.NewAcceptDatetimeHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Datetime
+//	fmt.Println(header.Values) // ["Mon, 01 May 2023 12:30:00 GMT"]
+func NewAcceptDatetimeHeader(cfg AcceptDatetimeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptDatetime,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptEncodingHeader creates a new Accept-Encoding Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding
+// AcceptEncodingValue represents one entry in the Accept-Encoding header.
+type AcceptEncodingValue struct {
+	Encoding string  // e.g., "gzip", "br", "deflate"
+	Quality  float64 // Optional quality factor (0.0 - 1.0). Ignored if <= 0.
+}
+
+// String renders a single Accept-Encoding value.
+func (v AcceptEncodingValue) String() string {
+	if v.Encoding == "" {
+		v.Encoding = "identity" // Default per RFC 7231 section 5.3.4
+	}
+
+	result := v.Encoding
+	if v.Quality > 0 && v.Quality < 1 {
+		result += fmt.Sprintf(";q=%.1f", v.Quality)
+	}
+	return result
+}
+
+// AcceptEncodingConfig defines the configuration for the Accept-Encoding header.
+type AcceptEncodingConfig struct {
+	Values []AcceptEncodingValue
+}
+
+// String renders the full Accept-Encoding header value from the config.
+func (cfg AcceptEncodingConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptEncodingHeader creates a new Accept-Encoding header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptEncodingHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Encoding
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptEncodingHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptEncodingConfig{
+//	    Values: []goheader.AcceptEncodingValue{
+//	        {Encoding: "gzip", Quality: 1.0},
+//	        {Encoding: "br", Quality: 0.8},
+//	    },
+//	}
+//	header := goheader.NewAcceptEncodingHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Encoding
+//	fmt.Println(header.Values) // ["gzip;q=1.0, br;q=0.8"]
+func NewAcceptEncodingHeader(cfg AcceptEncodingConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptEncoding,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptLanguageHeader creates a new Accept-Language Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
+// AcceptLanguageValue represents one language entry in the Accept-Language header.
+type AcceptLanguageValue struct {
+	Language string  // e.g., "en-US", "fr", "de"
+	Quality  float64 // Optional quality factor (0.0 - 1.0). Ignored if <= 0.
+}
+
+// String renders a single Accept-Language value.
+func (v AcceptLanguageValue) String() string {
+	if v.Language == "" {
+		v.Language = "*" // Default wildcard if none provided
+	}
+
+	result := v.Language
+	if v.Quality > 0 && v.Quality < 1 {
+		result += fmt.Sprintf(";q=%.1f", v.Quality)
+	}
+	return result
+}
+
+// AcceptLanguageConfig defines the configuration for the Accept-Language header.
+type AcceptLanguageConfig struct {
+	Values []AcceptLanguageValue
+}
+
+// String renders the full Accept-Language header value from the config.
+func (cfg AcceptLanguageConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptLanguageHeader creates a new Accept-Language header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptLanguageHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Language
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptLanguageHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptLanguageConfig{
+//	    Values: []goheader.AcceptLanguageValue{
+//	        {Language: "en-US", Quality: 1.0},
+//	        {Language: "fr", Quality: 0.8},
+//	    },
+//	}
+//	header := goheader.NewAcceptLanguageHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Language
+//	fmt.Println(header.Values) // ["en-US;q=1.0, fr;q=0.8"]
+func NewAcceptLanguageHeader(cfg AcceptLanguageConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptLanguage,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptPatchHeader creates a new Accept-Patch Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Patch
+// AcceptPatchValue represents one entry in the Accept-Patch header.
+type AcceptPatchValue struct {
+	MediaType string            // e.g., "application/json-patch+json"
+	Params    map[string]string // Optional parameters like charset=utf-8
+}
+
+// String renders a single Accept-Patch value.
+func (v AcceptPatchValue) String() string {
+	result := v.MediaType
+	if len(v.Params) > 0 {
+		var params []string
+		for k, val := range v.Params {
+			params = append(params, fmt.Sprintf("%s=%s", k, val))
+		}
+		result += ";" + strings.Join(params, ";")
+	}
+	return result
+}
+
+// AcceptPatchConfig defines the configuration for the Accept-Patch header.
+type AcceptPatchConfig struct {
+	Values []AcceptPatchValue
+}
+
+// String renders the full Accept-Patch header value from the config.
+func (cfg AcceptPatchConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptPatchHeader creates a new Accept-Patch header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Patch
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptPatchHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Patch
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptPatchHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptPatchConfig{
+//	    Values: []goheader.AcceptPatchValue{
+//	        {MediaType: "application/json-patch+json"},
+//	        {MediaType: "application/merge-patch+json"},
+//	    },
+//	}
+//	header := goheader.NewAcceptPatchHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Patch
+//	fmt.Println(header.Values) // ["application/json-patch+json, application/merge-patch+json"]
+func NewAcceptPatchHeader(cfg AcceptPatchConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptPatch,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptPostHeader creates a new Accept-Post Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Post
+// AcceptPostValue represents one entry in the Accept-Post header.
+type AcceptPostValue struct {
+	MediaType string            // e.g., "application/json"
+	Params    map[string]string // Optional parameters like charset=utf-8
+}
+
+// String renders a single Accept-Post value.
+func (v AcceptPostValue) String() string {
+	result := v.MediaType
+	if len(v.Params) > 0 {
+		var params []string
+		for k, val := range v.Params {
+			params = append(params, fmt.Sprintf("%s=%s", k, val))
+		}
+		result += ";" + strings.Join(params, ";")
+	}
+	return result
+}
+
+// AcceptPostConfig defines the configuration for the Accept-Post header.
+type AcceptPostConfig struct {
+	Values []AcceptPostValue
+}
+
+// String renders the full Accept-Post header value from the config.
+func (cfg AcceptPostConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptPostHeader creates a new Accept-Post header from the config.
+// More information: https://www.w3.org/TR/ldp/#header-accept-post
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptPostHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Post
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptPostHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptPostConfig{
+//	    Values: []goheader.AcceptPostValue{
+//	        {MediaType: "application/json"},
+//	        {MediaType: "application/ld+json"},
+//	    },
+//	}
+//	header := goheader.NewAcceptPostHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Post
+//	fmt.Println(header.Values) // ["application/json, application/ld+json"]
+func NewAcceptPostHeader(cfg AcceptPostConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptPost,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAcceptRangesHeader creates a new Accept-Ranges Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
+// AcceptRangesValue represents one entry in the Accept-Ranges header.
+type AcceptRangesValue struct {
+	Unit string // e.g., "bytes", "none"
+}
+
+// String renders a single Accept-Ranges value.
+func (v AcceptRangesValue) String() string {
+	if v.Unit == "" {
+		return "none" // Default to none if unspecified
+	}
+	return v.Unit
+}
+
+// AcceptRangesConfig defines the configuration for the Accept-Ranges header.
+type AcceptRangesConfig struct {
+	Values []AcceptRangesValue
+}
+
+// String renders the full Accept-Ranges header value from the config.
+func (cfg AcceptRangesConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAcceptRangesHeader creates a new Accept-Ranges header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAcceptRangesHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Accept-Ranges
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAcceptRangesHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AcceptRangesConfig{
+//	    Values: []goheader.AcceptRangesValue{
+//	        {Unit: "bytes"},
+//	    },
+//	}
+//	header := goheader.NewAcceptRangesHeader(cfg)
+//	fmt.Println(header.Name)   // Accept-Ranges
+//	fmt.Println(header.Values) // ["bytes"]
+func NewAcceptRangesHeader(cfg AcceptRangesConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AcceptRanges,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlAllowCredentialsHeader creates a new Access-Control-Allow-Credentials Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
+// AccessControlAllowCredentialsConfig defines the configuration for the Access-Control-Allow-Credentials header.
+type AccessControlAllowCredentialsConfig struct {
+	AllowCredentials bool // true = "true", false = "false"
+}
+
+// String renders the Access-Control-Allow-Credentials header value.
+func (cfg AccessControlAllowCredentialsConfig) String() string {
+	if cfg.AllowCredentials {
+		return "true"
+	}
+	return "false"
+}
+
+// NewAccessControlAllowCredentialsHeader creates a new Access-Control-Allow-Credentials header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlAllowCredentialsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Allow-Credentials
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlAllowCredentialsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlAllowCredentialsConfig{AllowCredentials: true}
+//	header := goheader.NewAccessControlAllowCredentialsHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Allow-Credentials
+//	fmt.Println(header.Values) // ["true"]
+func NewAccessControlAllowCredentialsHeader(cfg AccessControlAllowCredentialsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlAllowCredentials,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlAllowHeadersHeader creates a new Access-Control-Allow-Headers Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
+// AccessControlAllowHeadersValue represents one entry in the Access-Control-Allow-Headers header.
+type AccessControlAllowHeadersValue struct {
+	Header string // e.g., "Content-Type", "Authorization"
+}
+
+// String renders a single Access-Control-Allow-Headers value.
+func (v AccessControlAllowHeadersValue) String() string {
+	if v.Header == "" {
+		return "*" // Default to wildcard if none provided
+	}
+	return v.Header
+}
+
+// AccessControlAllowHeadersConfig defines the configuration for the Access-Control-Allow-Headers header.
+type AccessControlAllowHeadersConfig struct {
+	Values []AccessControlAllowHeadersValue
+}
+
+// String renders the full Access-Control-Allow-Headers header value from the config.
+func (cfg AccessControlAllowHeadersConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAccessControlAllowHeadersHeader creates a new Access-Control-Allow-Headers header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlAllowHeadersHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Allow-Headers
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlAllowHeadersHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlAllowHeadersConfig{
+//	    Values: []goheader.AccessControlAllowHeadersValue{
+//	        {Header: "Content-Type"},
+//	        {Header: "Authorization"},
+//	    },
+//	}
+//	header := goheader.NewAccessControlAllowHeadersHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Allow-Headers
+//	fmt.Println(header.Values) // ["Content-Type, Authorization"]
+func NewAccessControlAllowHeadersHeader(cfg AccessControlAllowHeadersConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlAllowHeaders,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlAllowMethodsHeader creates a new Access-Control-Allow-Methods Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods
+// AccessControlAllowMethodsValue represents one method in the Access-Control-Allow-Methods header.
+type AccessControlAllowMethodsValue struct {
+	Method string // e.g., "GET", "POST", "PUT", "DELETE"
+}
+
+// String renders a single Access-Control-Allow-Methods value.
+func (v AccessControlAllowMethodsValue) String() string {
+	if v.Method == "" {
+		return "*" // Default to wildcard if none provided
+	}
+	return v.Method
+}
+
+// AccessControlAllowMethodsConfig defines the configuration for the Access-Control-Allow-Methods header.
+type AccessControlAllowMethodsConfig struct {
+	Values []AccessControlAllowMethodsValue
+}
+
+// String renders the full Access-Control-Allow-Methods header value from the config.
+func (cfg AccessControlAllowMethodsConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAccessControlAllowMethodsHeader creates a new Access-Control-Allow-Methods header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlAllowMethodsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Allow-Methods
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlAllowMethodsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlAllowMethodsConfig{
+//	    Values: []goheader.AccessControlAllowMethodsValue{
+//	        {Method: "GET"},
+//	        {Method: "POST"},
+//	        {Method: "OPTIONS"},
+//	    },
+//	}
+//	header := goheader.NewAccessControlAllowMethodsHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Allow-Methods
+//	fmt.Println(header.Values) // ["GET, POST, OPTIONS"]
+func NewAccessControlAllowMethodsHeader(cfg AccessControlAllowMethodsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlAllowMethods,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlAllowOriginHeader creates a new Access-Control-Allow-Origin Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
+// AccessControlAllowOriginConfig defines the configuration for the Access-Control-Allow-Origin header.
+type AccessControlAllowOriginConfig struct {
+	Origin string // e.g., "https://example.com" or "*"
+}
+
+// String renders the Access-Control-Allow-Origin header value.
+func (cfg AccessControlAllowOriginConfig) String() string {
+	if cfg.Origin == "" {
+		return "*" // Default to wildcard if none provided
+	}
+	return cfg.Origin
+}
+
+// NewAccessControlAllowOriginHeader creates a new Access-Control-Allow-Origin header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlAllowOriginHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Allow-Origin
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlAllowOriginHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlAllowOriginConfig{Origin: "https://example.com"}
+//	header := goheader.NewAccessControlAllowOriginHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Allow-Origin
+//	fmt.Println(header.Values) // ["https://example.com"]
+func NewAccessControlAllowOriginHeader(cfg AccessControlAllowOriginConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlAllowOrigin,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewAccessControlExposeHeadersHeader creates a new Access-Control-Expose-Headers Header with the specified values.
