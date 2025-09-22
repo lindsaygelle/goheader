@@ -1266,184 +1266,422 @@ func NewAccessControlAllowOriginHeader(cfg AccessControlAllowOriginConfig) Heade
 	}
 }
 
-// NewAccessControlExposeHeadersHeader creates a new Access-Control-Expose-Headers Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers
+// AccessControlExposeHeadersValue represents one entry in the Access-Control-Expose-Headers header.
+type AccessControlExposeHeadersValue struct {
+	Header string // e.g., "Content-Length", "X-Custom-Header"
+}
+
+// String renders a single Access-Control-Expose-Headers value.
+func (v AccessControlExposeHeadersValue) String() string {
+	if v.Header == "" {
+		return "*" // Default to wildcard if none provided
+	}
+	return v.Header
+}
+
+// AccessControlExposeHeadersConfig defines the configuration for the Access-Control-Expose-Headers header.
+type AccessControlExposeHeadersConfig struct {
+	Values []AccessControlExposeHeadersValue
+}
+
+// String renders the full Access-Control-Expose-Headers header value from the config.
+func (cfg AccessControlExposeHeadersConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAccessControlExposeHeadersHeader creates a new Access-Control-Expose-Headers header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlExposeHeadersHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Expose-Headers
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlExposeHeadersHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlExposeHeadersConfig{
+//	    Values: []goheader.AccessControlExposeHeadersValue{
+//	        {Header: "Content-Length"},
+//	        {Header: "X-Custom-Header"},
+//	    },
+//	}
+//	header := goheader.NewAccessControlExposeHeadersHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Expose-Headers
+//	fmt.Println(header.Values) // ["Content-Length, X-Custom-Header"]
+func NewAccessControlExposeHeadersHeader(cfg AccessControlExposeHeadersConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlExposeHeaders,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlMaxAgeHeader creates a new Access-Control-Max-Age Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age
+// AccessControlMaxAgeConfig defines the configuration for the Access-Control-Max-Age header.
+type AccessControlMaxAgeConfig struct {
+	Seconds int // Cache duration in seconds. -1 disables caching.
+}
+
+// String renders the Access-Control-Max-Age header value.
+func (cfg AccessControlMaxAgeConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Seconds)
+}
+
+// NewAccessControlMaxAgeHeader creates a new Access-Control-Max-Age header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlMaxAgeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Max-Age
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlMaxAgeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlMaxAgeConfig{Seconds: 600}
+//	header := goheader.NewAccessControlMaxAgeHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Max-Age
+//	fmt.Println(header.Values) // ["600"]
+func NewAccessControlMaxAgeHeader(cfg AccessControlMaxAgeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlMaxAge,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlRequestHeadersHeader creates a new Access-Control-Request-Headers Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Headers
+// AccessControlRequestHeadersValue represents one header in the Access-Control-Request-Headers header.
+type AccessControlRequestHeadersValue struct {
+	Header string // e.g., "Content-Type", "Authorization"
+}
+
+// String renders a single Access-Control-Request-Headers value.
+func (v AccessControlRequestHeadersValue) String() string {
+	return v.Header
+}
+
+// AccessControlRequestHeadersConfig defines the configuration for the Access-Control-Request-Headers header.
+type AccessControlRequestHeadersConfig struct {
+	Values []AccessControlRequestHeadersValue
+}
+
+// String renders the full Access-Control-Request-Headers header value from the config.
+func (cfg AccessControlRequestHeadersConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAccessControlRequestHeadersHeader creates a new Access-Control-Request-Headers header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Headers
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlRequestHeadersHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Request-Headers
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlRequestHeadersHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlRequestHeadersConfig{
+//	    Values: []goheader.AccessControlRequestHeadersValue{
+//	        {Header: "Content-Type"},
+//	        {Header: "Authorization"},
+//	    },
+//	}
+//	header := goheader.NewAccessControlRequestHeadersHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Request-Headers
+//	fmt.Println(header.Values) // ["Content-Type, Authorization"]
+func NewAccessControlRequestHeadersHeader(cfg AccessControlRequestHeadersConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlRequestHeaders,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAccessControlRequestMethodHeader creates a new Access-Control-Request-Method Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Method
+// AccessControlRequestMethodConfig defines the configuration for the Access-Control-Request-Method header.
+type AccessControlRequestMethodConfig struct {
+	Method string // e.g., "POST", "PUT", "DELETE"
+}
+
+// String renders the Access-Control-Request-Method header value.
+func (cfg AccessControlRequestMethodConfig) String() string {
+	return cfg.Method
+}
+
+// NewAccessControlRequestMethodHeader creates a new Access-Control-Request-Method header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Request-Method
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAccessControlRequestMethodHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Access-Control-Request-Method
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAccessControlRequestMethodHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AccessControlRequestMethodConfig{Method: "POST"}
+//	header := goheader.NewAccessControlRequestMethodHeader(cfg)
+//	fmt.Println(header.Name)   // Access-Control-Request-Method
+//	fmt.Println(header.Values) // ["POST"]
+func NewAccessControlRequestMethodHeader(cfg AccessControlRequestMethodConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AccessControlRequestMethod,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAgeHeader creates a new Age Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Age
+// AgeConfig defines the configuration for the Age header.
+type AgeConfig struct {
+	Seconds int // Age in seconds since the resource was fetched from the origin.
+}
+
+// String renders the Age header value.
+func (cfg AgeConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Seconds)
+}
+
+// NewAgeHeader creates a new Age header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Age
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAgeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Age
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAgeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AgeConfig{Seconds: 120}
+//	header := goheader.NewAgeHeader(cfg)
+//	fmt.Println(header.Name)   // Age
+//	fmt.Println(header.Values) // ["120"]
+func NewAgeHeader(cfg AgeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Age,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAllowHeader creates a new Allow Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Allow
+// AllowValue represents one HTTP method in the Allow header.
+type AllowValue struct {
+	Method string // e.g., "GET", "POST", "PUT"
+}
+
+// String renders a single Allow value.
+func (v AllowValue) String() string {
+	return v.Method
+}
+
+// AllowConfig defines the configuration for the Allow header.
+type AllowConfig struct {
+	Values []AllowValue
+}
+
+// String renders the full Allow header value from the config.
+func (cfg AllowConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAllowHeader creates a new Allow header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Allow
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAllowHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Allow
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAllowHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AllowConfig{
+//	    Values: []goheader.AllowValue{
+//	        {Method: "GET"},
+//	        {Method: "POST"},
+//	    },
+//	}
+//	header := goheader.NewAllowHeader(cfg)
+//	fmt.Println(header.Name)   // Allow
+//	fmt.Println(header.Values) // ["GET, POST"]
+func NewAllowHeader(cfg AllowConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Allow,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAltSvcHeader creates a new Alt-Svc Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc
+// AltSvcValue represents one alternative service in the Alt-Svc header.
+type AltSvcValue struct {
+	Protocol string // e.g., "h3", "h2", "quic"
+	Host     string // e.g., ":443" or "example.com:443"
+	MaxAge   int    // ma parameter in seconds
+	Persist  bool   // persist=1 if true
+}
+
+// String renders a single Alt-Svc value.
+func (v AltSvcValue) String() string {
+	params := []string{fmt.Sprintf("%q", v.Host)}
+
+	if v.MaxAge > 0 {
+		params = append(params, fmt.Sprintf("ma=%d", v.MaxAge))
+	}
+	if v.Persist {
+		params = append(params, "persist=1")
+	}
+
+	return fmt.Sprintf("%s=%s", v.Protocol, strings.Join(params, "; "))
+}
+
+// AltSvcConfig defines the configuration for the Alt-Svc header.
+type AltSvcConfig struct {
+	Values []AltSvcValue
+}
+
+// String renders the full Alt-Svc header value from the config.
+func (cfg AltSvcConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewAltSvcHeader creates a new Alt-Svc header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAltSvcHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Alt-Svc
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAltSvcHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AltSvcConfig{
+//	    Values: []goheader.AltSvcValue{
+//	        {Protocol: "h3", Host: ":443", MaxAge: 86400, Persist: true},
+//	    },
+//	}
+//	header := goheader.NewAltSvcHeader(cfg)
+//	fmt.Println(header.Name)   // Alt-Svc
+//	fmt.Println(header.Values) // [h3=":443"; ma=86400; persist=1]
+func NewAltSvcHeader(cfg AltSvcConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AltSvc,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAltUsedHeader creates a new Alt-Used Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Used
+// AltUsedConfig defines the configuration for the Alt-Used header.
+type AltUsedConfig struct {
+	HostPort string // e.g., "alt.example.com:443"
+}
+
+// String renders the Alt-Used header value.
+func (cfg AltUsedConfig) String() string {
+	return cfg.HostPort
+}
+
+// NewAltUsedHeader creates a new Alt-Used header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Used
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAltUsedHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Alt-Used
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAltUsedHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AltUsedConfig{HostPort: "alt.example.com:443"}
+//	header := goheader.NewAltUsedHeader(cfg)
+//	fmt.Println(header.Name)   // Alt-Used
+//	fmt.Println(header.Values) // ["alt.example.com:443"]
+func NewAltUsedHeader(cfg AltUsedConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         AltUsed,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewAuthorizationHeader creates a new Authorization Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+// AuthorizationConfig defines the configuration for the Authorization header.
+type AuthorizationConfig struct {
+	Scheme      string // e.g., "Bearer", "Basic"
+	Credentials string // e.g., "token123", "dXNlcjpwYXNz"
+}
+
+// String renders the Authorization header value.
+func (cfg AuthorizationConfig) String() string {
+	return fmt.Sprintf("%s %s", cfg.Scheme, cfg.Credentials)
+}
+
+// NewAuthorizationHeader creates a new Authorization header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewAuthorizationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Authorization
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewAuthorizationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.AuthorizationConfig{
+//	    Scheme:      "Bearer",
+//	    Credentials: "token123",
+//	}
+//	header := goheader.NewAuthorizationHeader(cfg)
+//	fmt.Println(header.Name)   // Authorization
+//	fmt.Println(header.Values) // ["Bearer token123"]
+func NewAuthorizationHeader(cfg AuthorizationConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Authorization,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCacheControlHeader creates a new Cache-Control Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+// CacheControlDirective represents one directive in the Cache-Control header.
+type CacheControlDirective struct {
+	Directive string // e.g., "max-age", "no-cache"
+	Value     *int   // Optional value for the directive, nil if none
+}
+
+// String renders a single Cache-Control directive.
+func (d CacheControlDirective) String() string {
+	if d.Value != nil {
+		return fmt.Sprintf("%s=%d", d.Directive, *d.Value)
+	}
+	return d.Directive
+}
+
+// CacheControlConfig defines the configuration for the Cache-Control header.
+type CacheControlConfig struct {
+	Directives []CacheControlDirective
+}
+
+// String renders the full Cache-Control header value from the config.
+func (cfg CacheControlConfig) String() string {
+	var parts []string
+	for _, d := range cfg.Directives {
+		parts = append(parts, d.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewCacheControlHeader creates a new Cache-Control header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCacheControlHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Cache-Control
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCacheControlHeader(values ...string) Header {
+// Example usage:
+//
+//	maxAge := 3600
+//	cfg := goheader.CacheControlConfig{
+//	    Directives: []goheader.CacheControlDirective{
+//	        {Directive: "max-age", Value: &maxAge},
+//	        {Directive: "no-cache"},
+//	    },
+//	}
+//	header := goheader.NewCacheControlHeader(cfg)
+//	fmt.Println(header.Name)   // Cache-Control
+//	fmt.Println(header.Values) // ["max-age=3600, no-cache"]
+func NewCacheControlHeader(cfg CacheControlConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         CacheControl,
 		Request:      true,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewClearSiteDataHeader creates a new Clear-Site-Data Header with the specified values.
