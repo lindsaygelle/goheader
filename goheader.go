@@ -2098,184 +2098,368 @@ func NewContentRangeHeader(cfg ContentRangeConfig) Header {
 	}
 }
 
-// NewContentSecurityPolicyHeader creates a new Content-Security-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+// CSPDirective represents one directive in the Content-Security-Policy header.
+type CSPDirective struct {
+	Directive string   // e.g., "default-src", "script-src"
+	Sources   []string // e.g., ["'self'", "https://apis.example.com"]
+}
+
+// String renders a single CSP directive.
+func (d CSPDirective) String() string {
+	if len(d.Sources) == 0 {
+		return d.Directive
+	}
+	return d.Directive + " " + strings.Join(d.Sources, " ")
+}
+
+// ContentSecurityPolicyConfig defines the configuration for the CSP header.
+type ContentSecurityPolicyConfig struct {
+	Directives []CSPDirective
+}
+
+// String renders the full Content-Security-Policy header value from the config.
+func (cfg ContentSecurityPolicyConfig) String() string {
+	var parts []string
+	for _, d := range cfg.Directives {
+		parts = append(parts, d.String())
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewContentSecurityPolicyHeader creates a new Content-Security-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentSecurityPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Security-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentSecurityPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentSecurityPolicyConfig{
+//	    Directives: []goheader.CSPDirective{
+//	        {Directive: "default-src", Sources: []string{"'self'"}},
+//	        {Directive: "script-src", Sources: []string{"'self'", "https://apis.example.com"}},
+//	    },
+//	}
+//	header := goheader.NewContentSecurityPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Security-Policy
+//	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.example.com"]
+func NewContentSecurityPolicyHeader(cfg ContentSecurityPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentSecurityPolicy,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentSecurityPolicyReportOnlyHeader creates a new Content-Security-Policy-Report-Only Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
+// ContentSecurityPolicyReportOnlyConfig defines the configuration for the CSPRO header.
+type ContentSecurityPolicyReportOnlyConfig struct {
+	Directives []CSPDirective
+}
+
+// String renders the full Content-Security-Policy-Report-Only header value from the config.
+func (cfg ContentSecurityPolicyReportOnlyConfig) String() string {
+	var parts []string
+	for _, d := range cfg.Directives {
+		parts = append(parts, d.String())
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewContentSecurityPolicyReportOnlyHeader creates a new CSPRO header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentSecurityPolicyReportOnlyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Security-Policy-Report-Only
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentSecurityPolicyReportOnlyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentSecurityPolicyReportOnlyConfig{
+//	    Directives: []goheader.CSPDirective{
+//	        {Directive: "default-src", Sources: []string{"'self'"}},
+//	        {Directive: "script-src", Sources: []string{"'self'", "https://apis.example.com"}},
+//	    },
+//	}
+//	header := goheader.NewContentSecurityPolicyReportOnlyHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Security-Policy-Report-Only
+//	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.example.com"]
+func NewContentSecurityPolicyReportOnlyHeader(cfg ContentSecurityPolicyReportOnlyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentSecurityPolicyReportOnly,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentTypeHeader creates a new Content-Type Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+// ContentTypeConfig defines the configuration for the Content-Type header.
+type ContentTypeConfig struct {
+	MediaType string            // e.g., "application/json", "text/html"
+	Params    map[string]string // e.g., {"charset": "UTF-8"}
+}
+
+// String renders the Content-Type header value.
+func (cfg ContentTypeConfig) String() string {
+	result := cfg.MediaType
+	if len(cfg.Params) > 0 {
+		var params []string
+		for k, v := range cfg.Params {
+			params = append(params, fmt.Sprintf("%s=%s", k, v))
+		}
+		result += "; " + strings.Join(params, "; ")
+	}
+	return result
+}
+
+// NewContentTypeHeader creates a new Content-Type header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentTypeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Type
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentTypeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentTypeConfig{
+//	    MediaType: "application/json",
+//	    Params:    map[string]string{"charset": "UTF-8"},
+//	}
+//	header := goheader.NewContentTypeHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Type
+//	fmt.Println(header.Values) // ["application/json; charset=UTF-8"]
+func NewContentTypeHeader(cfg ContentTypeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentType,
 		Request:      true,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCookieHeader creates a new Cookie Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
+// CookieValue represents one cookie in the Cookie header.
+type CookieValue struct {
+	Name  string // e.g., "sessionId"
+	Value string // e.g., "abc123"
+}
+
+// String renders a single cookie as name=value.
+func (c CookieValue) String() string {
+	return c.Name + "=" + c.Value
+}
+
+// CookieConfig defines the configuration for the Cookie header.
+type CookieConfig struct {
+	Cookies []CookieValue
+}
+
+// String renders the full Cookie header value from the config.
+func (cfg CookieConfig) String() string {
+	var parts []string
+	for _, c := range cfg.Cookies {
+		parts = append(parts, c.String())
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewCookieHeader creates a new Cookie header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCookieHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Cookie
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCookieHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CookieConfig{
+//	    Cookies: []goheader.CookieValue{
+//	        {Name: "sessionId", Value: "abc123"},
+//	        {Name: "theme", Value: "dark"},
+//	    },
+//	}
+//	header := goheader.NewCookieHeader(cfg)
+//	fmt.Println(header.Name)   // Cookie
+//	fmt.Println(header.Values) // ["sessionId=abc123; theme=dark"]
+func NewCookieHeader(cfg CookieConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Cookie,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCorrelationIDHeader creates a new Correlation-ID Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Correlation-ID
+// CorrelationIDConfig defines the configuration for the Correlation-ID header.
+type CorrelationIDConfig struct {
+	ID string // Unique correlation ID, often a UUID
+}
+
+// String renders the Correlation-ID header value.
+func (cfg CorrelationIDConfig) String() string {
+	return cfg.ID
+}
+
+// NewCorrelationIDHeader creates a new Correlation-ID header from the config.
+// Although not a standard HTTP header, it's widely used in distributed tracing.
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCorrelationIDHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Correlation-ID
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCorrelationIDHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CorrelationIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+//	header := goheader.NewCorrelationIDHeader(cfg)
+//	fmt.Println(header.Name)   // Correlation-ID
+//	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
+func NewCorrelationIDHeader(cfg CorrelationIDConfig) Header {
 	return Header{
-		Experimental: false,
+		Experimental: true, // Not part of the HTTP standard
 		Name:         CorrelationID,
 		Request:      true,
 		Response:     true,
-		Standard:     true,
-		Values:       values}
+		Standard:     false,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCriticalCHHeader creates a new Critical-CH Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Critical-CH
+// CriticalCHConfig defines the configuration for the Critical-CH header.
+type CriticalCHConfig struct {
+	Hints []string // e.g., ["DPR", "Width", "Viewport-Width"]
+}
+
+// String renders the Critical-CH header value.
+func (cfg CriticalCHConfig) String() string {
+	return strings.Join(cfg.Hints, ", ")
+}
+
+// NewCriticalCHHeader creates a new Critical-CH header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Critical-CH
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCriticalCHHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Critical-CH
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCriticalCHHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CriticalCHConfig{Hints: []string{"DPR", "Width", "Viewport-Width"}}
+//	header := goheader.NewCriticalCHHeader(cfg)
+//	fmt.Println(header.Name)   // Critical-CH
+//	fmt.Println(header.Values) // ["DPR, Width, Viewport-Width"]
+func NewCriticalCHHeader(cfg CriticalCHConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         CriticalCH,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCrossOriginEmbedderPolicyHeader creates a new Cross-Origin-Embedder-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
+// CrossOriginEmbedderPolicyConfig defines the configuration for the COEP header.
+type CrossOriginEmbedderPolicyConfig struct {
+	Policy string // e.g., "unsafe-none", "require-corp"
+}
+
+// String renders the Cross-Origin-Embedder-Policy header value.
+func (cfg CrossOriginEmbedderPolicyConfig) String() string {
+	return cfg.Policy
+}
+
+// NewCrossOriginEmbedderPolicyHeader creates a new Cross-Origin-Embedder-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCrossOriginEmbedderPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Cross-Origin-Embedder-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCrossOriginEmbedderPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CrossOriginEmbedderPolicyConfig{Policy: "require-corp"}
+//	header := goheader.NewCrossOriginEmbedderPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Cross-Origin-Embedder-Policy
+//	fmt.Println(header.Values) // ["require-corp"]
+func NewCrossOriginEmbedderPolicyHeader(cfg CrossOriginEmbedderPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         CrossOriginEmbedderPolicy,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCrossOriginOpenerPolicyHeader creates a new Cross-Origin-Opener-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
+// CrossOriginOpenerPolicyConfig defines the configuration for the COOP header.
+type CrossOriginOpenerPolicyConfig struct {
+	Policy string // e.g., "unsafe-none", "same-origin", "same-origin-allow-popups"
+}
+
+// String renders the Cross-Origin-Opener-Policy header value.
+func (cfg CrossOriginOpenerPolicyConfig) String() string {
+	return cfg.Policy
+}
+
+// NewCrossOriginOpenerPolicyHeader creates a new Cross-Origin-Opener-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCrossOriginOpenerPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Cross-Origin-Opener-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCrossOriginOpenerPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CrossOriginOpenerPolicyConfig{Policy: "same-origin"}
+//	header := goheader.NewCrossOriginOpenerPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Cross-Origin-Opener-Policy
+//	fmt.Println(header.Values) // ["same-origin"]
+func NewCrossOriginOpenerPolicyHeader(cfg CrossOriginOpenerPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         CrossOriginOpenerPolicy,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewCrossOriginResourcePolicyHeader creates a new Cross-Origin-Resource-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
+// CrossOriginResourcePolicyConfig defines the configuration for the CORP header.
+type CrossOriginResourcePolicyConfig struct {
+	Policy string // e.g., "same-site", "same-origin", "cross-origin"
+}
+
+// String renders the Cross-Origin-Resource-Policy header value.
+func (cfg CrossOriginResourcePolicyConfig) String() string {
+	return cfg.Policy
+}
+
+// NewCrossOriginResourcePolicyHeader creates a new Cross-Origin-Resource-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewCrossOriginResourcePolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Cross-Origin-Resource-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewCrossOriginResourcePolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.CrossOriginResourcePolicyConfig{Policy: "same-origin"}
+//	header := goheader.NewCrossOriginResourcePolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Cross-Origin-Resource-Policy
+//	fmt.Println(header.Values) // ["same-origin"]
+func NewCrossOriginResourcePolicyHeader(cfg CrossOriginResourcePolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         CrossOriginResourcePolicy,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDNTHeader creates a new DNT Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT
+// DNTConfig defines the configuration for the DNT header.
+type DNTConfig struct {
+	Value string // "0", "1", or "null"
+}
+
+// String renders the DNT header value.
+func (cfg DNTConfig) String() string {
+	return cfg.Value
+}
+
+// NewDNTHeader creates a new DNT header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDNTHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // DNT
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDNTHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DNTConfig{Value: "1"}
+//	header := goheader.NewDNTHeader(cfg)
+//	fmt.Println(header.Name)   // DNT
+//	fmt.Println(header.Values) // ["1"]
+func NewDNTHeader(cfg DNTConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         DNT,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewDPRHeader creates a new DPR Header with the specified values.
