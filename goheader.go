@@ -1684,184 +1684,418 @@ func NewCacheControlHeader(cfg CacheControlConfig) Header {
 	}
 }
 
-// NewClearSiteDataHeader creates a new Clear-Site-Data Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Clear-Site-Data
+// ClearSiteDataDirective represents one directive in the Clear-Site-Data header.
+type ClearSiteDataDirective struct {
+	Directive string // e.g., "cache", "cookies", "storage", "executionContexts", "*"
+}
+
+// String renders a single Clear-Site-Data directive as a quoted string.
+func (d ClearSiteDataDirective) String() string {
+	return fmt.Sprintf("%q", d.Directive)
+}
+
+// ClearSiteDataConfig defines the configuration for the Clear-Site-Data header.
+type ClearSiteDataConfig struct {
+	Directives []ClearSiteDataDirective
+}
+
+// String renders the full Clear-Site-Data header value from the config.
+func (cfg ClearSiteDataConfig) String() string {
+	var parts []string
+	for _, d := range cfg.Directives {
+		parts = append(parts, d.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewClearSiteDataHeader creates a new Clear-Site-Data header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Clear-Site-Data
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewClearSiteDataHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Clear-Site-Data
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewClearSiteDataHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ClearSiteDataConfig{
+//	    Directives: []goheader.ClearSiteDataDirective{
+//	        {Directive: "cache"},
+//	        {Directive: "cookies"},
+//	        {Directive: "storage"},
+//	    },
+//	}
+//	header := goheader.NewClearSiteDataHeader(cfg)
+//	fmt.Println(header.Name)   // Clear-Site-Data
+//	fmt.Println(header.Values) // ["\"cache\", \"cookies\", \"storage\""]
+func NewClearSiteDataHeader(cfg ClearSiteDataConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ClearSiteData,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewConnectionHeader creates a new Connection Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection
+// ConnectionOption represents one option in the Connection header.
+type ConnectionOption struct {
+	Option string // e.g., "keep-alive", "close"
+}
+
+// String renders a single Connection option.
+func (o ConnectionOption) String() string {
+	return o.Option
+}
+
+// ConnectionConfig defines the configuration for the Connection header.
+type ConnectionConfig struct {
+	Options []ConnectionOption
+}
+
+// String renders the full Connection header value from the config.
+func (cfg ConnectionConfig) String() string {
+	var parts []string
+	for _, o := range cfg.Options {
+		parts = append(parts, o.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewConnectionHeader creates a new Connection header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewConnectionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Connection
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewConnectionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ConnectionConfig{
+//	    Options: []goheader.ConnectionOption{
+//	        {Option: "keep-alive"},
+//	    },
+//	}
+//	header := goheader.NewConnectionHeader(cfg)
+//	fmt.Println(header.Name)   // Connection
+//	fmt.Println(header.Values) // ["keep-alive"]
+func NewConnectionHeader(cfg ConnectionConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Connection,
 		Request:      true,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentDPRHeader creates a new Content-DPR Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-DPR
+// ContentDPRConfig defines the configuration for the Content-DPR header.
+type ContentDPRConfig struct {
+	DPR float64 // Device Pixel Ratio for the image, e.g., 1.0, 2.0
+}
+
+// String renders the Content-DPR header value.
+func (cfg ContentDPRConfig) String() string {
+	return fmt.Sprintf("%.1f", cfg.DPR)
+}
+
+// NewContentDPRHeader creates a new Content-DPR header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-DPR
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentDPRHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-DPR
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentDPRHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentDPRConfig{DPR: 2.0}
+//	header := goheader.NewContentDPRHeader(cfg)
+//	fmt.Println(header.Name)   // Content-DPR
+//	fmt.Println(header.Values) // ["2.0"]
+func NewContentDPRHeader(cfg ContentDPRConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         ContentDPR,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentDispositionHeader creates a new Content-Disposition Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+// ContentDispositionConfig defines the configuration for the Content-Disposition header.
+type ContentDispositionConfig struct {
+	Type   string            // e.g., "inline", "attachment"
+	Params map[string]string // optional parameters, e.g., filename="example.txt"
+}
+
+// String renders the Content-Disposition header value.
+func (cfg ContentDispositionConfig) String() string {
+	result := cfg.Type
+	if len(cfg.Params) > 0 {
+		var parts []string
+		for k, v := range cfg.Params {
+			parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
+		}
+		result += "; " + strings.Join(parts, "; ")
+	}
+	return result
+}
+
+// NewContentDispositionHeader creates a new Content-Disposition header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentDispositionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Disposition
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentDispositionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentDispositionConfig{
+//	    Type: "attachment",
+//	    Params: map[string]string{
+//	        "filename": "example.txt",
+//	    },
+//	}
+//	header := goheader.NewContentDispositionHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Disposition
+//	fmt.Println(header.Values) // ["attachment; filename=\"example.txt\""]
+func NewContentDispositionHeader(cfg ContentDispositionConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentDisposition,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentEncodingHeader creates a new Content-Encoding Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+// ContentEncodingValue represents one encoding in the Content-Encoding header.
+type ContentEncodingValue struct {
+	Encoding string // e.g., "gzip", "br", "deflate", "identity"
+}
+
+// String renders a single Content-Encoding value.
+func (v ContentEncodingValue) String() string {
+	if v.Encoding == "" {
+		return "identity"
+	}
+	return v.Encoding
+}
+
+// ContentEncodingConfig defines the configuration for the Content-Encoding header.
+type ContentEncodingConfig struct {
+	Values []ContentEncodingValue
+}
+
+// String renders the full Content-Encoding header value from the config.
+func (cfg ContentEncodingConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewContentEncodingHeader creates a new Content-Encoding header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentEncodingHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Encoding
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentEncodingHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentEncodingConfig{
+//	    Values: []goheader.ContentEncodingValue{
+//	        {Encoding: "gzip"},
+//	        {Encoding: "br"},
+//	    },
+//	}
+//	header := goheader.NewContentEncodingHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Encoding
+//	fmt.Println(header.Values) // ["gzip, br"]
+func NewContentEncodingHeader(cfg ContentEncodingConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentEncoding,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentLanguageHeader creates a new Content-Language Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Language
+// ContentLanguageValue represents one language in the Content-Language header.
+type ContentLanguageValue struct {
+	Language string // e.g., "en", "fr", "de", "en-US"
+}
+
+// String renders a single Content-Language value.
+func (v ContentLanguageValue) String() string {
+	return v.Language
+}
+
+// ContentLanguageConfig defines the configuration for the Content-Language header.
+type ContentLanguageConfig struct {
+	Values []ContentLanguageValue
+}
+
+// String renders the full Content-Language header value from the config.
+func (cfg ContentLanguageConfig) String() string {
+	var parts []string
+	for _, v := range cfg.Values {
+		parts = append(parts, v.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewContentLanguageHeader creates a new Content-Language header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Language
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentLanguageHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Language
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentLanguageHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentLanguageConfig{
+//	    Values: []goheader.ContentLanguageValue{
+//	        {Language: "en"},
+//	        {Language: "fr"},
+//	    },
+//	}
+//	header := goheader.NewContentLanguageHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Language
+//	fmt.Println(header.Values) // ["en, fr"]
+func NewContentLanguageHeader(cfg ContentLanguageConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentLanguage,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentLengthHeader creates a new Content-Length Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+// ContentLengthConfig defines the configuration for the Content-Length header.
+type ContentLengthConfig struct {
+	Bytes int // Size of the message body in bytes
+}
+
+// String renders the Content-Length header value.
+func (cfg ContentLengthConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Bytes)
+}
+
+// NewContentLengthHeader creates a new Content-Length header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentLengthHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Length
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentLengthHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentLengthConfig{Bytes: 1024}
+//	header := goheader.NewContentLengthHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Length
+//	fmt.Println(header.Values) // ["1024"]
+func NewContentLengthHeader(cfg ContentLengthConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentLength,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentLocationHeader creates a new Content-Location Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Location
+// ContentLocationConfig defines the configuration for the Content-Location header.
+type ContentLocationConfig struct {
+	URL string // Canonical or direct URL for the resource
+}
+
+// String renders the Content-Location header value.
+func (cfg ContentLocationConfig) String() string {
+	return cfg.URL
+}
+
+// NewContentLocationHeader creates a new Content-Location header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Location
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentLocationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Location
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentLocationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentLocationConfig{URL: "https://example.com/data.json"}
+//	header := goheader.NewContentLocationHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Location
+//	fmt.Println(header.Values) // ["https://example.com/data.json"]
+func NewContentLocationHeader(cfg ContentLocationConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentLocation,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentMD5Header creates a new Content-MD5 Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-MD5
+// ContentMD5Config defines the configuration for the Content-MD5 header.
+type ContentMD5Config struct {
+	Checksum string // Base64-encoded MD5 checksum
+}
+
+// String renders the Content-MD5 header value.
+func (cfg ContentMD5Config) String() string {
+	return cfg.Checksum
+}
+
+// NewContentMD5Header creates a new Content-MD5 header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-MD5
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentMD5Header("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-MD5
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentMD5Header(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentMD5Config{Checksum: "Q2hlY2sgSW50ZWdyaXR5IQ=="}
+//	header := goheader.NewContentMD5Header(cfg)
+//	fmt.Println(header.Name)   // Content-MD5
+//	fmt.Println(header.Values) // ["Q2hlY2sgSW50ZWdyaXR5IQ=="]
+func NewContentMD5Header(cfg ContentMD5Config) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentMD5,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewContentRangeHeader creates a new Content-Range Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+// ContentRangeConfig defines the configuration for the Content-Range header.
+type ContentRangeConfig struct {
+	Unit  string // e.g., "bytes"
+	Start int    // Start byte, or -1 if unknown
+	End   int    // End byte, or -1 if unknown
+	Size  int    // Total size, or -1 if unknown
+}
+
+// String renders the Content-Range header value.
+func (cfg ContentRangeConfig) String() string {
+	unit := cfg.Unit
+	if unit == "" {
+		unit = "bytes"
+	}
+
+	if cfg.Start < 0 || cfg.End < 0 {
+		// unknown range, size known
+		if cfg.Size >= 0 {
+			return fmt.Sprintf("%s */%d", unit, cfg.Size)
+		}
+		// unknown everything
+		return fmt.Sprintf("%s *", unit)
+	}
+
+	// full range
+	if cfg.Size >= 0 {
+		return fmt.Sprintf("%s %d-%d/%d", unit, cfg.Start, cfg.End, cfg.Size)
+	}
+	return fmt.Sprintf("%s %d-%d/*", unit, cfg.Start, cfg.End)
+}
+
+// NewContentRangeHeader creates a new Content-Range header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewContentRangeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Content-Range
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewContentRangeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ContentRangeConfig{Unit: "bytes", Start: 0, End: 499, Size: 1234}
+//	header := goheader.NewContentRangeHeader(cfg)
+//	fmt.Println(header.Name)   // Content-Range
+//	fmt.Println(header.Values) // ["bytes 0-499/1234"]
+func NewContentRangeHeader(cfg ContentRangeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ContentRange,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewContentSecurityPolicyHeader creates a new Content-Security-Policy Header with the specified values.
