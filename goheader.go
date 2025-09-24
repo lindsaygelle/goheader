@@ -2462,184 +2462,323 @@ func NewDNTHeader(cfg DNTConfig) Header {
 	}
 }
 
-// NewDPRHeader creates a new DPR Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DPR
+// DPRConfig defines the configuration for the DPR header.
+type DPRConfig struct {
+	Value float64 // Device Pixel Ratio, e.g., 1.0, 2.0
+}
+
+// String renders the DPR header value.
+func (cfg DPRConfig) String() string {
+	return fmt.Sprintf("%.1f", cfg.Value)
+}
+
+// NewDPRHeader creates a new DPR header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DPR
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDPRHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // DPR
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDPRHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DPRConfig{Value: 2.0}
+//	header := goheader.NewDPRHeader(cfg)
+//	fmt.Println(header.Name)   // DPR
+//	fmt.Println(header.Values) // ["2.0"]
+func NewDPRHeader(cfg DPRConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         DPR,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDateHeader creates a new Date Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
+// DateConfig defines the configuration for the Date header.
+type DateConfig struct {
+	Time time.Time // Date/time for the header, will be rendered in IMF-fixdate format
+}
+
+// String renders the Date header value in RFC 7231 IMF-fixdate format.
+func (cfg DateConfig) String() string {
+	return cfg.Time.UTC().Format(time.RFC1123)
+}
+
+// NewDateHeader creates a new Date header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDateHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Date
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDateHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DateConfig{Time: time.Now()}
+//	header := goheader.NewDateHeader(cfg)
+//	fmt.Println(header.Name)   // Date
+//	fmt.Println(header.Values) // ["Mon, 02 Jan 2006 15:04:05 GMT"]
+func NewDateHeader(cfg DateConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Date,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDeltaBaseHeader creates a new Delta-Base Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Delta-Base
+// DeltaBaseConfig defines the configuration for the Delta-Base header.
+type DeltaBaseConfig struct {
+	ETag string // The ETag of the base resource
+}
+
+// String renders the Delta-Base header value.
+func (cfg DeltaBaseConfig) String() string {
+	return cfg.ETag
+}
+
+// NewDeltaBaseHeader creates a new Delta-Base header from the config.
+// More information: https://datatracker.ietf.org/doc/html/rfc3229#section-10.5
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDeltaBaseHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Delta-Base
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDeltaBaseHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DeltaBaseConfig{ETag: "\"abc123etag\""}
+//	header := goheader.NewDeltaBaseHeader(cfg)
+//	fmt.Println(header.Name)   // Delta-Base
+//	fmt.Println(header.Values) // ["\"abc123etag\""]
+func NewDeltaBaseHeader(cfg DeltaBaseConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         DeltaBase,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDeviceMemoryHeader creates a new Device-Memory Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Device-Memory
+// DeviceMemoryConfig defines the configuration for the Device-Memory header.
+type DeviceMemoryConfig struct {
+	GB float64 // Approximate device memory in GB
+}
+
+// String renders the Device-Memory header value.
+func (cfg DeviceMemoryConfig) String() string {
+	return fmt.Sprintf("%.2g", cfg.GB)
+}
+
+// NewDeviceMemoryHeader creates a new Device-Memory header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Device-Memory
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDeviceMemoryHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Device-Memory
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDeviceMemoryHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DeviceMemoryConfig{GB: 4}
+//	header := goheader.NewDeviceMemoryHeader(cfg)
+//	fmt.Println(header.Name)   // Device-Memory
+//	fmt.Println(header.Values) // ["4"]
+func NewDeviceMemoryHeader(cfg DeviceMemoryConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         DeviceMemory,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDigestHeader creates a new Digest Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
+// DigestValue represents one algorithm/hash pair for the Digest header.
+type DigestValue struct {
+	Algorithm string // e.g., "SHA-256"
+	Hash      string // e.g., "X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE="
+}
+
+// String renders a single Digest value.
+func (d DigestValue) String() string {
+	return d.Algorithm + "=" + d.Hash
+}
+
+// DigestConfig defines the configuration for the Digest header.
+type DigestConfig struct {
+	Values []DigestValue
+}
+
+// String renders the full Digest header value from the config.
+func (cfg DigestConfig) String() string {
+	var parts []string
+	for _, d := range cfg.Values {
+		parts = append(parts, d.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewDigestHeader creates a new Digest header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDigestHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Digest
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDigestHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DigestConfig{
+//	    Values: []goheader.DigestValue{
+//	        {Algorithm: "SHA-256", Hash: "X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE="},
+//	    },
+//	}
+//	header := goheader.NewDigestHeader(cfg)
+//	fmt.Println(header.Name)   // Digest
+//	fmt.Println(header.Values) // ["SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE="]
+func NewDigestHeader(cfg DigestConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Digest,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewDownlinkHeader creates a new Downlink Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Downlink
+// DownlinkConfig defines the configuration for the Downlink header.
+type DownlinkConfig struct {
+	Mbps float64 // Approximate downlink speed in Mbps
+}
+
+// String renders the Downlink header value.
+func (cfg DownlinkConfig) String() string {
+	return fmt.Sprintf("%.1f", cfg.Mbps)
+}
+
+// NewDownlinkHeader creates a new Downlink header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Downlink
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewDownlinkHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Downlink
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewDownlinkHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.DownlinkConfig{Mbps: 10.2}
+//	header := goheader.NewDownlinkHeader(cfg)
+//	fmt.Println(header.Name)   // Downlink
+//	fmt.Println(header.Values) // ["10.2"]
+func NewDownlinkHeader(cfg DownlinkConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         Downlink,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewECTHeader creates a new ECT Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ECT
+// ECTConfig defines the configuration for the ECT header.
+type ECTConfig struct {
+	Type string // e.g., "slow-2g", "2g", "3g", "4g"
+}
+
+// String renders the ECT header value.
+func (cfg ECTConfig) String() string {
+	return cfg.Type
+}
+
+// NewECTHeader creates a new ECT header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ECT
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewECTHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // ECT
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewECTHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ECTConfig{Type: "4g"}
+//	header := goheader.NewECTHeader(cfg)
+//	fmt.Println(header.Name)   // ECT
+//	fmt.Println(header.Values) // ["4g"]
+func NewECTHeader(cfg ECTConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         ECT,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewETagHeader creates a new ETag Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+// ETagConfig defines the configuration for the ETag header.
+type ETagConfig struct {
+	Value string // e.g., "\"abc123\"" or "W/\"weak123\""
+}
+
+// String renders the ETag header value.
+func (cfg ETagConfig) String() string {
+	return cfg.Value
+}
+
+// NewETagHeader creates a new ETag header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewETagHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // ETag
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewETagHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ETagConfig{Value: "\"abc123\""}
+//	header := goheader.NewETagHeader(cfg)
+//	fmt.Println(header.Name)   // ETag
+//	fmt.Println(header.Values) // ["\"abc123\""]
+func NewETagHeader(cfg ETagConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ETag,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewEarlyDataHeader creates a new Early-Data Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Early-Data
+// EarlyDataConfig defines the configuration for the Early-Data header.
+type EarlyDataConfig struct {
+	Value string // "1" or "0"
+}
+
+// String renders the Early-Data header value.
+func (cfg EarlyDataConfig) String() string {
+	return cfg.Value
+}
+
+// NewEarlyDataHeader creates a new Early-Data header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Early-Data
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewEarlyDataHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Early-Data
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewEarlyDataHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.EarlyDataConfig{Value: "1"}
+//	header := goheader.NewEarlyDataHeader(cfg)
+//	fmt.Println(header.Name)   // Early-Data
+//	fmt.Println(header.Values) // ["1"]
+func NewEarlyDataHeader(cfg EarlyDataConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         EarlyData,
 		Request:      true,
-		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewExpectHeader creates a new Expect Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect
+// ExpectConfig defines the configuration for the Expect header.
+type ExpectConfig struct {
+	Directives []string // e.g., ["100-continue"]
+}
+
+// String renders the Expect header value.
+func (cfg ExpectConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewExpectHeader creates a new Expect header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewExpectHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Expect
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewExpectHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ExpectConfig{Directives: []string{"100-continue"}}
+//	header := goheader.NewExpectHeader(cfg)
+//	fmt.Println(header.Name)   // Expect
+//	fmt.Println(header.Values) // ["100-continue"]
+func NewExpectHeader(cfg ExpectConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Expect,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewExpectCTHeader creates a new Expect-CT Header with the specified values.
