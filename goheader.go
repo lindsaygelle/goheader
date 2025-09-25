@@ -2781,184 +2781,335 @@ func NewExpectHeader(cfg ExpectConfig) Header {
 	}
 }
 
-// NewExpectCTHeader creates a new Expect-CT Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT
+// ExpectCTConfig defines the configuration for the Expect-CT header.
+type ExpectCTConfig struct {
+	MaxAge    int    // in seconds, e.g., 86400
+	Enforce   bool   // true for enforcement, false for report-only
+	ReportURI string // optional report URI
+}
+
+// String renders the Expect-CT header value.
+func (cfg ExpectCTConfig) String() string {
+	var parts []string
+	if cfg.MaxAge > 0 {
+		parts = append(parts, fmt.Sprintf("max-age=%d", cfg.MaxAge))
+	}
+	if cfg.Enforce {
+		parts = append(parts, "enforce")
+	}
+	if cfg.ReportURI != "" {
+		parts = append(parts, fmt.Sprintf(`report-uri="%s"`, cfg.ReportURI))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewExpectCTHeader creates a new Expect-CT header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewExpectCTHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Expect-CT
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewExpectCTHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ExpectCTConfig{MaxAge: 86400, Enforce: true, ReportURI: "https://example.com/report"}
+//	header := goheader.NewExpectCTHeader(cfg)
+//	fmt.Println(header.Name)   // Expect-CT
+//	fmt.Println(header.Values) // ["max-age=86400, enforce, report-uri=\"https://example.com/report\""]
+func NewExpectCTHeader(cfg ExpectCTConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ExpectCT,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewExpiresHeader creates a new Expires Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires
+// ExpiresConfig defines the configuration for the Expires header.
+type ExpiresConfig struct {
+	Time time.Time // Expiration date/time in IMF-fixdate format
+}
+
+// String renders the Expires header value in RFC 7231 IMF-fixdate format.
+func (cfg ExpiresConfig) String() string {
+	return cfg.Time.UTC().Format(time.RFC1123)
+}
+
+// NewExpiresHeader creates a new Expires header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewExpiresHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Expires
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewExpiresHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ExpiresConfig{Time: time.Now().Add(24 * time.Hour)}
+//	header := goheader.NewExpiresHeader(cfg)
+//	fmt.Println(header.Name)   // Expires
+//	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+func NewExpiresHeader(cfg ExpiresConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Expires,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewForwardedHeader creates a new Forwarded Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded
+// ForwardedConfig defines the configuration for the Forwarded header.
+type ForwardedConfig struct {
+	For   string // Client IP address
+	By    string // Proxy IP address
+	Proto string // Protocol, e.g., "http" or "https"
+	Host  string // Original host
+}
+
+// String renders the Forwarded header value.
+func (cfg ForwardedConfig) String() string {
+	var parts []string
+	if cfg.For != "" {
+		parts = append(parts, fmt.Sprintf("for=%s", cfg.For))
+	}
+	if cfg.By != "" {
+		parts = append(parts, fmt.Sprintf("by=%s", cfg.By))
+	}
+	if cfg.Proto != "" {
+		parts = append(parts, fmt.Sprintf("proto=%s", cfg.Proto))
+	}
+	if cfg.Host != "" {
+		parts = append(parts, fmt.Sprintf("host=%s", cfg.Host))
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewForwardedHeader creates a new Forwarded header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewForwardedHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Forwarded
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewForwardedHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ForwardedConfig{For: "192.0.2.43", Proto: "https", By: "203.0.113.43", Host: "example.com"}
+//	header := goheader.NewForwardedHeader(cfg)
+//	fmt.Println(header.Name)   // Forwarded
+//	fmt.Println(header.Values) // ["for=192.0.2.43; by=203.0.113.43; proto=https; host=example.com"]
+func NewForwardedHeader(cfg ForwardedConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Forwarded,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewFromHeader creates a new From Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
+// FromConfig defines the configuration for the From header.
+type FromConfig struct {
+	Email string // Email address of the client or user
+}
+
+// String renders the From header value.
+func (cfg FromConfig) String() string {
+	return cfg.Email
+}
+
+// NewFromHeader creates a new From header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewFromHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // From
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewFromHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.FromConfig{Email: "user@example.com"}
+//	header := goheader.NewFromHeader(cfg)
+//	fmt.Println(header.Name)   // From
+//	fmt.Println(header.Values) // ["user@example.com"]
+func NewFromHeader(cfg FromConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         From,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewFrontEndHTTPSHeader creates a new Front-End-Https Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Front-End-Https
+// FrontEndHttpsConfig defines the configuration for the Front-End-Https header.
+type FrontEndHttpsConfig struct {
+	Enabled bool // true = "on", false = "off"
+}
+
+// String renders the Front-End-Https header value.
+func (cfg FrontEndHttpsConfig) String() string {
+	if cfg.Enabled {
+		return "on"
+	}
+	return "off"
+}
+
+// NewFrontEndHttpsHeader creates a new Front-End-Https header from the config.
+// Note: This is a non-standard header used primarily by proxies and load balancers.
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewFrontEndHTTPSHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Front-End-Https
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewFrontEndHTTPSHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.FrontEndHttpsConfig{Enabled: true}
+//	header := goheader.NewFrontEndHttpsHeader(cfg)
+//	fmt.Println(header.Name)   // Front-End-Https
+//	fmt.Println(header.Values) // ["on"]
+func NewFrontEndHttpsHeader(cfg FrontEndHttpsConfig) Header {
 	return Header{
-		Experimental: false,
+		Experimental: true,
 		Name:         FrontEndHTTPS,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewHTTP2SettingsHeader creates a new HTTP2-Settings Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/HTTP2-Settings
+// HTTP2SettingsConfig defines the configuration for the HTTP2-Settings header.
+type HTTP2SettingsConfig struct {
+	Settings string // Base64-encoded HTTP/2 SETTINGS payload
+}
+
+// String renders the HTTP2-Settings header value.
+func (cfg HTTP2SettingsConfig) String() string {
+	return cfg.Settings
+}
+
+// NewHTTP2SettingsHeader creates a new HTTP2-Settings header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/HTTP2-Settings
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewHTTP2SettingsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // HTTP2-Settings
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewHTTP2SettingsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.HTTP2SettingsConfig{Settings: "AAMAAABkAAQAAP__"}
+//	header := goheader.NewHTTP2SettingsHeader(cfg)
+//	fmt.Println(header.Name)   // HTTP2-Settings
+//	fmt.Println(header.Values) // ["AAMAAABkAAQAAP__"]
+func NewHTTP2SettingsHeader(cfg HTTP2SettingsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         HTTP2Settings,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewHostHeader creates a new Host Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
+// HostConfig defines the configuration for the Host header.
+type HostConfig struct {
+	Host string // e.g., "example.com" or "example.com:8080"
+}
+
+// String renders the Host header value.
+func (cfg HostConfig) String() string {
+	return cfg.Host
+}
+
+// NewHostHeader creates a new Host header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewHostHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Host
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewHostHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.HostConfig{Host: "example.com:8080"}
+//	header := goheader.NewHostHeader(cfg)
+//	fmt.Println(header.Name)   // Host
+//	fmt.Println(header.Values) // ["example.com:8080"]
+func NewHostHeader(cfg HostConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Host,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewIMHeader creates a new IM Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/IM
+// IMConfig defines the configuration for the IM header.
+type IMConfig struct {
+	Values []string // e.g., ["vcdiff", "gzip"]
+}
+
+// String renders the IM header value.
+func (cfg IMConfig) String() string {
+	return strings.Join(cfg.Values, ", ")
+}
+
+// NewIMHeader creates a new IM header from the config.
+// More information: https://datatracker.ietf.org/doc/html/rfc3229#section-10.5.3
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIMHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // IM
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIMHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IMConfig{Values: []string{"vcdiff", "gzip"}}
+//	header := goheader.NewIMHeader(cfg)
+//	fmt.Println(header.Name)   // IM
+//	fmt.Println(header.Values) // ["vcdiff, gzip"]
+func NewIMHeader(cfg IMConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IM,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewIfMatchHeader creates a new If-Match Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+// IfMatchConfig defines the configuration for the If-Match header.
+type IfMatchConfig struct {
+	ETags []string // e.g., []{"\"abc123\"", "\"xyz456\""} or []{"*"}
+}
+
+// String renders the If-Match header value.
+func (cfg IfMatchConfig) String() string {
+	return strings.Join(cfg.ETags, ", ")
+}
+
+// NewIfMatchHeader creates a new If-Match header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIfMatchHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // If-Match
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIfMatchHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IfMatchConfig{ETags: []string{"\"abc123\"", "\"xyz456\""}}
+//	header := goheader.NewIfMatchHeader(cfg)
+//	fmt.Println(header.Name)   // If-Match
+//	fmt.Println(header.Values) // ["\"abc123\", \"xyz456\""]
+func NewIfMatchHeader(cfg IfMatchConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IfMatch,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewIfModifiedSinceHeader creates a new If-Modified-Since Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+// IfModifiedSinceConfig defines the configuration for the If-Modified-Since header.
+type IfModifiedSinceConfig struct {
+	Time time.Time // Time cutoff for resource modification
+}
+
+// String renders the If-Modified-Since header value in RFC 7231 IMF-fixdate format.
+func (cfg IfModifiedSinceConfig) String() string {
+	return cfg.Time.UTC().Format(time.RFC1123)
+}
+
+// NewIfModifiedSinceHeader creates a new If-Modified-Since header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIfModifiedSinceHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // If-Modified-Since
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIfModifiedSinceHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IfModifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+//	header := goheader.NewIfModifiedSinceHeader(cfg)
+//	fmt.Println(header.Name)   // If-Modified-Since
+//	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+func NewIfModifiedSinceHeader(cfg IfModifiedSinceConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IfModifiedSince,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewIfNoneMatchHeader creates a new If-None-Match Header with the specified values.
