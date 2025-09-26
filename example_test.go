@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/lindsaygelle/goheader"
 )
@@ -13,22 +14,35 @@ import (
 // ExampleNewAIMHeader is an example function for NewAIMHeader.
 func ExampleNewAIMHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAIMHeader("feed")
-	fmt.Println(header)
+	cfg := goheader.AcceptConfig{
+		Values: []goheader.AcceptValue{
+			{MediaType: "application/json", Quality: 1.0},
+			{MediaType: "text/html", Quality: 0.8, Params: map[string]string{"charset": "utf-8"}},
+		},
+	}
+	header := goheader.NewAcceptHeader(cfg)
+	fmt.Println(header.Values) // ["application/json;q=1.0, text/html;charset=utf-8;q=0.8"]
 }
 
 // ExampleNewAcceptHeader is an example function for NewAcceptHeader.
 func ExampleNewAcceptHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptHeader("text/html")
-	fmt.Println(header)
+	cfg := goheader.AcceptCHConfig{
+		Values: []goheader.AcceptCHValue{
+			{Token: "DPR"},
+			{Token: "Viewport-Width"},
+		},
+	}
+	header := goheader.NewAcceptCHHeader(cfg)
+	fmt.Println(header.Values) // ["DPR, Viewport-Width"]
 }
 
 // ExampleNewAcceptCHHeader is an example function for NewAcceptCHHeader.
 func ExampleNewAcceptCHHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptCHHeader("width")
-	fmt.Println(header)
+	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
+	header := goheader.NewAcceptCHLifetimeHeader(cfg)
+	fmt.Println(header.Values) // ["86400"]
 }
 
 // ExampleNewAcceptCHLifetimeHeader is an example function for NewAcceptCHLifetimeHeader.
@@ -42,554 +56,781 @@ func ExampleNewAcceptCHLifetimeHeader() {
 
 func ExampleNewAcceptCharsetHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptCharsetHeader("UTF-8")
-	fmt.Println(header)
+	cfg := goheader.AcceptCharsetConfig{
+		Values: []goheader.AcceptCharsetValue{
+			{Charset: "utf-8", Quality: 1.0},
+			{Charset: "iso-8859-1", Quality: 0.5},
+		},
+	}
+	header := goheader.NewAcceptCharsetHeader(cfg)
+	fmt.Println(header.Values) // ["utf-8;q=1.0, iso-8859-1;q=0.5"]
 }
 
 // ExampleNewAcceptDatetimeHeader is an example function for NewAcceptDatetimeHeader.
 func ExampleNewAcceptDatetimeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptDatetimeHeader("Thu, 31 May 2007 20:35:00 GMT")
-	fmt.Println(header)
+	cfg := goheader.AcceptDatetimeConfig{
+		Datetime: time.Date(2023, 5, 1, 12, 30, 0, 0, time.UTC),
+	}
+	header := goheader.NewAcceptDatetimeHeader(cfg)
+	fmt.Println(header.Values) // ["Mon, 01 May 2023 12:30:00 GMT"]
 }
 
 // ExampleNewAcceptEncodingHeader is an example function for NewAcceptEncodingHeader.
 func ExampleNewAcceptEncodingHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptEncodingHeader("gzip")
-	fmt.Println(header)
+	cfg := goheader.AcceptEncodingConfig{
+		Values: []goheader.AcceptEncodingValue{
+			{Encoding: "gzip", Quality: 1.0},
+			{Encoding: "br", Quality: 0.8},
+		},
+	}
+	header := goheader.NewAcceptEncodingHeader(cfg)
+	fmt.Println(header.Values) // ["gzip;q=1.0, br;q=0.8"]
 }
 
 // ExampleNewAcceptLanguageHeader is an example function for NewAcceptLanguageHeader.
 func ExampleNewAcceptLanguageHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptLanguageHeader("en-AU")
-	fmt.Println(header)
+	cfg := goheader.AcceptLanguageConfig{
+		Values: []goheader.AcceptLanguageValue{
+			{Language: "en-US", Quality: 1.0},
+			{Language: "fr", Quality: 0.8},
+		},
+	}
+	header := goheader.NewAcceptLanguageHeader(cfg)
+	fmt.Println(header.Values) // ["en-US;q=1.0, fr;q=0.8"]
 }
 
 // ExampleNewAcceptPatchHeader is an example function for NewAcceptPatchHeader.
 func ExampleNewAcceptPatchHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptPatchHeader("application/example", "text/example")
-	fmt.Println(header)
+	cfg := goheader.AcceptPatchConfig{
+		Values: []goheader.AcceptPatchValue{
+			{MediaType: "application/json-patch+json"},
+			{MediaType: "application/merge-patch+json"},
+		},
+	}
+	header := goheader.NewAcceptPatchHeader(cfg)
+	fmt.Println(header.Values) // ["application/json-patch+json, application/merge-patch+json"]
 }
 
 // ExampleNewAcceptPostHeader is an example function for NewAcceptPostHeader.
 func ExampleNewAcceptPostHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptPostHeader("application/example", "text/example")
-	fmt.Println(header)
+	cfg := goheader.AcceptPostConfig{
+		Values: []goheader.AcceptPostValue{
+			{MediaType: "application/json"},
+			{MediaType: "application/ld+json"},
+		},
+	}
+	header := goheader.NewAcceptPostHeader(cfg)
+	fmt.Println(header.Values) // ["application/json, application/ld+json"]
 }
 
 // ExampleNewAcceptRangesHeader is an example function for NewAcceptRangesHeader.
 func ExampleNewAcceptRangesHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptRangesHeader("bytes")
-	fmt.Println(header)
+	cfg := goheader.AcceptRangesConfig{
+		Values: []goheader.AcceptRangesValue{
+			{Unit: "bytes"},
+		},
+	}
+	header := goheader.NewAcceptRangesHeader(cfg)
+	fmt.Println(header.Values) // ["bytes"]
 }
 
 // ExampleNewAccessControlAllowCredentialsHeader is an example function for NewAccessControlAllowCredentialsHeader.
 func ExampleNewAccessControlAllowCredentialsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlAllowCredentialsHeader("true")
-	fmt.Println(header)
+	cfg := goheader.AccessControlAllowCredentialsConfig{AllowCredentials: true}
+	header := goheader.NewAccessControlAllowCredentialsHeader(cfg)
+	fmt.Println(header.Values) // ["true"]
 }
 
 // ExampleNewAccessControlAllowHeadersHeader is an example function for NewAccessControlAllowHeadersHeader.
 func ExampleNewAccessControlAllowHeadersHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlAllowHeadersHeader("*")
-	fmt.Println(header)
+	cfg := goheader.AccessControlAllowHeadersConfig{
+		Values: []goheader.AccessControlAllowHeadersValue{
+			{Header: "Content-Type"},
+			{Header: "Authorization"},
+		},
+	}
+	header := goheader.NewAccessControlAllowHeadersHeader(cfg)
+	fmt.Println(header.Values) // ["Content-Type, Authorization"]
 }
 
 // ExampleNewAccessControlAllowMethodsHeader is an example function for NewAccessControlAllowMethodsHeader.
 func ExampleNewAccessControlAllowMethodsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlAllowMethodsHeader("POST", "GET")
-	fmt.Println(header)
+	cfg := goheader.AccessControlAllowMethodsConfig{
+		Values: []goheader.AccessControlAllowMethodsValue{
+			{Method: "GET"},
+			{Method: "POST"},
+			{Method: "OPTIONS"},
+		},
+	}
+	header := goheader.NewAccessControlAllowMethodsHeader(cfg)
+	fmt.Println(header.Values) // ["GET, POST, OPTIONS"]
 }
 
 // ExampleNewAccessControlAllowOriginHeader is an example function for NewAccessControlAllowOriginHeader.
 func ExampleNewAccessControlAllowOriginHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlAllowOriginHeader("*")
-	fmt.Println(header)
+	cfg := goheader.AccessControlAllowOriginConfig{Origin: "https://example.com"}
+	header := goheader.NewAccessControlAllowOriginHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com"]
 }
 
 // ExampleNewAccessControlExposeHeadersHeader is an example function for NewAccessControlExposeHeadersHeader.
 func ExampleNewAccessControlExposeHeadersHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlExposeHeadersHeader("https://github.com")
-	fmt.Println(header)
+	cfg := goheader.AccessControlExposeHeadersConfig{
+		Values: []goheader.AccessControlExposeHeadersValue{
+			{Header: "Content-Length"},
+			{Header: "X-Custom-Header"},
+		},
+	}
+	header := goheader.NewAccessControlExposeHeadersHeader(cfg)
+	fmt.Println(header.Values) // ["Content-Length, X-Custom-Header"]
 }
 
 // ExampleNewAccessControlMaxAgeHeader is an example function for NewAccessControlMaxAgeHeader.
 func ExampleNewAccessControlMaxAgeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlMaxAgeHeader("600")
-	fmt.Println(header)
+	cfg := goheader.AccessControlMaxAgeConfig{Seconds: 600}
+	header := goheader.NewAccessControlMaxAgeHeader(cfg)
+	fmt.Println(header.Values) // ["600"]
 }
 
 // ExampleNewAccessControlRequestHeadersHeader is an example function for NewAccessControlRequestHeadersHeader.
 func ExampleNewAccessControlRequestHeadersHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlRequestHeadersHeader("Content-Type", "X-User-Addr")
-	fmt.Println(header)
+	cfg := goheader.AccessControlRequestHeadersConfig{
+		Values: []goheader.AccessControlRequestHeadersValue{
+			{Header: "Content-Type"},
+			{Header: "Authorization"},
+		},
+	}
+	header := goheader.NewAccessControlRequestHeadersHeader(cfg)
+	fmt.Println(header.Values) // ["Content-Type, Authorization"]
 }
 
 // ExampleNewAccessControlRequestMethodHeader is an example function for NewAccessControlRequestMethodHeader.
 func ExampleNewAccessControlRequestMethodHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAccessControlRequestMethodHeader("GET")
-	fmt.Println(header)
+	cfg := goheader.AccessControlRequestMethodConfig{Method: "POST"}
+	header := goheader.NewAccessControlRequestMethodHeader(cfg)
+	fmt.Println(header.Values) // ["POST"]
 }
 
 // ExampleNewAgeHeader is an example function for NewAgeHeader.
 func ExampleNewAgeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAgeHeader("15")
-	fmt.Println(header)
+	cfg := goheader.AgeConfig{Seconds: 120}
+	header := goheader.NewAgeHeader(cfg)
+	fmt.Println(header.Values) // ["120"]
 }
 
 // ExampleNewAllowHeader is an example function for NewAllowHeader.
 func ExampleNewAllowHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAllowHeader("HEAD", "GET")
-	fmt.Println(header)
+	cfg := goheader.AllowConfig{
+		Values: []goheader.AllowValue{
+			{Method: "GET"},
+			{Method: "POST"},
+		},
+	}
+	header := goheader.NewAllowHeader(cfg)
+	fmt.Println(header.Values) // ["GET, POST"]
 }
 
 // ExampleNewAltSvcHeader is an example function for NewAltSvcHeader.
 func ExampleNewAltSvcHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAltSvcHeader("h2=\"alt.example.com:443\"", "h2=\":443\"")
-	fmt.Println(header)
+	cfg := goheader.AltSvcConfig{
+		Values: []goheader.AltSvcValue{
+			{Protocol: "h3", Host: ":443", MaxAge: 86400, Persist: true},
+		},
+	}
+	header := goheader.NewAltSvcHeader(cfg)
+	fmt.Println(header.Values) // [h3=":443"; ma=86400; persist=1]
 }
 
 // ExampleNewAltUsedHeader is an example function for NewAltUsedHeader.
 func ExampleNewAltUsedHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAltUsedHeader("alternate.example.net")
-	fmt.Println(header)
+	cfg := goheader.AltUsedConfig{HostPort: "alt.example.com:443"}
+	header := goheader.NewAltUsedHeader(cfg)
+	fmt.Println(header.Values) // ["alt.example.com:443"]
 }
 
 // ExampleNewAuthorizationHeader is an example function for NewAuthorizationHeader.
 func ExampleNewAuthorizationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAuthorizationHeader("Basic RXhhbXBsZTphaQ==")
-	fmt.Println(header)
+	cfg := goheader.AuthorizationConfig{
+		Scheme:      "Bearer",
+		Credentials: "token123",
+	}
+	header := goheader.NewAuthorizationHeader(cfg)
+	fmt.Println(header.Values) // ["Bearer token123"]
 }
 
 // ExampleNewCacheControlHeader is an example function for NewCacheControlHeader.
 func ExampleNewCacheControlHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCacheControlHeader("max-age=604800")
-	fmt.Println(header)
+	maxAge := 3600
+	cfg := goheader.CacheControlConfig{
+		Directives: []goheader.CacheControlDirective{
+			{Directive: "max-age", Value: &maxAge},
+			{Directive: "no-cache"},
+		},
+	}
+	header := goheader.NewCacheControlHeader(cfg)
+	fmt.Println(header.Values) // ["max-age=3600, no-cache"]
 }
 
 // ExampleNewClearSiteDataHeader is an example function for NewClearSiteDataHeader.
 func ExampleNewClearSiteDataHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewClearSiteDataHeader("*")
-	fmt.Println(header)
+	cfg := goheader.ClearSiteDataConfig{
+		Directives: []goheader.ClearSiteDataDirective{
+			{Directive: "cache"},
+			{Directive: "cookies"},
+			{Directive: "storage"},
+		},
+	}
+	header := goheader.NewClearSiteDataHeader(cfg)
+	fmt.Println(header.Values) // ["\"cache\", \"cookies\", \"storage\""]
 }
 
 // ExampleNewConnectionHeader is an example function for NewConnectionHeader.
 func ExampleNewConnectionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewConnectionHeader("keep-alive")
-	fmt.Println(header)
+	cfg := goheader.ConnectionConfig{
+		Options: []goheader.ConnectionOption{
+			{Option: "keep-alive"},
+		},
+	}
+	header := goheader.NewConnectionHeader(cfg)
+	fmt.Println(header.Values) // ["keep-alive"]
 }
 
 // ExampleNewContentDPRHeader is an example function for NewContentDPRHeader.
 func ExampleNewContentDPRHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentDPRHeader("1")
-	fmt.Println(header)
+	cfg := goheader.ContentDPRConfig{DPR: 2.0}
+	header := goheader.NewContentDPRHeader(cfg)
+	fmt.Println(header.Values) // ["2.0"]
 }
 
 // ExampleNewContentDispositionHeader is an example function for NewContentDispositionHeader.
 func ExampleNewContentDispositionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentDispositionHeader("attachment; filename=\"document.doc\"")
-	fmt.Println(header)
+	cfg := goheader.ContentDispositionConfig{
+		Type: "attachment",
+		Params: map[string]string{
+			"filename": "example.txt",
+		},
+	}
+	header := goheader.NewContentDispositionHeader(cfg)
+	fmt.Println(header.Values) // ["attachment; filename=\"example.txt\""]
 }
 
 // ExampleNewContentEncodingHeader is an example function for NewContentEncodingHeader.
 func ExampleNewContentEncodingHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentEncodingHeader("deflate", "br")
-	fmt.Println(header)
+	cfg := goheader.ContentEncodingConfig{
+		Values: []goheader.ContentEncodingValue{
+			{Encoding: "gzip"},
+			{Encoding: "br"},
+		},
+	}
+	header := goheader.NewContentEncodingHeader(cfg)
+	fmt.Println(header.Values) // ["gzip, br"]
 }
 
 // ExampleNewContentLanguageHeader is an example function for NewContentLanguageHeader.
 func ExampleNewContentLanguageHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentLanguageHeader("en-AU")
-	fmt.Println(header)
+	cfg := goheader.ContentLanguageConfig{
+		Values: []goheader.ContentLanguageValue{
+			{Language: "en"},
+			{Language: "fr"},
+		},
+	}
+	header := goheader.NewContentLanguageHeader(cfg)
+	fmt.Println(header.Values) // ["en, fr"]
 }
 
 // ExampleNewContentLengthHeader is an example function for NewContentLengthHeader.
 func ExampleNewContentLengthHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentLengthHeader("128")
-	fmt.Println(header)
+	cfg := goheader.ContentLengthConfig{Bytes: 1024}
+	header := goheader.NewContentLengthHeader(cfg)
+	fmt.Println(header.Values) // ["1024"]
 }
 
 // ExampleNewContentLocationHeader is an example function for NewContentLocationHeader.
 func ExampleNewContentLocationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentLocationHeader("https://example.com/documents/foo")
-	fmt.Println(header)
+	cfg := goheader.ContentLocationConfig{URL: "https://example.com/data.json"}
+	header := goheader.NewContentLocationHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com/data.json"]
 }
 
 // ExampleNewContentMD5Header is an example function for NewContentMD5Header.
 func ExampleNewContentMD5Header() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentMD5Header("b89f948e98f3a113dc13fdbd3bdb17ef")
-	fmt.Println(header)
+	cfg := goheader.ContentMD5Config{Checksum: "Q2hlY2sgSW50ZWdyaXR5IQ=="}
+	header := goheader.NewContentMD5Header(cfg)
+	fmt.Println(header.Values) // ["Q2hlY2sgSW50ZWdyaXR5IQ=="]
 }
 
 // ExampleNewContentRangeHeader is an example function for NewContentRangeHeader.
 func ExampleNewContentRangeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentRangeHeader("1000-2000/*")
-	fmt.Println(header)
+	cfg := goheader.ContentRangeConfig{Unit: "bytes", Start: 0, End: 499, Size: 1234}
+	header := goheader.NewContentRangeHeader(cfg)
+	fmt.Println(header.Values) // ["bytes 0-499/1234"]
 }
 
 // ExampleNewContentSecurityPolicyHeader is an example function for NewContentSecurityPolicyHeader.
 func ExampleNewContentSecurityPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentSecurityPolicyHeader("default-src 'self'; font-src fonts.gstatic.com; style-src 'self' fonts.googleapis.com")
-	fmt.Println(header)
+	cfg := goheader.ContentSecurityPolicyConfig{
+		Directives: []goheader.CSPDirective{
+			{Directive: "default-src", Sources: []string{"'self'"}},
+			{Directive: "script-src", Sources: []string{"'self'", "https://apis.example.com"}},
+		},
+	}
+	header := goheader.NewContentSecurityPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.example.com"]
 }
 
 // ExampleNewContentSecurityPolicyReportOnlyHeader is an example function for NewContentSecurityPolicyReportOnlyHeader.
 func ExampleNewContentSecurityPolicyReportOnlyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentSecurityPolicyReportOnlyHeader("default-src https:; report-to /csp-violation-report-endpoint/")
-	fmt.Println(header)
+	cfg := goheader.ContentSecurityPolicyReportOnlyConfig{
+		Directives: []goheader.CSPDirective{
+			{Directive: "default-src", Sources: []string{"'self'"}},
+			{Directive: "script-src", Sources: []string{"'self'", "https://apis.example.com"}},
+		},
+	}
+	header := goheader.NewContentSecurityPolicyReportOnlyHeader(cfg)
+	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.example.com"]
 }
 
 // ExampleNewContentTypeHeader is an example function for NewContentTypeHeader.
 func ExampleNewContentTypeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewContentTypeHeader("text/html; charset=utf-8")
-	fmt.Println(header)
+	cfg := goheader.ContentTypeConfig{
+		MediaType: "application/json",
+		Params:    map[string]string{"charset": "UTF-8"},
+	}
+	header := goheader.NewContentTypeHeader(cfg)
+	fmt.Println(header.Values) // ["application/json; charset=UTF-8"]
 }
 
 // ExampleNewCookieHeader is an example function for NewCookieHeader.
 func ExampleNewCookieHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCookieHeader("PHPSESSID=298zf09hf012fh2; csrftoken=u32t4o3tb3gg43; _gat=1")
-	fmt.Println(header)
+	cfg := goheader.CookieConfig{
+		Cookies: []goheader.CookieValue{
+			{Name: "sessionId", Value: "abc123"},
+			{Name: "theme", Value: "dark"},
+		},
+	}
+	header := goheader.NewCookieHeader(cfg)
+	fmt.Println(header.Values) // ["sessionId=abc123; theme=dark"]
 }
 
 // ExampleNewCorrelationIDHeader is an example function for NewCorrelationIDHeader.
 func ExampleNewCorrelationIDHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCorrelationIDHeader("93dba609-c615-4513-b95b-0d3468ec20d0")
-	fmt.Println(header)
+	cfg := goheader.CorrelationIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+	header := goheader.NewCorrelationIDHeader(cfg)
+	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
 }
 
 // ExampleNewCriticalCHHeader is an example function for NewCriticalCHHeader.
 func ExampleNewCriticalCHHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCriticalCHHeader("Sec-CH-Prefers-Reduced-Motion")
-	fmt.Println(header)
+	cfg := goheader.CriticalCHConfig{Hints: []string{"DPR", "Width", "Viewport-Width"}}
+	header := goheader.NewCriticalCHHeader(cfg)
+	fmt.Println(header.Values) // ["DPR, Width, Viewport-Width"]
 }
 
 // ExampleNewCrossOriginEmbedderPolicyHeader is an example function for NewCrossOriginEmbedderPolicyHeader.
 func ExampleNewCrossOriginEmbedderPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCrossOriginEmbedderPolicyHeader("require-corp")
-	fmt.Println(header)
+	cfg := goheader.CrossOriginEmbedderPolicyConfig{Policy: "require-corp"}
+	header := goheader.NewCrossOriginEmbedderPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["require-corp"]
 }
 
 // ExampleNewCrossOriginOpenerPolicyHeader is an example function for NewCrossOriginOpenerPolicyHeader.
 func ExampleNewCrossOriginOpenerPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCrossOriginOpenerPolicyHeader("same-origin-allow-popups")
-	fmt.Println(header)
+	cfg := goheader.CrossOriginOpenerPolicyConfig{Policy: "same-origin"}
+	header := goheader.NewCrossOriginOpenerPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["same-origin"]
 }
 
 // ExampleNewCrossOriginResourcePolicyHeader is an example function for NewCrossOriginResourcePolicyHeader.
 func ExampleNewCrossOriginResourcePolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewCrossOriginResourcePolicyHeader("same-origin")
-	fmt.Println(header)
+	cfg := goheader.CrossOriginResourcePolicyConfig{Policy: "same-origin"}
+	header := goheader.NewCrossOriginResourcePolicyHeader(cfg)
+	fmt.Println(header.Values) // ["same-origin"]
 }
 
 // ExampleNewDNTHeader is an example function for NewDNTHeader.
 func ExampleNewDNTHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDNTHeader("1")
-	fmt.Println(header)
+	cfg := goheader.DNTConfig{Value: "1"}
+	header := goheader.NewDNTHeader(cfg)
+	fmt.Println(header.Values) // ["1"]
 }
 
 // ExampleNewDPRHeader is an example function for NewDPRHeader.
 func ExampleNewDPRHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDPRHeader("2.0")
-	fmt.Println(header)
+	cfg := goheader.DPRConfig{Value: 2.0}
+	header := goheader.NewDPRHeader(cfg)
+	fmt.Println(header.Values) // ["2.0"])
 }
 
 // ExampleNewDateHeader is an example function for NewDateHeader.
 func ExampleNewDateHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDateHeader("Wed, 21 Oct 2015 07:28:00 GMT")
-	fmt.Println(header)
+	cfg := goheader.DateConfig{Time: time.Now()}
+	header := goheader.NewDateHeader(cfg)
+	fmt.Println(header.Values) // ["Mon, 02 Jan 2006 15:04:05 GMT"]
 }
 
 // ExampleNewDeltaBaseHeader is an example function for NewDeltaBaseHeader.
 func ExampleNewDeltaBaseHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDeltaBaseHeader("12340001")
-	fmt.Println(header)
+	cfg := goheader.DeltaBaseConfig{ETag: "\"abc123etag\""}
+	header := goheader.NewDeltaBaseHeader(cfg)
+	fmt.Println(header.Values) // ["\"abc123etag\""]
 }
 
 // ExampleNewDeviceMemoryHeader is an example function for NewDeviceMemoryHeader.
 func ExampleNewDeviceMemoryHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDeviceMemoryHeader("2")
-	fmt.Println(header)
+	cfg := goheader.DeviceMemoryConfig{GB: 4}
+	header := goheader.NewDeviceMemoryHeader(cfg)
+	fmt.Println(header.Values) // ["4"]
 }
 
 // ExampleNewDigestHeader is an example function for NewDigestHeader.
 func ExampleNewDigestHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDigestHeader("sha-512= 3b761a2a9a96e1c430236dc31378a3450ea189ae1449c3c8eac25cfa8b25381661317968a54cf46bfced09ae6b49f8512832182ac2d087b22380fcb760d802a3")
-	fmt.Println(header)
+	cfg := goheader.DigestConfig{
+		Values: []goheader.DigestValue{
+			{Algorithm: "SHA-256", Hash: "X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE="},
+		},
+	}
+	header := goheader.NewDigestHeader(cfg)
+	fmt.Println(header.Values) // ["SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE="]
 }
 
 // ExampleNewDownlinkHeader is an example function for NewDownlinkHeader.
 func ExampleNewDownlinkHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewDownlinkHeader("1.7")
-	fmt.Println(header)
+	cfg := goheader.DownlinkConfig{Mbps: 10.2}
+	header := goheader.NewDownlinkHeader(cfg)
+	fmt.Println(header.Values) // ["10.2"]
 }
 
 // ExampleNewECTHeader is an example function for NewECTHeader.
 func ExampleNewECTHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewECTHeader("2g")
-	fmt.Println(header)
+	cfg := goheader.ECTConfig{Type: "4g"}
+	header := goheader.NewECTHeader(cfg)
+	fmt.Println(header.Values) // ["4g"]
 }
 
 // ExampleNewETagHeader is an example function for NewETagHeader.
 func ExampleNewETagHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewETagHeader("33a64df551425fcc55e4d42a148795d9f25f89d4")
-	fmt.Println(header)
+	cfg := goheader.ETagConfig{Value: "\"abc123\""}
+	header := goheader.NewETagHeader(cfg)
+	fmt.Println(header.Values) // ["\"abc123\""]
 }
 
 // ExampleNewEarlyDataHeader is an example function for NewEarlyDataHeader.
 func ExampleNewEarlyDataHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewEarlyDataHeader("1")
-	fmt.Println(header)
+	cfg := goheader.EarlyDataConfig{Value: "1"}
+	header := goheader.NewEarlyDataHeader(cfg)
+	fmt.Println(header.Values) // ["1"]
 }
 
 // ExampleNewExpectHeader is an example function for NewExpectHeader.
 func ExampleNewExpectHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewExpectHeader("100-continue")
-	fmt.Println(header)
+	cfg := goheader.ExpectConfig{Directives: []string{"100-continue"}}
+	header := goheader.NewExpectHeader(cfg)
+	fmt.Println(header.Values) // ["100-continue"]
 }
 
 // ExampleNewExpectCTHeader is an example function for NewExpectCTHeader.
 func ExampleNewExpectCTHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewExpectCTHeader("max-age=86400", "enforce", "report-uri=\"https://foo.example.com/report\"")
-	fmt.Println(header)
+	cfg := goheader.ExpectCTConfig{MaxAge: 86400, Enforce: true, ReportURI: "https://example.com/report"}
+	header := goheader.NewExpectCTHeader(cfg)
+	fmt.Println(header.Values) // ["max-age=86400, enforce, report-uri=\"https://example.com/report\""]
 }
 
 // ExampleNewExpiresHeader is an example function for NewExpiresHeader.
 func ExampleNewExpiresHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewExpiresHeader("Wed, 21 Oct 2015 07:28:00 GMT")
-	fmt.Println(header)
+	cfg := goheader.ExpiresConfig{Time: time.Now().Add(24 * time.Hour)}
+	header := goheader.NewExpiresHeader(cfg)
+	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
 }
 
 // ExampleNewForwardedHeader is an example function for NewForwardedHeader.
 func ExampleNewForwardedHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewForwardedHeader("for=192.0.2.43", "for=198.51.100.17")
-	fmt.Println(header)
+	cfg := goheader.ForwardedConfig{
+		For:   "192.0.2.43",
+		By:    "203.0.113.43",
+		Proto: "https",
+		Host:  "example.com",
+	}
+	header := goheader.NewForwardedHeader(cfg)
+	fmt.Println(header.Values) // ["for=192.0.2.43; by=203.0.113.43; proto=https; host=example.com"]
 }
 
 // ExampleNewFromHeader is an example function for NewFromHeader.
 func ExampleNewFromHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewFromHeader("webmaster@example.org")
-	fmt.Println(header)
+	cfg := goheader.FromConfig{Email: "user@example.com"}
+	header := goheader.NewFromHeader(cfg)
+	fmt.Println(header.Values) // ["user@example.com"]
 }
 
 // ExampleNewFrontEndHTTPSHeader is an example function for NewFrontEndHTTPSHeader.
 func ExampleNewFrontEndHTTPSHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewFrontEndHTTPSHeader("on")
-	fmt.Println(header)
+	cfg := goheader.FrontEndHTTPSConfig{Enabled: true}
+	header := goheader.NewFrontEndHttpsHeader(cfg)
+	fmt.Println(header.Values) // ["on"]
 }
 
 // ExampleNewHTTP2SettingsHeader is an example function for NewHTTP2SettingsHeader.
 func ExampleNewHTTP2SettingsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewHTTP2SettingsHeader("token64")
-	fmt.Println(header)
+	cfg := goheader.HTTP2SettingsConfig{Settings: "AAMAAABkAAQAAP__"}
+	header := goheader.NewHTTP2SettingsHeader(cfg)
+	fmt.Println(header.Values) // ["AAMAAABkAAQAAP__"]
 }
 
 // ExampleNewHostHeader is an example function for NewHostHeader.
 func ExampleNewHostHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewHostHeader("Host")
-	fmt.Println(header)
+	cfg := goheader.HostConfig{Host: "example.com:8080"}
+	header := goheader.NewHostHeader(cfg)
+	fmt.Println(header.Values) // ["example.com:8080"]
 }
 
 // ExampleNewIMHeader is an example function for NewIMHeader.
 func ExampleNewIMHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIMHeader("feed")
-	fmt.Println(header)
+	cfg := goheader.IMConfig{Values: []string{"vcdiff", "gzip"}}
+	header := goheader.NewIMHeader(cfg)
+	fmt.Println(header.Values) // ["vcdiff, gzip"]
 }
 
 // ExampleNewIfMatchHeader is an example function for NewIfMatchHeader.
 func ExampleNewIfMatchHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIfMatchHeader("737060cd8c284d8af7ad3082f209582d")
-	fmt.Println(header)
+	cfg := goheader.IfMatchConfig{ETags: []string{"\"abc123\"", "\"xyz456\""}}
+	header := goheader.NewIfMatchHeader(cfg)
+	fmt.Println(header.Values) // ["\"abc123\", \"xyz456\""]
 }
 
 // ExampleNewIfModifiedSinceHeader is an example function for NewIfModifiedSinceHeader.
 func ExampleNewIfModifiedSinceHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIfModifiedSinceHeader("Sat, 29 Oct 1994 19:43:31 GMT")
-	fmt.Println(header)
+	cfg := goheader.IfModifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+	header := goheader.NewIfModifiedSinceHeader(cfg)
+	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
 }
 
 // ExampleNewIfNoneMatchHeader is an example function for NewIfNoneMatchHeader.
 func ExampleNewIfNoneMatchHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIfNoneMatchHeader("737060cd8c284d8af7ad3082f209582d")
-	fmt.Println(header)
+	cfg := goheader.IfNoneMatchConfig{ETags: []string{"\"abc123\"", "\"xyz456\""}}
+	header := goheader.NewIfNoneMatchHeader(cfg)
+	fmt.Println(header.Values) // ["\"abc123\", \"xyz456\""]
 }
 
 // ExampleNewIfRangeHeader is an example function for NewIfRangeHeader.
 func ExampleNewIfRangeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIfRangeHeader("737060cd8c284d8af7ad3082f209582d")
-	fmt.Println(header)
+	cfg := goheader.IfRangeConfig{ETag: "\"abc123\""}
+	header := goheader.NewIfRangeHeader(cfg)
+	fmt.Println(header.Values) // ["\"abc123\""]
 }
 
 // ExampleNewIfUnmodifiedSinceHeader is an example function for NewIfUnmodifiedSinceHeader.
 func ExampleNewIfUnmodifiedSinceHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewIfUnmodifiedSinceHeader("Sat, 29 Oct 1994 19:43:31 GMT")
-	fmt.Println(header)
+	cfg := goheader.IfUnmodifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+	header := goheader.NewIfUnmodifiedSinceHeader(cfg)
+	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
 }
 
 // ExampleNewKeepAliveHeader is an example function for NewKeepAliveHeader.
 func ExampleNewKeepAliveHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewKeepAliveHeader("timeout=5", "max=1000")
-	fmt.Println(header)
+	cfg := goheader.KeepAliveConfig{Timeout: 5, Max: 1000}
+	header := goheader.NewKeepAliveHeader(cfg)
+	fmt.Println(header.Values) // ["timeout=5, max=1000"]
 }
 
 // ExampleNewLargeAllocationHeader is an example function for NewLargeAllocationHeader.
 func ExampleNewLargeAllocationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewLargeAllocationHeader("500")
-	fmt.Println(header)
+	cfg := goheader.LargeAllocationConfig{Size: 5000}
+	header := goheader.NewLargeAllocationHeader(cfg)
+	fmt.Println(header.Values) // ["5000"]
 }
 
 // ExampleNewLastModifiedHeader is an example function for NewLastModifiedHeader.
 func ExampleNewLastModifiedHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewLastModifiedHeader("Wed, 21 Oct 2015 07:28:00 GMT")
-	fmt.Println(header)
+	cfg := goheader.LastModifiedConfig{Time: time.Now().Add(-48 * time.Hour)}
+	header := goheader.NewLastModifiedHeader(cfg)
+	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
 }
 
 // ExampleNewLinkHeader is an example function for NewLinkHeader.
 func ExampleNewLinkHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewLinkHeader("<https://one.example.com>; rel=\"preconnect\"", "<https://two.example.com>; rel=\"preconnect\"", "<https://three.example.com>; rel=\"preconnect\"")
-	fmt.Println(header)
+	cfg := goheader.LinkConfig{
+		Links: []goheader.LinkEntry{
+			{URL: "https://example.com/page2", Attributes: map[string]string{"rel": "next"}},
+			{URL: "https://example.com/page1", Attributes: map[string]string{"rel": "prev"}},
+		},
+	}
+	header := goheader.NewLinkHeader(cfg)
+	fmt.Println(header.Values) // ["<https://example.com/page2>; rel=\"next\", <https://example.com/page1>; rel=\"prev\""]
 }
 
 // ExampleNewLocationHeader is an example function for NewLocationHeader.
 func ExampleNewLocationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewLocationHeader("/index.html")
-	fmt.Println(header)
+	cfg := goheader.LocationConfig{URL: "https://example.com/newpage"}
+	header := goheader.NewLocationHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com/newpage"]
 }
 
 // ExampleNewMaxForwardsHeader is an example function for NewMaxForwardsHeader.
 func ExampleNewMaxForwardsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewMaxForwardsHeader("10")
-	fmt.Println(header)
+	cfg := goheader.MaxForwardsConfig{Count: 5}
+	header := goheader.NewMaxForwardsHeader(cfg)
+	fmt.Println(header.Values) // ["5"]
 }
 
 // ExampleNewNELHeader is an example function for NewNELHeader.
 func ExampleNewNELHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewNELHeader("{ \"report_to\": \"name_of_reporting_group\", \"max_age\": 12345, \"include_subdomains\": false, \"success_fraction\": 0.0, \"failure_fraction\": 1.0 }")
-	fmt.Println(header)
+	cfg := goheader.NELConfig{Policy: `{"report_to": "endpoint-1", "max_age": 2592000, "include_subdomains": true}`}
+	header := goheader.NewNELHeader(cfg)
+	fmt.Println(header.Values) // [`{"report_to": "endpoint-1", "max_age": 2592000, "include_subdomains": true}`]
 }
 
 // ExampleNewOriginHeader is an example function for NewOriginHeader.
 func ExampleNewOriginHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewOriginHeader("https://example.com")
-	fmt.Println(header)
+	cfg := goheader.OriginConfig{URL: "https://example.com"}
+	header := goheader.NewOriginHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com"]
 }
 
 // ExampleNewP3PHeader is an example function for NewP3PHeader.
 func ExampleNewP3PHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewP3PHeader("CP=\"https://example.com/P3P\"")
-	fmt.Println(header)
+	cfg := goheader.P3PConfig{Policy: `CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"`}
+	header := goheader.NewP3PHeader(cfg)
+	fmt.Println(header.Values) // [`CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"`]
 }
 
 // ExampleNewPermissionsPolicyHeader is an example function for NewPermissionsPolicyHeader.
 func ExampleNewPermissionsPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewPermissionsPolicyHeader("(\"https://example.com\" \"https://a.example.com\" \"https://b.example.com\" \"https://c.example.com\")")
-	fmt.Println(header)
+	cfg := goheader.PermissionsPolicyConfig{
+		Directives: map[string][]string{
+			"geolocation": {"self"},
+			"microphone":  {},
+		},
+	}
+	header := goheader.NewPermissionsPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["geolocation=(self), microphone=()"]
 }
 
 // ExampleNewPragmaHeader is an example function for NewPragmaHeader.
 func ExampleNewPragmaHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewPragmaHeader("no-cache")
-	fmt.Println(header)
+	cfg := goheader.PragmaConfig{Directives: []string{"no-cache"}}
+	header := goheader.NewPragmaHeader(cfg)
+	fmt.Println(header.Values) // ["no-cache"]
 }
 
 // ExampleNewPreferHeader is an example function for NewPreferHeader.
 func ExampleNewPreferHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewPreferHeader("respond-async", "wait=5")
-	fmt.Println(header)
+	cfg := goheader.PreferConfig{Directives: []string{"return=minimal", "wait=10"}}
+	header := goheader.NewPreferHeader(cfg)
+	fmt.Println(header.Values) // ["return=minimal, wait=10"]
 }
 
 // ExampleNewPreferenceAppliedHeader is an example function for NewPreferenceAppliedHeader.
 func ExampleNewPreferenceAppliedHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewPreferenceAppliedHeader("return=representation")
-	fmt.Println(header)
+	cfg := goheader.PreferenceAppliedConfig{Directives: []string{"return=minimal"}}
+	header := goheader.NewPreferenceAppliedHeader(cfg)
+	fmt.Println(header.Values) // ["return=minimal"]
+}
+
+// ExampleNewPriorityConfigHeader is an example function for NewPriorityHeader.
+func ExampleNewPriorityConfigHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.PriorityConfig{Urgency: 3, Incremental: true}
+	header := goheader.NewPriorityHeader(cfg)
+	fmt.Println(header.Values) // ["u=3, i"]
 }
 
 // ExampleNewProxyAuthenticateHeader is an example function for NewProxyAuthenticateHeader.
 func ExampleNewProxyAuthenticateHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewProxyAuthenticateHeader("Basic realm=\"Access to the internal site\"")
-	fmt.Println(header)
+	cfg := goheader.ProxyAuthenticateConfig{Schemes: []string{"Basic realm=\"Access to internal site\""}}
+	header := goheader.NewProxyAuthenticateHeader(cfg)
+	fmt.Println(header.Values) // ["Basic realm=\"Access to internal site\""]
+}
+
+// ExampleNewProxyAuthenticationInfoConfig is an example function for NewProxyAuthenticationInfoConfig
+func ExampleNewProxyAuthenticationInfoConfig() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.ProxyAuthenticationInfoConfig{Params: map[string]string{"nextnonce": "abc123", "qop": "auth"}}
+	header := goheader.NewProxyAuthenticationInfoHeader(cfg)
+	fmt.Println(header.Values) // ["nextnonce=\"abc123\", qop=\"auth\""]
 }
 
 // ExampleNewProxyAuthorizationHeader is an example function for NewProxyAuthorizationHeader.
 func ExampleNewProxyAuthorizationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewProxyAuthorizationHeader("Basic YWxhZGRpbjpvcGVuc2VzYW1l")
-	fmt.Println(header)
+	cfg := goheader.ProxyAuthorizationConfig{Credentials: "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="}
+	header := goheader.NewProxyAuthorizationHeader(cfg)
+	fmt.Println(header.Values) // ["Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="]
 }
 
 // ExampleNewProxyConnectionHeader is an example function for NewProxyConnectionHeader.

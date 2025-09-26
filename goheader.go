@@ -2935,13 +2935,13 @@ func NewFromHeader(cfg FromConfig) Header {
 	}
 }
 
-// FrontEndHttpsConfig defines the configuration for the Front-End-Https header.
-type FrontEndHttpsConfig struct {
+// FrontEndHTTPSConfig defines the configuration for the Front-End-Https header.
+type FrontEndHTTPSConfig struct {
 	Enabled bool // true = "on", false = "off"
 }
 
 // String renders the Front-End-Https header value.
-func (cfg FrontEndHttpsConfig) String() string {
+func (cfg FrontEndHTTPSConfig) String() string {
 	if cfg.Enabled {
 		return "on"
 	}
@@ -2953,11 +2953,11 @@ func (cfg FrontEndHttpsConfig) String() string {
 //
 // Example usage:
 //
-//	cfg := goheader.FrontEndHttpsConfig{Enabled: true}
+//	cfg := goheader.FrontEndHTTPSConfig{Enabled: true}
 //	header := goheader.NewFrontEndHttpsHeader(cfg)
 //	fmt.Println(header.Name)   // Front-End-Https
 //	fmt.Println(header.Values) // ["on"]
-func NewFrontEndHttpsHeader(cfg FrontEndHttpsConfig) Header {
+func NewFrontEndHttpsHeader(cfg FrontEndHTTPSConfig) Header {
 	return Header{
 		Experimental: true,
 		Name:         FrontEndHTTPS,
