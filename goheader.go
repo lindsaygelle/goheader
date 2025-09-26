@@ -3112,184 +3112,345 @@ func NewIfModifiedSinceHeader(cfg IfModifiedSinceConfig) Header {
 	}
 }
 
-// NewIfNoneMatchHeader creates a new If-None-Match Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+// IfNoneMatchConfig defines the configuration for the If-None-Match header.
+type IfNoneMatchConfig struct {
+	ETags []string // e.g., []{"\"abc123\"", "\"xyz456\""} or []{"*"}
+}
+
+// String renders the If-None-Match header value.
+func (cfg IfNoneMatchConfig) String() string {
+	return strings.Join(cfg.ETags, ", ")
+}
+
+// NewIfNoneMatchHeader creates a new If-None-Match header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIfNoneMatchHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // If-None-Match
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIfNoneMatchHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IfNoneMatchConfig{ETags: []string{"\"abc123\"", "\"xyz456\""}}
+//	header := goheader.NewIfNoneMatchHeader(cfg)
+//	fmt.Println(header.Name)   // If-None-Match
+//	fmt.Println(header.Values) // ["\"abc123\", \"xyz456\""]
+func NewIfNoneMatchHeader(cfg IfNoneMatchConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IfNoneMatch,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewIfRangeHeader creates a new If-Range Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Range
+// IfRangeConfig defines the configuration for the If-Range header.
+// Either ETag or Date should be set. If both are set, ETag takes precedence.
+type IfRangeConfig struct {
+	ETag string    // e.g., "\"abc123\""
+	Date time.Time // e.g., time.Now().Add(-24 * time.Hour)
+}
+
+// String renders the If-Range header value.
+func (cfg IfRangeConfig) String() string {
+	if cfg.ETag != "" {
+		return cfg.ETag
+	}
+	if !cfg.Date.IsZero() {
+		return cfg.Date.UTC().Format(time.RFC1123)
+	}
+	return ""
+}
+
+// NewIfRangeHeader creates a new If-Range header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Range
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIfRangeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // If-Range
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIfRangeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IfRangeConfig{ETag: "\"abc123\""}
+//	header := goheader.NewIfRangeHeader(cfg)
+//	fmt.Println(header.Name)   // If-Range
+//	fmt.Println(header.Values) // ["\"abc123\""]
+func NewIfRangeHeader(cfg IfRangeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IfRange,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewIfUnmodifiedSinceHeader creates a new If-Unmodified-Since Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+// IfUnmodifiedSinceConfig defines the configuration for the If-Unmodified-Since header.
+type IfUnmodifiedSinceConfig struct {
+	Time time.Time // Time cutoff for resource modification
+}
+
+// String renders the If-Unmodified-Since header value in RFC 7231 IMF-fixdate format.
+func (cfg IfUnmodifiedSinceConfig) String() string {
+	return cfg.Time.UTC().Format(time.RFC1123)
+}
+
+// NewIfUnmodifiedSinceHeader creates a new If-Unmodified-Since header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewIfUnmodifiedSinceHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // If-Unmodified-Since
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewIfUnmodifiedSinceHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.IfUnmodifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+//	header := goheader.NewIfUnmodifiedSinceHeader(cfg)
+//	fmt.Println(header.Name)   // If-Unmodified-Since
+//	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+func NewIfUnmodifiedSinceHeader(cfg IfUnmodifiedSinceConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         IfUnmodifiedSince,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewKeepAliveHeader creates a new Keep-Alive Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Keep-Alive
+// KeepAliveConfig defines the configuration for the Keep-Alive header.
+type KeepAliveConfig struct {
+	Timeout int // timeout in seconds
+	Max     int // max requests
+}
+
+// String renders the Keep-Alive header value.
+func (cfg KeepAliveConfig) String() string {
+	var parts []string
+	if cfg.Timeout > 0 {
+		parts = append(parts, fmt.Sprintf("timeout=%d", cfg.Timeout))
+	}
+	if cfg.Max > 0 {
+		parts = append(parts, fmt.Sprintf("max=%d", cfg.Max))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewKeepAliveHeader creates a new Keep-Alive header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Keep-Alive
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewKeepAliveHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Keep-Alive
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewKeepAliveHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.KeepAliveConfig{Timeout: 5, Max: 1000}
+//	header := goheader.NewKeepAliveHeader(cfg)
+//	fmt.Println(header.Name)   // Keep-Alive
+//	fmt.Println(header.Values) // ["timeout=5, max=1000"]
+func NewKeepAliveHeader(cfg KeepAliveConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         KeepAlive,
 		Request:      true,
 		Response:     true,
-		Standard:     true,
-		Values:       values}
+		Standard:     false, // This is a non-standard but commonly used header
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewLargeAllocationHeader creates a new Large-Allocation Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Large-Allocation
+// LargeAllocationConfig defines the configuration for the Large-Allocation header.
+type LargeAllocationConfig struct {
+	Size int // Requested memory allocation in MB, 0 for none
+}
+
+// String renders the Large-Allocation header value.
+func (cfg LargeAllocationConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Size)
+}
+
+// NewLargeAllocationHeader creates a new Large-Allocation header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Large-Allocation
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewLargeAllocationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Large-Allocation
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewLargeAllocationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.LargeAllocationConfig{Size: 5000}
+//	header := goheader.NewLargeAllocationHeader(cfg)
+//	fmt.Println(header.Name)   // Large-Allocation
+//	fmt.Println(header.Values) // ["5000"]
+func NewLargeAllocationHeader(cfg LargeAllocationConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         LargeAllocation,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard but supported in some browsers
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewLastModifiedHeader creates a new Last-Modified Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+// LastModifiedConfig defines the configuration for the Last-Modified header.
+type LastModifiedConfig struct {
+	Time time.Time // Date/time when the resource was last modified
+}
+
+// String renders the Last-Modified header value in RFC 7231 IMF-fixdate format.
+func (cfg LastModifiedConfig) String() string {
+	return cfg.Time.UTC().Format(time.RFC1123)
+}
+
+// NewLastModifiedHeader creates a new Last-Modified header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewLastModifiedHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Last-Modified
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewLastModifiedHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.LastModifiedConfig{Time: time.Now().Add(-48 * time.Hour)}
+//	header := goheader.NewLastModifiedHeader(cfg)
+//	fmt.Println(header.Name)   // Last-Modified
+//	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+func NewLastModifiedHeader(cfg LastModifiedConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         LastModified,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewLinkHeader creates a new Link Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
+// LinkEntry defines a single link in the Link header.
+type LinkEntry struct {
+	URL        string            // Required: URL for the link
+	Attributes map[string]string // Optional: key-value attributes like rel, type, title
+}
+
+// String renders a LinkEntry to a properly formatted string.
+func (e LinkEntry) String() string {
+	var parts []string
+	parts = append(parts, fmt.Sprintf("<%s>", e.URL))
+	for k, v := range e.Attributes {
+		parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
+	}
+	return strings.Join(parts, "; ")
+}
+
+// LinkConfig defines the configuration for the Link header.
+type LinkConfig struct {
+	Links []LinkEntry // Multiple link entries
+}
+
+// String renders the Link header value.
+func (cfg LinkConfig) String() string {
+	var entries []string
+	for _, link := range cfg.Links {
+		entries = append(entries, link.String())
+	}
+	return strings.Join(entries, ", ")
+}
+
+// NewLinkHeader creates a new Link header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewLinkHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Link
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewLinkHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.LinkConfig{
+//	    Links: []goheader.LinkEntry{
+//	        {URL: "https://example.com/page2", Attributes: map[string]string{"rel": "next"}},
+//	        {URL: "https://example.com/page1", Attributes: map[string]string{"rel": "prev"}},
+//	    },
+//	}
+//	header := goheader.NewLinkHeader(cfg)
+//	fmt.Println(header.Name)   // Link
+//	fmt.Println(header.Values) // ["<https://example.com/page2>; rel=\"next\", <https://example.com/page1>; rel=\"prev\""]
+func NewLinkHeader(cfg LinkConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Link,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewLocationHeader creates a new Location Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location
+// LocationConfig defines the configuration for the Location header.
+type LocationConfig struct {
+	URL string // The URL of the new or moved resource
+}
+
+// String renders the Location header value.
+func (cfg LocationConfig) String() string {
+	return cfg.URL
+}
+
+// NewLocationHeader creates a new Location header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewLocationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Location
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewLocationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.LocationConfig{URL: "https://example.com/newpage"}
+//	header := goheader.NewLocationHeader(cfg)
+//	fmt.Println(header.Name)   // Location
+//	fmt.Println(header.Values) // ["https://example.com/newpage"]
+func NewLocationHeader(cfg LocationConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Location,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewMaxForwardsHeader creates a new Max-Forwards Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Max-Forwards
+// MaxForwardsConfig defines the configuration for the Max-Forwards header.
+type MaxForwardsConfig struct {
+	Count int // Number of allowed forwards/hops
+}
+
+// String renders the Max-Forwards header value.
+func (cfg MaxForwardsConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Count)
+}
+
+// NewMaxForwardsHeader creates a new Max-Forwards header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Max-Forwards
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewMaxForwardsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Max-Forwards
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewMaxForwardsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.MaxForwardsConfig{Count: 5}
+//	header := goheader.NewMaxForwardsHeader(cfg)
+//	fmt.Println(header.Name)   // Max-Forwards
+//	fmt.Println(header.Values) // ["5"]
+func NewMaxForwardsHeader(cfg MaxForwardsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         MaxForwards,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewNELHeader creates a new NEL Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/NEL
+// NELConfig defines the configuration for the NEL header.
+type NELConfig struct {
+	Policy string // JSON policy string
+}
+
+// String renders the NEL header value.
+func (cfg NELConfig) String() string {
+	return cfg.Policy
+}
+
+// NewNELHeader creates a new NEL header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/NEL
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewNELHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // NEL
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewNELHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.NELConfig{Policy: `{"report_to": "endpoint-1", "max_age": 2592000, "include_subdomains": true}`}
+//	header := goheader.NewNELHeader(cfg)
+//	fmt.Println(header.Name)   // NEL
+//	fmt.Println(header.Values) // [`{"report_to": "endpoint-1", "max_age": 2592000, "include_subdomains": true}`]
+func NewNELHeader(cfg NELConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         NEL,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewOriginHeader creates a new Origin Header with the specified values.
