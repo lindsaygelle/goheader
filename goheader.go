@@ -250,8 +250,14 @@ const Prefer = "Prefer"
 // PreferenceApplied header field is used to indicate the request's preferences that have been applied by the server.
 const PreferenceApplied = "Preference-Applied"
 
+// Priority header field is used to allow clients and servers to signal priority hints for requests and responses.
+const Priority = "Priority"
+
 // ProxyAuthenticate header field is used to challenge the authorization of the client before a proxy can be set up.
 const ProxyAuthenticate = "Proxy-Authenticate"
+
+// ProxyAuthenticationInfo header field is used to provide information such as next tokens for Digest authentication or additional parameters.
+const ProxyAuthenticationInfo = "ProxyAuthenticationInfo"
 
 // ProxyAuthorization header field is used to provide authentication information for proxies that require authentication.
 const ProxyAuthorization = "Proxy-Authorization"
@@ -3453,148 +3459,329 @@ func NewNELHeader(cfg NELConfig) Header {
 	}
 }
 
-// NewOriginHeader creates a new Origin Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
+// OriginConfig defines the configuration for the Origin header.
+type OriginConfig struct {
+	URL string // Origin URL (scheme + host + optional port)
+}
+
+// String renders the Origin header value.
+func (cfg OriginConfig) String() string {
+	return cfg.URL
+}
+
+// NewOriginHeader creates a new Origin header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewOriginHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Origin
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewOriginHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.OriginConfig{URL: "https://example.com"}
+//	header := goheader.NewOriginHeader(cfg)
+//	fmt.Println(header.Name)   // Origin
+//	fmt.Println(header.Values) // ["https://example.com"]
+func NewOriginHeader(cfg OriginConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Origin,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewP3PHeader creates a new P3P Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/P3P
+// P3PConfig defines the configuration for the P3P header.
+type P3PConfig struct {
+	Policy string // Compact privacy policy string
+}
+
+// String renders the P3P header value.
+func (cfg P3PConfig) String() string {
+	return cfg.Policy
+}
+
+// NewP3PHeader creates a new P3P header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/P3P
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewP3PHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // P3P
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewP3PHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.P3PConfig{Policy: `CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"`}
+//	header := goheader.NewP3PHeader(cfg)
+//	fmt.Println(header.Name)   // P3P
+//	fmt.Println(header.Values) // [`CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"`]
+func NewP3PHeader(cfg P3PConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         P3P,
 		Request:      false,
 		Response:     true,
-		Standard:     true,
-		Values:       values}
+		Standard:     false, // Deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewPermissionsPolicyHeader creates a new Permissions-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+// PermissionsPolicyConfig defines the configuration for the Permissions-Policy header.
+type PermissionsPolicyConfig struct {
+	Directives map[string][]string // feature -> allowed origins (e.g., "self", "*", etc.)
+}
+
+// String renders the Permissions-Policy header value.
+func (cfg PermissionsPolicyConfig) String() string {
+	var parts []string
+	for feature, origins := range cfg.Directives {
+		if len(origins) == 0 {
+			parts = append(parts, fmt.Sprintf("%s=()", feature))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s=(%s)", feature, strings.Join(origins, " ")))
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewPermissionsPolicyHeader creates a new Permissions-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewPermissionsPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Permissions-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewPermissionsPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PermissionsPolicyConfig{
+//	    Directives: map[string][]string{
+//	        "geolocation": {"self"},
+//	        "microphone":  {},
+//	    },
+//	}
+//	header := goheader.NewPermissionsPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Permissions-Policy
+//	fmt.Println(header.Values) // ["geolocation=(self), microphone=()"]
+func NewPermissionsPolicyHeader(cfg PermissionsPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         PermissionsPolicy,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewPragmaHeader creates a new Pragma Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
+// PragmaConfig defines the configuration for the Pragma header.
+type PragmaConfig struct {
+	Directives []string // e.g., ["no-cache"]
+}
+
+// String renders the Pragma header value.
+func (cfg PragmaConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewPragmaHeader creates a new Pragma header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewPragmaHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Pragma
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewPragmaHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PragmaConfig{Directives: []string{"no-cache"}}
+//	header := goheader.NewPragmaHeader(cfg)
+//	fmt.Println(header.Name)   // Pragma
+//	fmt.Println(header.Values) // ["no-cache"]
+func NewPragmaHeader(cfg PragmaConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Pragma,
 		Request:      true,
 		Response:     true,
-		Standard:     true,
-		Values:       values}
+		Standard:     false, // Legacy header, kept for backward compatibility
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewPreferHeader creates a new Prefer Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Prefer
+// PreferConfig defines the configuration for the Prefer header.
+type PreferConfig struct {
+	Directives []string // e.g., ["return=minimal", "wait=10"]
+}
+
+// String renders the Prefer header value.
+func (cfg PreferConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewPreferHeader creates a new Prefer header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Prefer
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewPreferHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Prefer
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewPreferHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PreferConfig{Directives: []string{"return=minimal", "wait=10"}}
+//	header := goheader.NewPreferHeader(cfg)
+//	fmt.Println(header.Name)   // Prefer
+//	fmt.Println(header.Values) // ["return=minimal, wait=10"]
+func NewPreferHeader(cfg PreferConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Prefer,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewPreferenceAppliedHeader creates a new Preference-Applied Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Preference-Applied
+// PreferenceAppliedConfig defines the configuration for the Preference-Applied header.
+type PreferenceAppliedConfig struct {
+	Directives []string // e.g., ["return=minimal"]
+}
+
+// String renders the Preference-Applied header value.
+func (cfg PreferenceAppliedConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewPreferenceAppliedHeader creates a new Preference-Applied header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Preference-Applied
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewPreferenceAppliedHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Preference-Applied
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewPreferenceAppliedHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PreferenceAppliedConfig{Directives: []string{"return=minimal"}}
+//	header := goheader.NewPreferenceAppliedHeader(cfg)
+//	fmt.Println(header.Name)   // Preference-Applied
+//	fmt.Println(header.Values) // ["return=minimal"]
+func NewPreferenceAppliedHeader(cfg PreferenceAppliedConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         PreferenceApplied,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewProxyAuthenticateHeader creates a new Proxy-Authenticate Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate
+// PriorityConfig defines the configuration for the Priority header.
+type PriorityConfig struct {
+	Urgency     int  // 0-7, lower = higher priority
+	Incremental bool // true = incremental rendering
+}
+
+// String renders the Priority header value.
+func (cfg PriorityConfig) String() string {
+	var parts []string
+	if cfg.Urgency >= 0 {
+		parts = append(parts, fmt.Sprintf("u=%d", cfg.Urgency))
+	}
+	if cfg.Incremental {
+		parts = append(parts, "i")
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewPriorityHeader creates a new Priority header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Priority
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewProxyAuthenticateHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Proxy-Authenticate
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewProxyAuthenticateHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PriorityConfig{Urgency: 3, Incremental: true}
+//	header := goheader.NewPriorityHeader(cfg)
+//	fmt.Println(header.Name)   // Priority
+//	fmt.Println(header.Values) // ["u=3, i"]
+func NewPriorityHeader(cfg PriorityConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         Priority,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// ProxyAuthenticateConfig defines the configuration for the Proxy-Authenticate header.
+type ProxyAuthenticateConfig struct {
+	Schemes []string // e.g., ["Basic realm=\"Access to internal site\""]
+}
+
+// String renders the Proxy-Authenticate header value.
+func (cfg ProxyAuthenticateConfig) String() string {
+	return strings.Join(cfg.Schemes, ", ")
+}
+
+// NewProxyAuthenticateHeader creates a new Proxy-Authenticate header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authenticate
+//
+// Example usage:
+//
+//	cfg := goheader.ProxyAuthenticateConfig{Schemes: []string{"Basic realm=\"Access to internal site\""}}
+//	header := goheader.NewProxyAuthenticateHeader(cfg)
+//	fmt.Println(header.Name)   // Proxy-Authenticate
+//	fmt.Println(header.Values) // ["Basic realm=\"Access to internal site\""]
+func NewProxyAuthenticateHeader(cfg ProxyAuthenticateConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ProxyAuthenticate,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewProxyAuthorizationHeader creates a new Proxy-Authorization Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization
+// ProxyAuthenticationInfoConfig defines the configuration for the Proxy-Authentication-Info header.
+type ProxyAuthenticationInfoConfig struct {
+	Params map[string]string // e.g., {"nextnonce": "abc123", "qop": "auth"}
+}
+
+// String renders the Proxy-Authentication-Info header value.
+func (cfg ProxyAuthenticationInfoConfig) String() string {
+	var parts []string
+	for k, v := range cfg.Params {
+		parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewProxyAuthenticationInfoHeader creates a new Proxy-Authentication-Info header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authentication-Info
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewProxyAuthorizationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Proxy-Authorization
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewProxyAuthorizationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ProxyAuthenticationInfoConfig{Params: map[string]string{"nextnonce": "abc123", "qop": "auth"}}
+//	header := goheader.NewProxyAuthenticationInfoHeader(cfg)
+//	fmt.Println(header.Name)   // Proxy-Authentication-Info
+//	fmt.Println(header.Values) // ["nextnonce=\"abc123\", qop=\"auth\""]
+func NewProxyAuthenticationInfoHeader(cfg ProxyAuthenticationInfoConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         ProxyAuthenticationInfo,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// ProxyAuthorizationConfig defines the configuration for the Proxy-Authorization header.
+type ProxyAuthorizationConfig struct {
+	Credentials string // e.g., "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
+}
+
+// String renders the Proxy-Authorization header value.
+func (cfg ProxyAuthorizationConfig) String() string {
+	return cfg.Credentials
+}
+
+// NewProxyAuthorizationHeader creates a new Proxy-Authorization header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization
+//
+// Example usage:
+//
+//	cfg := goheader.ProxyAuthorizationConfig{Credentials: "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="}
+//	header := goheader.NewProxyAuthorizationHeader(cfg)
+//	fmt.Println(header.Name)   // Proxy-Authorization
+//	fmt.Println(header.Values) // ["Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="]
+func NewProxyAuthorizationHeader(cfg ProxyAuthorizationConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ProxyAuthorization,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewProxyConnectionHeader creates a new Proxy-Connection Header with the specified values.
