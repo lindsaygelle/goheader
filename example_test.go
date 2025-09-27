@@ -836,50 +836,103 @@ func ExampleNewProxyAuthorizationHeader() {
 // ExampleNewProxyConnectionHeader is an example function for NewProxyConnectionHeader.
 func ExampleNewProxyConnectionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewProxyConnectionHeader("keep-alive")
-	fmt.Println(header)
+	cfg := goheader.ProxyConnectionConfig{Directives: []string{"keep-alive"}}
+	header := goheader.NewProxyConnectionHeader(cfg)
+	fmt.Println(header.Values) // ["keep-alive"]
 }
 
 // ExampleNewPublicKeyPinsHeader is an example function for NewPublicKeyPinsHeader.
 func ExampleNewPublicKeyPinsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewPublicKeyPinsHeader("max-age=2592000; pin-sha256=\"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=\";")
-	fmt.Println(header)
+	cfg := goheader.PublicKeyPinsConfig{
+		Pins:              []string{"base64+primary==", "base64+backup=="},
+		MaxAge:            5184000,
+		IncludeSubDomains: true,
+		ReportURI:         "https://example.com/hpkp-report",
+	}
+	header := goheader.NewPublicKeyPinsHeader(cfg)
+	fmt.Println(header.Values)
+	// ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
+}
+
+// ExampleNewPublicKeyPinsHeaderReportOnly is an example function for NewPublicKeyPinsReportOnlyHeader.
+
+func ExampleNewPublicKeyPinsHeaderReportOnly() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.PublicKeyPinsReportOnlyConfig{
+		Pins:              []string{"base64+primary==", "base64+backup=="},
+		MaxAge:            5184000,
+		IncludeSubDomains: true,
+		ReportURI:         "https://example.com/hpkp-report",
+	}
+	header := goheader.NewPublicKeyPinsReportOnlyHeader(cfg)
+	fmt.Println(header.Values)
+	// ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
 }
 
 // ExampleNewRTTHeader is an example function for NewRTTHeader.
 func ExampleNewRTTHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewRTTHeader("123")
-	fmt.Println(header)
+	cfg := goheader.RTTConfig{Milliseconds: 150}
+	header := goheader.NewRTTHeader(cfg)
+	fmt.Println(header.Values) // ["150"]
 }
 
 // ExampleNewRangeHeader is an example function for NewRangeHeader.
 func ExampleNewRangeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewRangeHeader("bytes=200-1000", "2000-6576", "19000-")
-	fmt.Println(header)
+	cfg := goheader.RangeConfig{
+		Unit:   "bytes",
+		Ranges: [][2]int64{{200, 1000}, {1500, -1}},
+	}
+	header := goheader.NewRangeHeader(cfg)
+	fmt.Println(header.Values) // ["bytes=200-1000,1500-"]
 }
 
 // ExampleNewRefererHeader is an example function for NewRefererHeader.
 func ExampleNewRefererHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewRefererHeader("https://example.com/")
-	fmt.Println(header)
+	cfg := goheader.RefererConfig{URL: "https://example.com/page"}
+	header := goheader.NewRefererHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com/page"]
 }
 
 // ExampleNewReferrerPolicyHeader is an example function for NewReferrerPolicyHeader.
 func ExampleNewReferrerPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewReferrerPolicyHeader("no-referrer", "strict-origin-when-cross-origin")
-	fmt.Println(header)
+	cfg := goheader.ReferrerPolicyConfig{Policy: "strict-origin-when-cross-origin"}
+	header := goheader.NewReferrerPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["strict-origin-when-cross-origin"]
 }
 
 // ExampleNewRefreshHeader is an example function for NewRefreshHeader.
 func ExampleNewRefreshHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewRefreshHeader("5; url=http://www.w3.org/pub/WWW/People.html")
-	fmt.Println(header)
+	cfg := goheader.RefreshConfig{DelaySeconds: 5, RedirectURL: "https://example.com/new-page"}
+	header := goheader.NewRefreshHeader(cfg)
+	fmt.Println(header.Values) // ["5; url=https://example.com/new-page"]
+}
+
+// NewReplayNonceHeader is an example function for NewReplayNonceHeader.
+func ExampleNewReplayNonceHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.ReplayNonceConfig{Nonce: "abc123XYZ"}
+	header := goheader.NewReplayNonceHeader(cfg)
+	fmt.Println(header.Values) // ["abc123XYZ"]
+}
+
+// ExampleNewReportingEndpointsHeader is an example function for NewReportingEndpointsHeader.
+func ExampleNewReportingEndpointsHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.ReportingEndpointsConfig{
+		Endpoints: map[string]string{
+			"default": "https://example.com/reports",
+			"csp":     "https://example.com/csp-reports",
+		},
+	}
+	header := goheader.NewReportingEndpointsHeader(cfg)
+	fmt.Println(header.Values)
+	// ["default=\"https://example.com/reports\", csp=\"https://example.com/csp-reports\""]
 }
 
 // ExampleNewReportToHeader is an example function for NewReportToHeader.

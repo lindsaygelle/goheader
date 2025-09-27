@@ -268,6 +268,9 @@ const ProxyConnection = "Proxy-Connection"
 // PublicKeyPins header field is used to associate a specific cryptographic public key with a certain web server.
 const PublicKeyPins = "Public-Key-Pins"
 
+// PublicKeyPinsReportOnly header field is used to associate a specific cryptographic public key with a certain web server.
+const PublicKeyPinsReportOnly = "Public-Key-PinsReportOnly"
+
 // RTT (Round-Trip Time) header field is used to indicate the round-trip time of the connection.
 const RTT = "RTT"
 
@@ -283,8 +286,14 @@ const ReferrerPolicy = "Referrer-Policy"
 // Refresh header field is used to specify a delay before the browser should reload the current resource.
 const Refresh = "Refresh"
 
+// ReplayNonce header field is used to provide a cryptographic nonce that clients must use in subsequent signed requests to prevent replay attacks.
+const ReplayNonce = "Replay-Nonce"
+
 // ReportTo header field is used to specify a URI to which the user agent sends reports about various issues.
 const ReportTo = "Report-To"
+
+// ReportingEndpoints header field is used to define endpoints where reports (like CSP, network errors, etc.) should be sent.
+const ReportingEndpoints = "Reporting-Endpoints"
 
 // RetryAfter header field indicates how long the user agent should wait before making a follow-up request.
 const RetryAfter = "Retry-After"
@@ -3784,130 +3793,333 @@ func NewProxyAuthorizationHeader(cfg ProxyAuthorizationConfig) Header {
 	}
 }
 
-// NewProxyConnectionHeader creates a new Proxy-Connection Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Connection
-//
-//	// Create a new Header instance.
-//	newHeader := goheader.NewProxyConnectionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Proxy-Connection
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewProxyConnectionHeader(values ...string) Header {
-	return Header{
-		Experimental: false,
-		Name:         ProxyConnection,
-		Request:      true,
-		Response:     false,
-		Standard:     false,
-		Values:       values}
+// ProxyConnectionConfig defines the configuration for the Proxy-Connection header.
+type ProxyConnectionConfig struct {
+	Directives []string // e.g., ["keep-alive"]
 }
 
-// NewPublicKeyPinsHeader creates a new Public-Key-Pins Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins
+// String renders the Proxy-Connection header value.
+func (cfg ProxyConnectionConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewProxyConnectionHeader creates a new Proxy-Connection header from the config.
+// Note: This is a non-standard header historically used by some proxies.
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewPublicKeyPinsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Public-Key-Pins
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewPublicKeyPinsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ProxyConnectionConfig{Directives: []string{"keep-alive"}}
+//	header := goheader.NewProxyConnectionHeader(cfg)
+//	fmt.Println(header.Name)   // Proxy-Connection
+//	fmt.Println(header.Values) // ["keep-alive"]
+func NewProxyConnectionHeader(cfg ProxyConnectionConfig) Header {
+	return Header{
+		Experimental: true,
+		Name:         ProxyConnection,
+		Request:      true,
+		Response:     true,
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
+}
+
+// PublicKeyPinsConfig defines the configuration for the Public-Key-Pins header.
+type PublicKeyPinsConfig struct {
+	Pins              []string // e.g., []{"base64+primary==", "base64+backup=="}
+	MaxAge            int      // in seconds
+	IncludeSubDomains bool     // whether to include subdomains
+	ReportURI         string   // optional URI for reporting
+}
+
+// String renders the Public-Key-Pins header value.
+func (cfg PublicKeyPinsConfig) String() string {
+	var parts []string
+	for _, pin := range cfg.Pins {
+		parts = append(parts, fmt.Sprintf(`pin-sha256="%s"`, pin))
+	}
+	if cfg.MaxAge > 0 {
+		parts = append(parts, fmt.Sprintf("max-age=%d", cfg.MaxAge))
+	}
+	if cfg.IncludeSubDomains {
+		parts = append(parts, "includeSubDomains")
+	}
+	if cfg.ReportURI != "" {
+		parts = append(parts, fmt.Sprintf(`report-uri="%s"`, cfg.ReportURI))
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewPublicKeyPinsHeader creates a new Public-Key-Pins header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins
+//
+// Example usage:
+//
+//	cfg := goheader.PublicKeyPinsConfig{
+//	    Pins: []string{"base64+primary==", "base64+backup=="},
+//	    MaxAge: 5184000,
+//	    IncludeSubDomains: true,
+//	    ReportURI: "https://example.com/hpkp-report",
+//	}
+//	header := goheader.NewPublicKeyPinsHeader(cfg)
+//	fmt.Println(header.Name)   // Public-Key-Pins
+//	fmt.Println(header.Values) // ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
+func NewPublicKeyPinsHeader(cfg PublicKeyPinsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         PublicKeyPins,
 		Request:      false,
 		Response:     true,
-		Standard:     true,
-		Values:       values}
+		Standard:     false, // Deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewRTTHeader creates a new RTT Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/RTT
+// PublicKeyPinsReportOnlyConfig defines the configuration for the Public-Key-Pins-Report-Only header.
+type PublicKeyPinsReportOnlyConfig struct {
+	Pins              []string // e.g., []{"base64+primary==", "base64+backup=="}
+	MaxAge            int      // in seconds
+	IncludeSubDomains bool     // whether to include subdomains
+	ReportURI         string   // optional URI for reporting
+}
+
+// String renders the Public-Key-Pins-Report-Only header value.
+func (cfg PublicKeyPinsReportOnlyConfig) String() string {
+	var parts []string
+	for _, pin := range cfg.Pins {
+		parts = append(parts, fmt.Sprintf(`pin-sha256="%s"`, pin))
+	}
+	if cfg.MaxAge > 0 {
+		parts = append(parts, fmt.Sprintf("max-age=%d", cfg.MaxAge))
+	}
+	if cfg.IncludeSubDomains {
+		parts = append(parts, "includeSubDomains")
+	}
+	if cfg.ReportURI != "" {
+		parts = append(parts, fmt.Sprintf(`report-uri="%s"`, cfg.ReportURI))
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewPublicKeyPinsReportOnlyHeader creates a new Public-Key-Pins-Report-Only header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins-Report-Only
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewRTTHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // RTT
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewRTTHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.PublicKeyPinsReportOnlyConfig{
+//	    Pins: []string{"base64+primary==", "base64+backup=="},
+//	    MaxAge: 5184000,
+//	    IncludeSubDomains: true,
+//	    ReportURI: "https://example.com/hpkp-report",
+//	}
+//	header := goheader.NewPublicKeyPinsReportOnlyHeader(cfg)
+//	fmt.Println(header.Name)   // Public-Key-Pins-Report-Only
+//	fmt.Println(header.Values) // ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
+func NewPublicKeyPinsReportOnlyHeader(cfg PublicKeyPinsReportOnlyConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
+		Name:         PublicKeyPinsReportOnly,
+		Request:      false,
+		Response:     true,
+		Standard:     false, // Deprecated
+		Values:       []string{cfg.String()},
+	}
+}
+
+// RTTConfig defines the configuration for the RTT header.
+type RTTConfig struct {
+	Milliseconds int // e.g., 150
+}
+
+// String renders the RTT header value.
+func (cfg RTTConfig) String() string {
+	return fmt.Sprintf("%d", cfg.Milliseconds)
+}
+
+// NewRTTHeader creates a new RTT header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/RTT
+//
+// Example usage:
+//
+//	cfg := goheader.RTTConfig{Milliseconds: 150}
+//	header := goheader.NewRTTHeader(cfg)
+//	fmt.Println(header.Name)   // RTT
+//	fmt.Println(header.Values) // ["150"]
+func NewRTTHeader(cfg RTTConfig) Header {
+	return Header{
+		Experimental: true, // Client Hints are still experimental
 		Name:         RTT,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Not yet a fully standardised header
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewRangeHeader creates a new Range Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+// RangeConfig defines the configuration for the Range header.
+type RangeConfig struct {
+	Unit   string     // e.g., "bytes"
+	Ranges [][2]int64 // slice of [start, end] pairs
+}
+
+// String renders the Range header value.
+func (cfg RangeConfig) String() string {
+	var parts []string
+	for _, r := range cfg.Ranges {
+		if r[1] >= 0 {
+			parts = append(parts, fmt.Sprintf("%d-%d", r[0], r[1]))
+		} else {
+			// Suffix range: start-
+			parts = append(parts, fmt.Sprintf("%d-", r[0]))
+		}
+	}
+	return fmt.Sprintf("%s=%s", cfg.Unit, strings.Join(parts, ","))
+}
+
+// NewRangeHeader creates a new Range header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewRangeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Range
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewRangeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.RangeConfig{
+//	    Unit:   "bytes",
+//	    Ranges: [][2]int64{{200, 1000}, {1500, -1}}, // -1 means open-ended
+//	}
+//	header := goheader.NewRangeHeader(cfg)
+//	fmt.Println(header.Name)   // Range
+//	fmt.Println(header.Values) // ["bytes=200-1000,1500-"]
+func NewRangeHeader(cfg RangeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Range,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewRefererHeader creates a new Referer Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer
+// RefererConfig defines the configuration for the Referer header.
+type RefererConfig struct {
+	URL string // e.g., "https://example.com/page"
+}
+
+// String renders the Referer header value.
+func (cfg RefererConfig) String() string {
+	return cfg.URL
+}
+
+// NewRefererHeader creates a new Referer header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewRefererHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Referer
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewRefererHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.RefererConfig{URL: "https://example.com/page"}
+//	header := goheader.NewRefererHeader(cfg)
+//	fmt.Println(header.Name)   // Referer
+//	fmt.Println(header.Values) // ["https://example.com/page"]
+func NewRefererHeader(cfg RefererConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Referer,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewReferrerPolicyHeader creates a new Referrer-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+// ReferrerPolicyConfig defines the configuration for the Referrer-Policy header.
+type ReferrerPolicyConfig struct {
+	Policy string // e.g., "strict-origin-when-cross-origin"
+}
+
+// String renders the Referrer-Policy header value.
+func (cfg ReferrerPolicyConfig) String() string {
+	return cfg.Policy
+}
+
+// NewReferrerPolicyHeader creates a new Referrer-Policy header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewReferrerPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Referrer-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewReferrerPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ReferrerPolicyConfig{Policy: "strict-origin-when-cross-origin"}
+//	header := goheader.NewReferrerPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // Referrer-Policy
+//	fmt.Println(header.Values) // ["strict-origin-when-cross-origin"]
+func NewReferrerPolicyHeader(cfg ReferrerPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ReferrerPolicy,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewRefreshHeader creates a new Refresh Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Refresh
+// RefreshConfig defines the configuration for the Refresh header.
+type RefreshConfig struct {
+	DelaySeconds int    // e.g., 5
+	RedirectURL  string // optional URL
+}
+
+// String renders the Refresh header value.
+func (cfg RefreshConfig) String() string {
+	if cfg.RedirectURL != "" {
+		return fmt.Sprintf("%d; url=%s", cfg.DelaySeconds, cfg.RedirectURL)
+	}
+	return fmt.Sprintf("%d", cfg.DelaySeconds)
+}
+
+// NewRefreshHeader creates a new Refresh header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Refresh
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewRefreshHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Refresh
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewRefreshHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.RefreshConfig{DelaySeconds: 5, RedirectURL: "https://example.com/new-page"}
+//	header := goheader.NewRefreshHeader(cfg)
+//	fmt.Println(header.Name)   // Refresh
+//	fmt.Println(header.Values) // ["5; url=https://example.com/new-page"]
+func NewRefreshHeader(cfg RefreshConfig) Header {
 	return Header{
-		Experimental: false,
+		Experimental: true, // Non-standard header
 		Name:         Refresh,
 		Request:      false,
 		Response:     true,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
+}
+
+// ReplayNonceConfig defines the configuration for the Replay-Nonce header.
+type ReplayNonceConfig struct {
+	Nonce string // e.g., "abc123XYZ"
+}
+
+// String renders the Replay-Nonce header value.
+func (cfg ReplayNonceConfig) String() string {
+	return cfg.Nonce
+}
+
+// NewReplayNonceHeader creates a new Replay-Nonce header from the config.
+// More information: https://datatracker.ietf.org/doc/html/rfc8555#section-6.5
+//
+// Example usage:
+//
+//	cfg := goheader.ReplayNonceConfig{Nonce: "abc123XYZ"}
+//	header := goheader.NewReplayNonceHeader(cfg)
+//	fmt.Println(header.Name)   // Replay-Nonce
+//	fmt.Println(header.Values) // ["abc123XYZ"]
+func NewReplayNonceHeader(cfg ReplayNonceConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         ReplayNonce,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewReportToHeader creates a new Report-To Header with the specified values.
@@ -3926,6 +4138,45 @@ func NewReportToHeader(values ...string) Header {
 		Response:     true,
 		Standard:     false,
 		Values:       values}
+}
+
+// ReportingEndpointsConfig defines the configuration for the Reporting-Endpoints header.
+type ReportingEndpointsConfig struct {
+	Endpoints map[string]string // e.g., {"default": "https://example.com/reports", "csp": "https://example.com/csp-reports"}
+}
+
+// String renders the Reporting-Endpoints header value.
+func (cfg ReportingEndpointsConfig) String() string {
+	var parts []string
+	for name, url := range cfg.Endpoints {
+		parts = append(parts, fmt.Sprintf(`%s="%s"`, name, url))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewReportingEndpointsHeader creates a new Reporting-Endpoints header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Reporting-Endpoints
+//
+// Example usage:
+//
+//	cfg := goheader.ReportingEndpointsConfig{
+//	    Endpoints: map[string]string{
+//	        "default": "https://example.com/reports",
+//	        "csp":     "https://example.com/csp-reports",
+//	    },
+//	}
+//	header := goheader.NewReportingEndpointsHeader(cfg)
+//	fmt.Println(header.Name)   // Reporting-Endpoints
+//	fmt.Println(header.Values) // ["default=\"https://example.com/reports\", csp=\"https://example.com/csp-reports\""]
+func NewReportingEndpointsHeader(cfg ReportingEndpointsConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         ReportingEndpoints,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewRetryAfterHeader creates a new Retry-After Header with the specified values.
