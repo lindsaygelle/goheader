@@ -1,6 +1,7 @@
 package goheader
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -4122,22 +4123,67 @@ func NewReplayNonceHeader(cfg ReplayNonceConfig) Header {
 	}
 }
 
-// NewReportToHeader creates a new Report-To Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Report-To
+// ReportToConfig defines the configuration for the Report-To header.
+type ReportToConfig struct {
+	Group             string   // e.g., "csp-endpoint"
+	MaxAge            int      // in seconds
+	Endpoints         []string // endpoint URLs
+	IncludeSubdomains bool     // whether to include subdomains
+}
+
+// ReportToPayload is used internally for JSON marshalling.
+type ReportToPayload struct {
+	Group     string `json:"group"`
+	MaxAge    int    `json:"max_age"`
+	Endpoints []struct {
+		URL string `json:"url"`
+	} `json:"endpoints"`
+	IncludeSubdomains bool `json:"include_subdomains,omitempty"`
+}
+
+// String renders the Report-To header value.
+func (cfg ReportToConfig) String() string {
+	payload := ReportToPayload{
+		Group:             cfg.Group,
+		MaxAge:            cfg.MaxAge,
+		IncludeSubdomains: cfg.IncludeSubdomains,
+	}
+	for _, url := range cfg.Endpoints {
+		payload.Endpoints = append(payload.Endpoints, struct {
+			URL string `json:"url"`
+		}{URL: url})
+	}
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+// NewReportToHeader creates a new Report-To header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Report-To
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewReportToHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Report-To
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewReportToHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ReportToConfig{
+//	    Group: "csp-endpoint",
+//	    MaxAge: 10886400,
+//	    Endpoints: []string{"https://example.com/csp-reports"},
+//	    IncludeSubdomains: true,
+//	}
+//	header := goheader.NewReportToHeader(cfg)
+//	fmt.Println(header.Name)   // Report-To
+//	fmt.Println(header.Values) // ['{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}],"include_subdomains":true}']
+func NewReportToHeader(cfg ReportToConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ReportTo,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
 // ReportingEndpointsConfig defines the configuration for the Reporting-Endpoints header.
@@ -4179,166 +4225,294 @@ func NewReportingEndpointsHeader(cfg ReportingEndpointsConfig) Header {
 	}
 }
 
-// NewRetryAfterHeader creates a new Retry-After Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+// RetryAfterConfig defines the configuration for the Retry-After header.
+type RetryAfterConfig struct {
+	Seconds int    // e.g., 120
+	Date    string // e.g., "Wed, 21 Oct 2015 07:28:00 GMT"
+}
+
+// String renders the Retry-After header value.
+func (cfg RetryAfterConfig) String() string {
+	if cfg.Seconds > 0 {
+		return fmt.Sprintf("%d", cfg.Seconds)
+	}
+	return cfg.Date
+}
+
+// NewRetryAfterHeader creates a new Retry-After header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewRetryAfterHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Retry-After
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewRetryAfterHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.RetryAfterConfig{Seconds: 120}
+//	header := goheader.NewRetryAfterHeader(cfg)
+//	fmt.Println(header.Name)   // Retry-After
+//	fmt.Println(header.Values) // ["120"]
+func NewRetryAfterHeader(cfg RetryAfterConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         RetryAfter,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSaveDataHeader creates a new Save-Data Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Save-Data
+// SaveDataConfig defines the configuration for the Save-Data header.
+type SaveDataConfig struct {
+	Enabled bool // true = "on", false = ""
+}
+
+// String renders the Save-Data header value.
+func (cfg SaveDataConfig) String() string {
+	if cfg.Enabled {
+		return "on"
+	}
+	return ""
+}
+
+// NewSaveDataHeader creates a new Save-Data header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Save-Data
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSaveDataHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Save-Data
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSaveDataHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SaveDataConfig{Enabled: true}
+//	header := goheader.NewSaveDataHeader(cfg)
+//	fmt.Println(header.Name)   // Save-Data
+//	fmt.Println(header.Values) // ["on"]
+func NewSaveDataHeader(cfg SaveDataConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         SaveData,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHPrefersColorSchemeHeader creates a new Sec-CH-Prefers-Color-Scheme Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Color-Scheme
+// SecCHPrefersColorSchemeConfig defines the configuration for the Sec-CH-Prefers-Color-Scheme header.
+type SecCHPrefersColorSchemeConfig struct {
+	Preference string // "light", "dark", or "no-preference"
+}
+
+// String renders the Sec-CH-Prefers-Color-Scheme header value.
+func (cfg SecCHPrefersColorSchemeConfig) String() string {
+	return cfg.Preference
+}
+
+// NewSecCHPrefersColorSchemeHeader creates a new Sec-CH-Prefers-Color-Scheme header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Color-Scheme
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHPrefersColorSchemeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Color-Scheme
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHPrefersColorSchemeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHPrefersColorSchemeConfig{Preference: "dark"}
+//	header := goheader.NewSecCHPrefersColorSchemeHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-Prefers-Color-Scheme
+//	fmt.Println(header.Values) // ["dark"]
+func NewSecCHPrefersColorSchemeHeader(cfg SecCHPrefersColorSchemeConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client hints are still evolving
 		Name:         SecCHPrefersColorScheme,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHPrefersReducedMotionHeader creates a new Sec-CH-Prefers-Reduced-Motion Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Reduced-Motion
+// SecCHPrefersReducedMotionConfig defines the configuration for the Sec-CH-Prefers-Reduced-Motion header.
+type SecCHPrefersReducedMotionConfig struct {
+	Preference string // "reduce" or "no-preference"
+}
+
+// String renders the Sec-CH-Prefers-Reduced-Motion header value.
+func (cfg SecCHPrefersReducedMotionConfig) String() string {
+	return cfg.Preference
+}
+
+// NewSecCHPrefersReducedMotionHeader creates a new Sec-CH-Prefers-Reduced-Motion header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Reduced-Motion
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHPrefersReducedMotionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Motion
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHPrefersReducedMotionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHPrefersReducedMotionConfig{Preference: "reduce"}
+//	header := goheader.NewSecCHPrefersReducedMotionHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-Prefers-Reduced-Motion
+//	fmt.Println(header.Values) // ["reduce"]
+func NewSecCHPrefersReducedMotionHeader(cfg SecCHPrefersReducedMotionConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client hints are still evolving
 		Name:         SecCHPrefersReducedMotion,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHPrefersReducedTransparencyHeader creates a new Sec-CH-Prefers-Reduced-Transparency Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-Prefers-Reduced-Transparency
+// SecCHPrefersReducedTransparencyConfig defines the configuration for the Sec-CH-Prefers-Reduced-Transparency header.
+type SecCHPrefersReducedTransparencyConfig struct {
+	Preference string // "reduce" or "no-preference"
+}
+
+// String renders the Sec-CH-Prefers-Reduced-Transparency header value.
+func (cfg SecCHPrefersReducedTransparencyConfig) String() string {
+	return cfg.Preference
+}
+
+// NewSecCHPrefersReducedTransparencyHeader creates a new Sec-CH-Prefers-Reduced-Transparency header from the config.
+// More information: https://wicg.github.io/client-hints-infrastructure/#prefers-reduced-transparency
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHPrefersReducedTransparencyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-Prefers-Reduced-Transparency
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHPrefersReducedTransparencyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHPrefersReducedTransparencyConfig{Preference: "reduce"}
+//	header := goheader.NewSecCHPrefersReducedTransparencyHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-Prefers-Reduced-Transparency
+//	fmt.Println(header.Values) // ["reduce"]
+func NewSecCHPrefersReducedTransparencyHeader(cfg SecCHPrefersReducedTransparencyConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client hints are still evolving
 		Name:         SecCHPrefersReducedTransparency,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAHeader creates a new Sec-CH-UA Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA
+// SecCHUAConfig defines the configuration for the Sec-CH-UA header.
+type SecCHUAConfig struct {
+	Brands map[string]string // e.g., {"Chromium": "112", "Google Chrome": "112"}
+}
+
+// String renders the Sec-CH-UA header value.
+func (cfg SecCHUAConfig) String() string {
+	var parts []string
+	for brand, version := range cfg.Brands {
+		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewSecCHUAHeader creates a new Sec-CH-UA header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAConfig{Brands: map[string]string{
+//	    "Chromium":      "112",
+//	    "Google Chrome": "112",
+//	}}
+//	header := goheader.NewSecCHUAHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA
+//	fmt.Println(header.Values) // ["\"Chromium\";v=\"112\", \"Google Chrome\";v=\"112\""]
+func NewSecCHUAHeader(cfg SecCHUAConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are evolving
 		Name:         SecCHUA,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAArchHeader creates a new Sec-CH-UA-Arch Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Arch
+// SecCHUAArchConfig defines the configuration for the Sec-CH-UA-Arch header.
+type SecCHUAArchConfig struct {
+	Architecture string // e.g., "x86", "arm", "arm64"
+}
+
+// String renders the Sec-CH-UA-Arch header value.
+func (cfg SecCHUAArchConfig) String() string {
+	return `"` + cfg.Architecture + `"`
+}
+
+// NewSecCHUAArchHeader creates a new Sec-CH-UA-Arch header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Arch
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAArchHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Arch
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAArchHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAArchConfig{Architecture: "x86"}
+//	header := goheader.NewSecCHUAArchHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Arch
+//	fmt.Println(header.Values) // ["\"x86\""]
+func NewSecCHUAArchHeader(cfg SecCHUAArchConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAArch,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUABitnessHeader creates a new Sec-CH-UA-Bitness Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Bitness
+// SecCHUABitnessConfig defines the configuration for the Sec-CH-UA-Bitness header.
+type SecCHUABitnessConfig struct {
+	Bitness string // e.g., "32", "64"
+}
+
+// String renders the Sec-CH-UA-Bitness header value.
+func (cfg SecCHUABitnessConfig) String() string {
+	return `"` + cfg.Bitness + `"`
+}
+
+// NewSecCHUABitnessHeader creates a new Sec-CH-UA-Bitness header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Bitness
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUABitnessHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Bitness
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUABitnessHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUABitnessConfig{Bitness: "64"}
+//	header := goheader.NewSecCHUABitnessHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Bitness
+//	fmt.Println(header.Values) // ["\"64\""]
+func NewSecCHUABitnessHeader(cfg SecCHUABitnessConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUABitness,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAFullVersionHeader creates a new Sec-CH-UA-Full-Version Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version
+// SecCHUAFullVersionConfig defines the configuration for the Sec-CH-UA-Full-Version header.
+type SecCHUAFullVersionConfig struct {
+	Brands map[string]string // e.g., {"Chromium": "112.0.5615.137"}
+}
+
+// String renders the Sec-CH-UA-Full-Version header value.
+func (cfg SecCHUAFullVersionConfig) String() string {
+	var parts []string
+	for brand, version := range cfg.Brands {
+		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewSecCHUAFullVersionHeader creates a new Sec-CH-UA-Full-Version header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAFullVersionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAFullVersionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAFullVersionConfig{
+//	    Brands: map[string]string{"Chromium": "112.0.5615.137"},
+//	}
+//	header := goheader.NewSecCHUAFullVersionHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Full-Version
+//	fmt.Println(header.Values) // ["\"Chromium\";v=\"112.0.5615.137\""]
+func NewSecCHUAFullVersionHeader(cfg SecCHUAFullVersionConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAFullVersion,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewSecCHUAFullVersionListHeader creates a new Sec-CH-UA-Full-Version-List Header with the specified values.

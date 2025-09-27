@@ -938,71 +938,97 @@ func ExampleNewReportingEndpointsHeader() {
 // ExampleNewReportToHeader is an example function for NewReportToHeader.
 func ExampleNewReportToHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewReportToHeader("{ \"group\": \"csp-endpoint\", \"max_age\": 10886400, \"endpoints\": [ { \"url\": \"https-url-of-site-which-collects-reports\" } ] }")
-	fmt.Println(header)
+	cfg := goheader.ReportToConfig{
+		Group:             "csp-endpoint",
+		MaxAge:            10886400,
+		Endpoints:         []string{"https://example.com/csp-reports"},
+		IncludeSubdomains: true,
+	}
+	header := goheader.NewReportToHeader(cfg)
+	fmt.Println(header.Values)
+	// ['{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}],"include_subdomains":true}']
 }
 
 // ExampleNewRetryAfterHeader is an example function for NewRetryAfterHeader.
 func ExampleNewRetryAfterHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewRetryAfterHeader("123")
-	fmt.Println(header)
+	cfg := goheader.RetryAfterConfig{Seconds: 120}
+	header := goheader.NewRetryAfterHeader(cfg)
+	fmt.Println(header.Values) // ["120"]
+
+	cfg2 := goheader.RetryAfterConfig{Date: "Wed, 21 Oct 2015 07:28:00 GMT"}
+	header2 := goheader.NewRetryAfterHeader(cfg2)
+	fmt.Println(header2.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
 }
 
 // ExampleNewSaveDataHeader is an example function for NewSaveDataHeader.
 func ExampleNewSaveDataHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSaveDataHeader("on")
-	fmt.Println(header)
+	cfg := goheader.SaveDataConfig{Enabled: true}
+	header := goheader.NewSaveDataHeader(cfg)
+	fmt.Println(header.Values) // ["on"]
 }
 
 // ExampleNewSecCHPrefersColorSchemeHeader is an example function for NewSecCHPrefersColorSchemeHeader.
 func ExampleNewSecCHPrefersColorSchemeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHPrefersColorSchemeHeader("dark")
-	fmt.Println(header)
+	cfg := goheader.SecCHPrefersColorSchemeConfig{Preference: "dark"}
+	header := goheader.NewSecCHPrefersColorSchemeHeader(cfg)
+	fmt.Println(header.Values) // ["dark"]
 }
 
 // ExampleNewSecCHPrefersReducedMotionHeader is an example function for NewSecCHPrefersReducedMotionHeader.
 func ExampleNewSecCHPrefersReducedMotionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHPrefersReducedMotionHeader("reduce")
-	fmt.Println(header)
+	cfg := goheader.SecCHPrefersReducedMotionConfig{Preference: "reduce"}
+	header := goheader.NewSecCHPrefersReducedMotionHeader(cfg)
+	fmt.Println(header.Values) // ["reduce"]
 }
 
 // ExampleNewSecCHPrefersReducedTransparencyHeader is an example function for NewSecCHPrefersReducedTransparencyHeader.
 func ExampleNewSecCHPrefersReducedTransparencyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHPrefersReducedTransparencyHeader("reduce")
-	fmt.Println(header)
+	cfg := goheader.SecCHPrefersReducedTransparencyConfig{Preference: "reduce"}
+	header := goheader.NewSecCHPrefersReducedTransparencyHeader(cfg)
+	fmt.Println(header.Values) // ["reduce"]
 }
 
 // ExampleNewSecCHUAHeader is an example function for NewSecCHUAHeader.
 func ExampleNewSecCHUAHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAHeader("\"Opera\";v=\"81\", \" Not;A Brand\";v=\"99\", \"Chromium\";v=\"95\"")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAConfig{Brands: map[string]string{
+		"Chromium":      "112",
+		"Google Chrome": "112",
+	}}
+	header := goheader.NewSecCHUAHeader(cfg)
+	fmt.Println(header.Values)
+	// ["\"Chromium\";v=\"112\", \"Google Chrome\";v=\"112\""
 }
 
 // ExampleNewSecCHUAArchHeader is an example function for NewSecCHUAArchHeader.
 func ExampleNewSecCHUAArchHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAArchHeader("x86")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAArchConfig{Architecture: "x86"}
+	header := goheader.NewSecCHUAArchHeader(cfg)
+	fmt.Println(header.Values) // ["\"x86\""]
 }
 
 // ExampleNewSecCHUABitnessHeader is an example function for NewSecCHUABitnessHeader.
 func ExampleNewSecCHUABitnessHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUABitnessHeader("64")
-	fmt.Println(header)
+	cfg := goheader.SecCHUABitnessConfig{Bitness: "64"}
+	header := goheader.NewSecCHUABitnessHeader(cfg)
+	fmt.Println(header.Values) // ["\"64\""]
 }
 
 // ExampleNewSecCHUAFullVersionHeader is an example function for NewSecCHUAFullVersionHeader.
 func ExampleNewSecCHUAFullVersionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAFullVersionHeader("96.0.4664.110")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAFullVersionConfig{
+		Brands: map[string]string{"Chromium": "112.0.5615.137"},
+	}
+	header := goheader.NewSecCHUAFullVersionHeader(cfg)
+	fmt.Println(header.Values) // ["\"Chromium\";v=\"112.0.5615.137\""]
 }
 
 // ExampleNewSecCHUAFullVersionListHeader is an example function for NewSecCHUAFullVersionListHeader.
