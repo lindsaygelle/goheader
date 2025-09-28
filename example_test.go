@@ -1034,64 +1034,87 @@ func ExampleNewSecCHUAFullVersionHeader() {
 // ExampleNewSecCHUAFullVersionListHeader is an example function for NewSecCHUAFullVersionListHeader.
 func ExampleNewSecCHUAFullVersionListHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAFullVersionListHeader("\" Not A;Brand\";v=\"99.0.0.0\", \"Chromium\";v=\"98.0.4750.0\", \"Google Chrome\";v=\"98.0.4750.0\"")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAFullVersionListConfig{
+		Brands: map[string]string{
+			"Chromium":      "112.0.5615.137",
+			"Google Chrome": "112.0.5615.137",
+		},
+	}
+	header := goheader.NewSecCHUAFullVersionListHeader(cfg)
+	fmt.Println(header.Values)
+	// ["\"Chromium\";v=\"112.0.5615.137\", \"Google Chrome\";v=\"112.0.5615.137\""]
 }
 
 // ExampleNewSecCHUAMobileHeader is an example function for NewSecCHUAMobileHeader.
 func ExampleNewSecCHUAMobileHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAMobileHeader("?1")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAMobileConfig{IsMobile: true}
+	header := goheader.NewSecCHUAMobileHeader(cfg)
+	fmt.Println(header.Values) // ["?1"]
 }
 
 // ExampleNewSecCHUAModelHeader is an example function for NewSecCHUAModelHeader.
 func ExampleNewSecCHUAModelHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAModelHeader("Pixel 3 XL")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAModelConfig{Model: "Pixel 6"}
+	header := goheader.NewSecCHUAModelHeader(cfg)
+	fmt.Println(header.Values) // ["\"Pixel 6\""]
 }
 
 // ExampleNewSecCHUAPlatformHeader is an example function for NewSecCHUAPlatformHeader.
 func ExampleNewSecCHUAPlatformHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAPlatformHeader("macOS")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAPlatformConfig{Platform: "Windows"}
+	header := goheader.NewSecCHUAPlatformHeader(cfg)
+	fmt.Println(header.Values) // ["\"Windows\""]
 }
 
 // ExampleNewSecCHUAPlatformVersionHeader is an example function for NewSecCHUAPlatformVersionHeader.
 func ExampleNewSecCHUAPlatformVersionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecCHUAPlatformVersionHeader("10.0.0")
-	fmt.Println(header)
+	cfg := goheader.SecCHUAPlatformVersionConfig{Version: "15.4"}
+	header := goheader.NewSecCHUAPlatformVersionHeader(cfg)
+	fmt.Println(header.Values) // ["\"15.4\""]
+}
+
+// ExampleNewSecCHUAPlatformVersionHeader is an example function for NewSecCHUAWoW64Header.
+func ExampleNewSecCHUAWoW64Header() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.SecCHUAWoW64Config{WoW64: true}
+	header := goheader.NewSecCHUAWoW64Header(cfg)
+	fmt.Println(header.Values) // ["?1"]
 }
 
 // ExampleNewSecFetchDestHeader is an example function for NewSecFetchDestHeader.
 func ExampleNewSecFetchDestHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecFetchDestHeader("image")
-	fmt.Println(header)
+	cfg := goheader.SecFetchDestConfig{Destination: "script"}
+	header := goheader.NewSecFetchDestHeader(cfg)
+	fmt.Println(header.Values) // ["script"]
 }
 
 // ExampleNewSecFetchModeHeader is an example function for NewSecFetchModeHeader.
 func ExampleNewSecFetchModeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecFetchModeHeader("no-cors")
-	fmt.Println(header)
+	cfg := goheader.SecFetchModeConfig{Mode: "cors"}
+	header := goheader.NewSecFetchModeHeader(cfg)
+	fmt.Println(header.Values) // ["cors"]
 }
 
 // ExampleNewSecFetchSiteHeader is an example function for NewSecFetchSiteHeader.
 func ExampleNewSecFetchSiteHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecFetchSiteHeader("cross-site")
-	fmt.Println(header)
+	cfg := goheader.SecFetchSiteConfig{Site: "same-origin"}
+	header := goheader.NewSecFetchSiteHeader(cfg)
+	fmt.Println(header.Values) // ["same-origin"]
 }
 
 // ExampleNewSecFetchUserHeader is an example function for NewSecFetchUserHeader.
 func ExampleNewSecFetchUserHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecFetchUserHeader("?1")
-	fmt.Println(header)
+	cfg := goheader.SecFetchUserConfig{Activated: true}
+	header := goheader.NewSecFetchUserHeader(cfg)
+	fmt.Println(header.Values) // ["?1"]
 }
 
 // ExampleNewSecGPCHeader is an example function for NewSecGPCHeader.

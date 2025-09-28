@@ -338,6 +338,9 @@ const SecCHUAPlatform = "Sec-CH-UA-Platform"
 // SecCHUAPlatformVersion header field is used to indicate the version of the platform of the user agent.
 const SecCHUAPlatformVersion = "Sec-CH-UA-Platform-Version"
 
+// SecCHUAWoW64 header field is ued to indicate whether the user agent is a 32-bit app running on a 64-bit Windows OS (WoW64 = Windows 32-bit on Windows 64-bit).
+const SecCHUAWoW64 = "Sec-CH-UA-WoW64"
+
 // SecFetchDest header field is used to indicate the destination of the fetch request.
 const SecFetchDest = "Sec-Fetch-Dest"
 
@@ -4515,166 +4518,322 @@ func NewSecCHUAFullVersionHeader(cfg SecCHUAFullVersionConfig) Header {
 	}
 }
 
-// NewSecCHUAFullVersionListHeader creates a new Sec-CH-UA-Full-Version-List Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version-List
+// SecCHUAFullVersionListConfig defines the configuration for the Sec-CH-UA-Full-Version-List header.
+type SecCHUAFullVersionListConfig struct {
+	Brands map[string]string // e.g., {"Chromium": "112.0.5615.137", "Google Chrome": "112.0.5615.137"}
+}
+
+// String renders the Sec-CH-UA-Full-Version-List header value.
+func (cfg SecCHUAFullVersionListConfig) String() string {
+	var parts []string
+	for brand, version := range cfg.Brands {
+		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewSecCHUAFullVersionListHeader creates a new Sec-CH-UA-Full-Version-List header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Full-Version-List
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAFullVersionListHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Full-Version-List
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAFullVersionListHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAFullVersionListConfig{
+//	    Brands: map[string]string{
+//	        "Chromium":      "112.0.5615.137",
+//	        "Google Chrome": "112.0.5615.137",
+//	    },
+//	}
+//	header := goheader.NewSecCHUAFullVersionListHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Full-Version-List
+//	fmt.Println(header.Values) // ["\"Chromium\";v=\"112.0.5615.137\", \"Google Chrome\";v=\"112.0.5615.137\""]
+func NewSecCHUAFullVersionListHeader(cfg SecCHUAFullVersionListConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAFullVersionList,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAMobileHeader creates a new Sec-CH-UA-Mobile Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile
+// SecCHUAMobileConfig defines the configuration for the Sec-CH-UA-Mobile header.
+type SecCHUAMobileConfig struct {
+	IsMobile bool // true = ?1, false = ?0
+}
+
+// String renders the Sec-CH-UA-Mobile header value.
+func (cfg SecCHUAMobileConfig) String() string {
+	if cfg.IsMobile {
+		return "?1"
+	}
+	return "?0"
+}
+
+// NewSecCHUAMobileHeader creates a new Sec-CH-UA-Mobile header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAMobileHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Mobile
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAMobileHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAMobileConfig{IsMobile: true}
+//	header := goheader.NewSecCHUAMobileHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Mobile
+//	fmt.Println(header.Values) // ["?1"]
+func NewSecCHUAMobileHeader(cfg SecCHUAMobileConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAMobile,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAModelHeader creates a new Sec-CH-UA-Model Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Model
+// SecCHUAModelConfig defines the configuration for the Sec-CH-UA-Model header.
+type SecCHUAModelConfig struct {
+	Model string // e.g., "Pixel 6"
+}
+
+// String renders the Sec-CH-UA-Model header value.
+func (cfg SecCHUAModelConfig) String() string {
+	return `"` + cfg.Model + `"`
+}
+
+// NewSecCHUAModelHeader creates a new Sec-CH-UA-Model header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Model
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAModelHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Model
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAModelHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAModelConfig{Model: "Pixel 6"}
+//	header := goheader.NewSecCHUAModelHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Model
+//	fmt.Println(header.Values) // ["\"Pixel 6\""]
+func NewSecCHUAModelHeader(cfg SecCHUAModelConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAModel,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAPlatformHeader creates a new Sec-CH-UA-Platform Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform
+// SecCHUAPlatformConfig defines the configuration for the Sec-CH-UA-Platform header.
+type SecCHUAPlatformConfig struct {
+	Platform string // e.g., "Windows", "Android", "iOS"
+}
+
+// String renders the Sec-CH-UA-Platform header value.
+func (cfg SecCHUAPlatformConfig) String() string {
+	return `"` + cfg.Platform + `"`
+}
+
+// NewSecCHUAPlatformHeader creates a new Sec-CH-UA-Platform header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAPlatformHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Platform
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAPlatformHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAPlatformConfig{Platform: "Windows"}
+//	header := goheader.NewSecCHUAPlatformHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Platform
+//	fmt.Println(header.Values) // ["\"Windows\""]
+func NewSecCHUAPlatformHeader(cfg SecCHUAPlatformConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAPlatform,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecCHUAPlatformVersionHeader creates a new Sec-CH-UA-Platform-Version Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform-Version
+// SecCHUAPlatformVersionConfig defines the configuration for the Sec-CH-UA-Platform-Version header.
+type SecCHUAPlatformVersionConfig struct {
+	Version string // e.g., "15.4"
+}
+
+// String renders the Sec-CH-UA-Platform-Version header value.
+func (cfg SecCHUAPlatformVersionConfig) String() string {
+	return `"` + cfg.Version + `"`
+}
+
+// NewSecCHUAPlatformVersionHeader creates a new Sec-CH-UA-Platform-Version header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform-Version
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecCHUAPlatformVersionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-CH-UA-Platform-Version
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecCHUAPlatformVersionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAPlatformVersionConfig{Version: "15.4"}
+//	header := goheader.NewSecCHUAPlatformVersionHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-Platform-Version
+//	fmt.Println(header.Values) // ["\"15.4\""]
+func NewSecCHUAPlatformVersionHeader(cfg SecCHUAPlatformVersionConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: true, // Client Hints are still evolving
 		Name:         SecCHUAPlatformVersion,
 		Request:      true,
 		Response:     false,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecFetchDestHeader creates a new Sec-Fetch-Dest Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Dest
+// SecCHUAWoW64Config defines the configuration for the Sec-CH-UA-WoW64 header.
+type SecCHUAWoW64Config struct {
+	WoW64 bool // true = ?1, false = ?0
+}
+
+// String renders the Sec-CH-UA-WoW64 header value.
+func (cfg SecCHUAWoW64Config) String() string {
+	if cfg.WoW64 {
+		return "?1"
+	}
+	return "?0"
+}
+
+// NewSecCHUAWoW64Header creates a new Sec-CH-UA-WoW64 header from the config.
+// More information: https://wicg.github.io/ua-client-hints/#sec-ch-ua-wow64
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecFetchDestHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-Fetch-Dest
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecFetchDestHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecCHUAWoW64Config{WoW64: true}
+//	header := goheader.NewSecCHUAWoW64Header(cfg)
+//	fmt.Println(header.Name)   // Sec-CH-UA-WoW64
+//	fmt.Println(header.Values) // ["?1"]
+func NewSecCHUAWoW64Header(cfg SecCHUAWoW64Config) Header {
+	return Header{
+		Experimental: true, // Client Hints are still evolving
+		Name:         SecCHUAWoW64,
+		Request:      true,
+		Response:     false,
+		Standard:     false,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// SecFetchDestConfig defines the configuration for the Sec-Fetch-Dest header.
+type SecFetchDestConfig struct {
+	Destination string // e.g., "script", "image", "document"
+}
+
+// String renders the Sec-Fetch-Dest header value.
+func (cfg SecFetchDestConfig) String() string {
+	return cfg.Destination
+}
+
+// NewSecFetchDestHeader creates a new Sec-Fetch-Dest header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Dest
+//
+// Example usage:
+//
+//	cfg := goheader.SecFetchDestConfig{Destination: "script"}
+//	header := goheader.NewSecFetchDestHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-Fetch-Dest
+//	fmt.Println(header.Values) // ["script"]
+func NewSecFetchDestHeader(cfg SecFetchDestConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SecFetchDest,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecFetchModeHeader creates a new Sec-Fetch-Mode Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode
+// SecFetchModeConfig defines the configuration for the Sec-Fetch-Mode header.
+type SecFetchModeConfig struct {
+	Mode string // e.g., "cors", "no-cors", "navigate"
+}
+
+// String renders the Sec-Fetch-Mode header value.
+func (cfg SecFetchModeConfig) String() string {
+	return cfg.Mode
+}
+
+// NewSecFetchModeHeader creates a new Sec-Fetch-Mode header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecFetchModeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-Fetch-Mode
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecFetchModeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecFetchModeConfig{Mode: "cors"}
+//	header := goheader.NewSecFetchModeHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-Fetch-Mode
+//	fmt.Println(header.Values) // ["cors"]
+func NewSecFetchModeHeader(cfg SecFetchModeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SecFetchMode,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecFetchSiteHeader creates a new Sec-Fetch-Site Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site
+// SecFetchSiteConfig defines the configuration for the Sec-Fetch-Site header.
+type SecFetchSiteConfig struct {
+	Site string // e.g., "same-origin", "cross-site"
+}
+
+// String renders the Sec-Fetch-Site header value.
+func (cfg SecFetchSiteConfig) String() string {
+	return cfg.Site
+}
+
+// NewSecFetchSiteHeader creates a new Sec-Fetch-Site header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecFetchSiteHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-Fetch-Site
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecFetchSiteHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecFetchSiteConfig{Site: "same-origin"}
+//	header := goheader.NewSecFetchSiteHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-Fetch-Site
+//	fmt.Println(header.Values) // ["same-origin"]
+func NewSecFetchSiteHeader(cfg SecFetchSiteConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SecFetchSite,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecFetchUserHeader creates a new Sec-Fetch-User Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-User
+// SecFetchUserConfig defines the configuration for the Sec-Fetch-User header.
+type SecFetchUserConfig struct {
+	Activated bool // true = ?1, false = header omitted
+}
+
+// String renders the Sec-Fetch-User header value.
+func (cfg SecFetchUserConfig) String() string {
+	if cfg.Activated {
+		return "?1"
+	}
+	return ""
+}
+
+// NewSecFetchUserHeader creates a new Sec-Fetch-User header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-User
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecFetchUserHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-Fetch-User
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecFetchUserHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecFetchUserConfig{Activated: true}
+//	header := goheader.NewSecFetchUserHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-Fetch-User
+//	fmt.Println(header.Values) // ["?1"]
+func NewSecFetchUserHeader(cfg SecFetchUserConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SecFetchUser,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewSecGPCHeader creates a new Sec-GPC Header with the specified values.
