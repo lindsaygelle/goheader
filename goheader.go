@@ -362,6 +362,18 @@ const SecPurpose = "Sec-Purpose"
 // SecWebSocketAccept header field is used in the handshake to indicate the accept value.
 const SecWebSocketAccept = "Sec-WebSocket-Accept"
 
+// SecWebSocketExtensions header field is used by the client to request optional protocol-level extensions, and the server responds with the accepted extensions.
+const SecWebSocketExtensions = "Sec-WebSocket-Extensions"
+
+// SecWebSocketKey header field is used to generate the Sec-WebSocket-Accept header for validation.
+const SecWebSocketKey = "Sec-WebSocket-Key"
+
+// SecWebSocketProtocol header field is used by the client to specify one or more subprotocols it wants to use
+const SecWebSocketProtocol = "Sec-WebSocket-Protocol"
+
+// SecWebSocketVersion header field is by the client to specify the WebSocket protocol version it supports.
+const SecWebSocketVersion = "Sec-WebSocket-Version"
+
 // Server header field is used to provide information about the software used by the origin server.
 const Server = "Server"
 
@@ -4836,112 +4848,335 @@ func NewSecFetchUserHeader(cfg SecFetchUserConfig) Header {
 	}
 }
 
-// NewSecGPCHeader creates a new Sec-GPC Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-GPC
+// SecGPCConfig defines the configuration for the Sec-GPC header.
+type SecGPCConfig struct {
+	Enabled bool // true = 1, false = header omitted
+}
+
+// String renders the Sec-GPC header value.
+func (cfg SecGPCConfig) String() string {
+	if cfg.Enabled {
+		return "1"
+	}
+	return ""
+}
+
+// NewSecGPCHeader creates a new Sec-GPC header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-GPC
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecGPCHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-GPC
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecGPCHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecGPCConfig{Enabled: true}
+//	header := goheader.NewSecGPCHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-GPC
+//	fmt.Println(header.Values) // ["1"]
+func NewSecGPCHeader(cfg SecGPCConfig) Header {
 	return Header{
-		Experimental: true,
+		Experimental: false,
 		Name:         SecGPC,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecPurposeHeader creates a new Sec-Purpose Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Purpose
+// SecPurposeConfig defines the configuration for the Sec-Purpose header.
+type SecPurposeConfig struct {
+	Purpose string // e.g., "prefetch"
+}
+
+// String renders the Sec-Purpose header value.
+func (cfg SecPurposeConfig) String() string {
+	return cfg.Purpose
+}
+
+// NewSecPurposeHeader creates a new Sec-Purpose header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Purpose
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecPurposeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-Purpose
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecPurposeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecPurposeConfig{Purpose: "prefetch"}
+//	header := goheader.NewSecPurposeHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-Purpose
+//	fmt.Println(header.Values) // ["prefetch"]
+func NewSecPurposeHeader(cfg SecPurposeConfig) Header {
 	return Header{
-		Experimental: false,
+		Experimental: true, // still relatively new
 		Name:         SecPurpose,
 		Request:      true,
 		Response:     false,
-		Standard:     true,
-		Values:       values}
+		Standard:     false,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSecWebSocketAcceptHeader creates a new Sec-WebSocket-Accept Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Accept
+// SecWebSocketAcceptConfig defines the configuration for the Sec-WebSocket-Accept header.
+type SecWebSocketAcceptConfig struct {
+	Token string // The computed Sec-WebSocket-Accept token
+}
+
+// String renders the Sec-WebSocket-Accept header value.
+func (cfg SecWebSocketAcceptConfig) String() string {
+	return cfg.Token
+}
+
+// NewSecWebSocketAcceptHeader creates a new Sec-WebSocket-Accept header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Accept
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSecWebSocketAcceptHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Sec-WebSocket-Accept
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSecWebSocketAcceptHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecWebSocketAcceptConfig{Token: "s3pPLMBiTxaQ9kYGzzhZRbK+xOo="}
+//	header := goheader.NewSecWebSocketAcceptHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-WebSocket-Accept
+//	fmt.Println(header.Values) // ["s3pPLMBiTxaQ9kYGzzhZRbK+xOo="]
+func NewSecWebSocketAcceptHeader(cfg SecWebSocketAcceptConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SecWebSocketAccept,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewServerHeader creates a new Server Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server
+// SecWebSocketExtensionsConfig defines the configuration for the Sec-WebSocket-Extensions header.
+type SecWebSocketExtensionsConfig struct {
+	Extensions []string // e.g., []string{"permessage-deflate", "client_max_window_bits"}
+}
+
+// String renders the Sec-WebSocket-Extensions header value.
+func (cfg SecWebSocketExtensionsConfig) String() string {
+	return strings.Join(cfg.Extensions, ", ")
+}
+
+// NewSecWebSocketExtensionsHeader creates a new Sec-WebSocket-Extensions header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Extensions
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewServerHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Server
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewServerHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SecWebSocketExtensionsConfig{
+//	    Extensions: []string{"permessage-deflate", "client_max_window_bits"},
+//	}
+//	header := goheader.NewSecWebSocketExtensionsHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-WebSocket-Extensions
+//	fmt.Println(header.Values) // ["permessage-deflate, client_max_window_bits"]
+func NewSecWebSocketExtensionsHeader(cfg SecWebSocketExtensionsConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         SecWebSocketExtensions,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// SecWebSocketKeyConfig defines the configuration for the Sec-WebSocket-Key header.
+type SecWebSocketKeyConfig struct {
+	Key string // base64-encoded random nonce, e.g., "dGhlIHNhbXBsZSBub25jZQ=="
+}
+
+// String renders the Sec-WebSocket-Key header value.
+func (cfg SecWebSocketKeyConfig) String() string {
+	return cfg.Key
+}
+
+// NewSecWebSocketKeyHeader creates a new Sec-WebSocket-Key header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Key
+//
+// Example usage:
+//
+//	cfg := goheader.SecWebSocketKeyConfig{Key: "dGhlIHNhbXBsZSBub25jZQ=="}
+//	header := goheader.NewSecWebSocketKeyHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-WebSocket-Key
+//	fmt.Println(header.Values) // ["dGhlIHNhbXBsZSBub25jZQ=="]
+func NewSecWebSocketKeyHeader(cfg SecWebSocketKeyConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         SecWebSocketKey,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// SecWebSocketProtocolConfig defines the configuration for the Sec-WebSocket-Protocol header.
+type SecWebSocketProtocolConfig struct {
+	Protocols []string // e.g., []string{"chat", "superchat"}
+}
+
+// String renders the Sec-WebSocket-Protocol header value.
+func (cfg SecWebSocketProtocolConfig) String() string {
+	return strings.Join(cfg.Protocols, ", ")
+}
+
+// NewSecWebSocketProtocolHeader creates a new Sec-WebSocket-Protocol header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Protocol
+//
+// Example usage:
+//
+//	cfg := goheader.SecWebSocketProtocolConfig{Protocols: []string{"chat", "superchat"}}
+//	header := goheader.NewSecWebSocketProtocolHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-WebSocket-Protocol
+//	fmt.Println(header.Values) // ["chat, superchat"]
+func NewSecWebSocketProtocolHeader(cfg SecWebSocketProtocolConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         SecWebSocketProtocol,
+		Request:      true,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// SecWebSocketVersionConfig defines the configuration for the Sec-WebSocket-Version header.
+type SecWebSocketVersionConfig struct {
+	Version string // e.g., "13"
+}
+
+// String renders the Sec-WebSocket-Version header value.
+func (cfg SecWebSocketVersionConfig) String() string {
+	return cfg.Version
+}
+
+// NewSecWebSocketVersionHeader creates a new Sec-WebSocket-Version header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-WebSocket-Version
+//
+// Example usage:
+//
+//	cfg := goheader.SecWebSocketVersionConfig{Version: "13"}
+//	header := goheader.NewSecWebSocketVersionHeader(cfg)
+//	fmt.Println(header.Name)   // Sec-WebSocket-Version
+//	fmt.Println(header.Values) // ["13"]
+func NewSecWebSocketVersionHeader(cfg SecWebSocketVersionConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         SecWebSocketVersion,
+		Request:      true,
+		Response:     false,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// ServerConfig defines the configuration for the Server header.
+type ServerConfig struct {
+	Info string // e.g., "Apache/2.4.1 (Unix)"
+}
+
+// String renders the Server header value.
+func (cfg ServerConfig) String() string {
+	return cfg.Info
+}
+
+// NewServerHeader creates a new Server header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server
+//
+// Example usage:
+//
+//	cfg := goheader.ServerConfig{Info: "Apache/2.4.1 (Unix)"}
+//	header := goheader.NewServerHeader(cfg)
+//	fmt.Println(header.Name)   // Server
+//	fmt.Println(header.Values) // ["Apache/2.4.1 (Unix)"]
+func NewServerHeader(cfg ServerConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Server,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewServerTimingHeader creates a new Server-Timing Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
+// ServerTimingMetric represents a single metric in the Server-Timing header.
+type ServerTimingMetric struct {
+	Name     string  // e.g., "db"
+	Duration float64 // e.g., 53.0
+	Desc     string  // Optional description, e.g., "Database query time"
+}
+
+// ServerTimingConfig defines the configuration for the Server-Timing header.
+type ServerTimingConfig struct {
+	Metrics []ServerTimingMetric
+}
+
+// String renders the Server-Timing header value.
+func (cfg ServerTimingConfig) String() string {
+	var parts []string
+	for _, m := range cfg.Metrics {
+		metric := m.Name
+		if m.Duration > 0 {
+			metric += fmt.Sprintf(";dur=%.2f", m.Duration)
+		}
+		if m.Desc != "" {
+			metric += fmt.Sprintf(`;desc="%s"`, m.Desc)
+		}
+		parts = append(parts, metric)
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewServerTimingHeader creates a new Server-Timing header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewServerTimingHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Server-Timing
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewServerTimingHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ServerTimingConfig{
+//	    Metrics: []goheader.ServerTimingMetric{
+//	        {Name: "db", Duration: 53, Desc: "Database query"},
+//	        {Name: "app", Duration: 47.2},
+//	    },
+//	}
+//	header := goheader.NewServerTimingHeader(cfg)
+//	fmt.Println(header.Name)   // Server-Timing
+//	fmt.Println(header.Values) // ["db;dur=53.00;desc=\"Database query\", app;dur=47.20"]
+func NewServerTimingHeader(cfg ServerTimingConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ServerTiming,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewServiceWorkerNavigationPreloadHeader creates a new Service-Worker-Navigation-Preload Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Service-Worker-Navigation-Preload
+// ServiceWorkerNavigationPreloadConfig defines the configuration for the Service-Worker-Navigation-Preload header.
+type ServiceWorkerNavigationPreloadConfig struct {
+	Enabled bool // true = "true", false = "false"
+}
+
+// String renders the Service-Worker-Navigation-Preload header value.
+func (cfg ServiceWorkerNavigationPreloadConfig) String() string {
+	if cfg.Enabled {
+		return "true"
+	}
+	return "false"
+}
+
+// NewServiceWorkerNavigationPreloadHeader creates a new Service-Worker-Navigation-Preload header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Service-Worker-Navigation-Preload
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewServiceWorkerNavigationPreloadHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Service-Worker-Navigation-Preload
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewServiceWorkerNavigationPreloadHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ServiceWorkerNavigationPreloadConfig{Enabled: true}
+//	header := goheader.NewServiceWorkerNavigationPreloadHeader(cfg)
+//	fmt.Println(header.Name)   // Service-Worker-Navigation-Preload
+//	fmt.Println(header.Values) // ["true"]
+func NewServiceWorkerNavigationPreloadHeader(cfg ServiceWorkerNavigationPreloadConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ServiceWorkerNavigationPreload,
-		Request:      true,
-		Response:     false,
+		Request:      false,
+		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewSetCookieHeader creates a new Set-Cookie Header with the specified values.

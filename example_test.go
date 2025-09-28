@@ -1120,43 +1120,80 @@ func ExampleNewSecFetchUserHeader() {
 // ExampleNewSecGPCHeader is an example function for NewSecGPCHeader.
 func ExampleNewSecGPCHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecGPCHeader("1")
-	fmt.Println(header)
+	cfg := goheader.SecGPCConfig{Enabled: true}
+	header := goheader.NewSecGPCHeader(cfg)
+	fmt.Println(header.Values) // ["1"]
 }
 
 // ExampleNewSecPurposeHeader is an example function for NewSecPurposeHeader.
 func ExampleNewSecPurposeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecPurposeHeader("prefetch")
-	fmt.Println(header)
+	cfg := goheader.SecPurposeConfig{Purpose: "prefetch"}
+	header := goheader.NewSecPurposeHeader(cfg)
+	fmt.Println(header.Values) // ["prefetch"]
 }
 
 // ExampleNewSecWebSocketAcceptHeader is an example function for NewSecWebSocketAcceptHeader.
 func ExampleNewSecWebSocketAcceptHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSecWebSocketAcceptHeader("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
-	fmt.Println(header)
+	cfg := goheader.SecWebSocketAcceptConfig{Token: "s3pPLMBiTxaQ9kYGzzhZRbK+xOo="}
+	header := goheader.NewSecWebSocketAcceptHeader(cfg)
+	fmt.Println(header.Values) // ["s3pPLMBiTxaQ9kYGzzhZRbK+xOo="]
+}
+
+// ExampleNewSecWebSocketExtensionsHeader is an example function for NewSecWebSocketExtensionsHeader.
+func ExampleNewSecWebSocketExtensionsHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.SecWebSocketExtensionsConfig{
+		Extensions: []string{"permessage-deflate", "client_max_window_bits"},
+	}
+	header := goheader.NewSecWebSocketExtensionsHeader(cfg)
+	fmt.Println(header.Values) // ["permessage-deflate, client_max_window_bits"]
+}
+
+// ExampleNewSecWebSocketProtocolHeader is an example function for NewSecWebSocketProtocolHeader.
+func ExampleNewSecWebSocketProtocolHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.SecWebSocketProtocolConfig{Protocols: []string{"chat", "superchat"}}
+	header := goheader.NewSecWebSocketProtocolHeader(cfg)
+	fmt.Println(header.Values) // ["chat, superchat"]
+}
+
+// ExampleNewSecWebSocketVersionHeader is an example function for NewSecWebSocketVersionHeader.
+func ExampleNewSecWebSocketVersionHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.SecWebSocketVersionConfig{Version: "13"}
+	header := goheader.NewSecWebSocketVersionHeader(cfg)
+	fmt.Println(header.Values) // ["13"]
 }
 
 // ExampleNewServerHeader is an example function for NewServerHeader.
 func ExampleNewServerHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewServerHeader("Apache/2.4.1 (Unix)")
-	fmt.Println(header)
+	cfg := goheader.ServerConfig{Info: "Apache/2.4.1 (Unix)"}
+	header := goheader.NewServerHeader(cfg)
+	fmt.Println(header.Values) // ["Apache/2.4.1 (Unix)"]
 }
 
 // ExampleNewServerTimingHeader is an example function for NewServerTimingHeader.
 func ExampleNewServerTimingHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewServerTimingHeader("missedCache")
-	fmt.Println(header)
+	cfg := goheader.ServerTimingConfig{
+		Metrics: []goheader.ServerTimingMetric{
+			{Name: "db", Duration: 53, Desc: "Database query"},
+			{Name: "app", Duration: 47.2},
+		},
+	}
+	header := goheader.NewServerTimingHeader(cfg)
+	fmt.Println(header.Values) // ["db;dur=53.00;desc=\"Database query\", app;dur=47.20"]
 }
 
 // ExampleNewServiceWorkerNavigationPreloadHeader is an example function for NewServiceWorkerNavigationPreloadHeader.
 func ExampleNewServiceWorkerNavigationPreloadHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewServiceWorkerNavigationPreloadHeader("json_fragment1")
-	fmt.Println(header)
+	cfg := goheader.ServiceWorkerNavigationPreloadConfig{Enabled: true}
+	header := goheader.NewServiceWorkerNavigationPreloadHeader(cfg)
+	fmt.Println(header.Values) // ["true"]
 }
 
 // ExampleNewSetCookieHeader is an example function for NewSetCookieHeader.
