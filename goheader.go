@@ -5179,184 +5179,359 @@ func NewServiceWorkerNavigationPreloadHeader(cfg ServiceWorkerNavigationPreloadC
 	}
 }
 
-// NewSetCookieHeader creates a new Set-Cookie Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+// SetCookieConfig defines the configuration for the Set-Cookie header.
+type SetCookieConfig struct {
+	Name     string     // e.g., "sessionId"
+	Value    string     // e.g., "abc123"
+	Expires  *time.Time // Optional expiration date
+	MaxAge   int        // Optional Max-Age in seconds
+	Domain   string     // Optional Domain
+	Path     string     // Optional Path
+	Secure   bool       // Secure flag
+	HttpOnly bool       // HttpOnly flag
+	SameSite string     // Optional: "Strict", "Lax", "None"
+}
+
+// String renders the Set-Cookie header value.
+func (cfg SetCookieConfig) String() string {
+	var parts []string
+	parts = append(parts, fmt.Sprintf("%s=%s", cfg.Name, cfg.Value))
+
+	if cfg.Expires != nil {
+		parts = append(parts, "Expires="+cfg.Expires.UTC().Format(time.RFC1123))
+	}
+	if cfg.MaxAge > 0 {
+		parts = append(parts, fmt.Sprintf("Max-Age=%d", cfg.MaxAge))
+	}
+	if cfg.Domain != "" {
+		parts = append(parts, "Domain="+cfg.Domain)
+	}
+	if cfg.Path != "" {
+		parts = append(parts, "Path="+cfg.Path)
+	}
+	if cfg.Secure {
+		parts = append(parts, "Secure")
+	}
+	if cfg.HttpOnly {
+		parts = append(parts, "HttpOnly")
+	}
+	if cfg.SameSite != "" {
+		parts = append(parts, "SameSite="+cfg.SameSite)
+	}
+
+	return strings.Join(parts, "; ")
+}
+
+// NewSetCookieHeader creates a new Set-Cookie header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSetCookieHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Set-Cookie
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSetCookieHeader(values ...string) Header {
+// Example usage:
+//
+//	expires := time.Now().Add(24 * time.Hour)
+//	cfg := goheader.SetCookieConfig{
+//	    Name: "sessionId", Value: "abc123", Expires: &expires,
+//	    Path: "/", Secure: true, HttpOnly: true, SameSite: "Strict",
+//	}
+//	header := goheader.NewSetCookieHeader(cfg)
+//	fmt.Println(header.Name)   // Set-Cookie
+//	fmt.Println(header.Values) // ["sessionId=abc123; Expires=...; Path=/; Secure; HttpOnly; SameSite=Strict"]
+func NewSetCookieHeader(cfg SetCookieConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SetCookie,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSourceMapHeader creates a new SourceMap Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/SourceMap
+// SourceMapConfig defines the configuration for the SourceMap header.
+type SourceMapConfig struct {
+	URL string // URL or path to the source map file
+}
+
+// String renders the SourceMap header value.
+func (cfg SourceMapConfig) String() string {
+	return cfg.URL
+}
+
+// NewSourceMapHeader creates a new SourceMap header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/SourceMap
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSourceMapHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // SourceMap
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSourceMapHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SourceMapConfig{URL: "/path/to/file.js.map"}
+//	header := goheader.NewSourceMapHeader(cfg)
+//	fmt.Println(header.Name)   // SourceMap
+//	fmt.Println(header.Values) // ["/path/to/file.js.map"]
+func NewSourceMapHeader(cfg SourceMapConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         SourceMap,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewStatusHeader creates a new Status Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Status
+// StatusConfig defines the configuration for the Status header.
+type StatusConfig struct {
+	Code   int    // e.g., 200
+	Reason string // e.g., "OK"
+}
+
+// String renders the Status header value.
+func (cfg StatusConfig) String() string {
+	if cfg.Reason != "" {
+		return fmt.Sprintf("%d %s", cfg.Code, cfg.Reason)
+	}
+	return fmt.Sprintf("%d", cfg.Code)
+}
+
+// NewStatusHeader creates a new Status header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Status
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewStatusHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Status
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewStatusHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.StatusConfig{Code: 200, Reason: "OK"}
+//	header := goheader.NewStatusHeader(cfg)
+//	fmt.Println(header.Name)   // Status
+//	fmt.Println(header.Values) // ["200 OK"]
+func NewStatusHeader(cfg StatusConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Status,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Legacy / non-standard header
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewStrictTransportSecurityHeader creates a new Strict-Transport-Security Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+// StrictTransportSecurityConfig defines the configuration for the Strict-Transport-Security header.
+type StrictTransportSecurityConfig struct {
+	MaxAge            int  // Required: number of seconds the browser should remember to only use HTTPS
+	IncludeSubDomains bool // Optional: apply to all subdomains
+	Preload           bool // Optional: request inclusion in browsers' preload lists
+}
+
+// String renders the Strict-Transport-Security header value.
+func (cfg StrictTransportSecurityConfig) String() string {
+	var parts []string
+	parts = append(parts, fmt.Sprintf("max-age=%d", cfg.MaxAge))
+	if cfg.IncludeSubDomains {
+		parts = append(parts, "includeSubDomains")
+	}
+	if cfg.Preload {
+		parts = append(parts, "preload")
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewStrictTransportSecurityHeader creates a new Strict-Transport-Security header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewStrictTransportSecurityHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Strict-Transport-Security
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewStrictTransportSecurityHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.StrictTransportSecurityConfig{
+//	    MaxAge: 31536000, IncludeSubDomains: true, Preload: true,
+//	}
+//	header := goheader.NewStrictTransportSecurityHeader(cfg)
+//	fmt.Println(header.Name)   // Strict-Transport-Security
+//	fmt.Println(header.Values) // ["max-age=31536000; includeSubDomains; preload"]
+func NewStrictTransportSecurityHeader(cfg StrictTransportSecurityConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         StrictTransportSecurity,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewSupportsLoadingModeHeader creates a new Supports-Loading-Mode Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Supports-Loading-Mode
+// SupportsLoadingModeConfig defines the configuration for the Supports-Loading-Mode header.
+type SupportsLoadingModeConfig struct {
+	Mode string // e.g., "credentialed-prerender"
+}
+
+// String renders the Supports-Loading-Mode header value.
+func (cfg SupportsLoadingModeConfig) String() string {
+	return cfg.Mode
+}
+
+// NewSupportsLoadingModeHeader creates a new Supports-Loading-Mode header from the config.
+// More information: https://wicg.github.io/priority-hints/#supports-loading-mode
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewSupportsLoadingModeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Supports-Loading-Mode
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewSupportsLoadingModeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.SupportsLoadingModeConfig{Mode: "credentialed-prerender"}
+//	header := goheader.NewSupportsLoadingModeHeader(cfg)
+//	fmt.Println(header.Name)   // Supports-Loading-Mode
+//	fmt.Println(header.Values) // ["credentialed-prerender"]
+func NewSupportsLoadingModeHeader(cfg SupportsLoadingModeConfig) Header {
 	return Header{
 		Experimental: true,
 		Name:         SupportsLoadingMode,
 		Request:      false,
 		Response:     true,
 		Standard:     false,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewTEHeader creates a new TE Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/TE
+// TEConfig defines the configuration for the TE header.
+type TEConfig struct {
+	Encodings []string // e.g., []string{"trailers", "deflate"}
+}
+
+// String renders the TE header value.
+func (cfg TEConfig) String() string {
+	return strings.Join(cfg.Encodings, ", ")
+}
+
+// NewTEHeader creates a new TE header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/TE
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewTEHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // TE
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewTEHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.TEConfig{Encodings: []string{"trailers", "deflate"}}
+//	header := goheader.NewTEHeader(cfg)
+//	fmt.Println(header.Name)   // TE
+//	fmt.Println(header.Values) // ["trailers, deflate"]
+func NewTEHeader(cfg TEConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         TE,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewTimingAllowOriginHeader creates a new Timing-Allow-Origin Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
-//
-//	// Create a new Header instance.
-//	newHeader := goheader.NewTimingAllowOriginHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Timing-Allow-Origin
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewTimingAllowOriginHeader(values ...string) Header {
-	return Header{
-		Experimental: false,
-		Name:         TimingAllowOrigin,
-		Request:      false,
-		Response:     true,
-		Standard:     false,
-		Values:       values}
+// TKConfig defines the configuration for the TK header.
+type TKConfig struct {
+	Status string // e.g., "!", "G", "N", "T", "C", "P", "D"
 }
 
-// NewTKHeader creates a new Tk Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Tk
+// String renders the TK header value.
+func (cfg TKConfig) String() string {
+	return cfg.Status
+}
+
+// NewTKHeader creates a new TK header from the config.
+// More information: https://www.w3.org/TR/tracking-dnt/#response-header-field
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewTKHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Tk
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewTKHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.TKConfig{Status: "!"}
+//	header := goheader.NewTKHeader(cfg)
+//	fmt.Println(header.Name)   // TK
+//	fmt.Println(header.Values) // ["!"]
+func NewTKHeader(cfg TKConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         TK,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewTrailerHeader creates a new Trailer Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Trailer
+// TimingAllowOriginConfig defines the configuration for the Timing-Allow-Origin header.
+type TimingAllowOriginConfig struct {
+	Origins []string // e.g., []string{"https://example.com", "https://cdn.example.com"} or []string{"*"}
+}
+
+// String renders the Timing-Allow-Origin header value.
+func (cfg TimingAllowOriginConfig) String() string {
+	return strings.Join(cfg.Origins, ", ")
+}
+
+// NewTimingAllowOriginHeader creates a new Timing-Allow-Origin header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Timing-Allow-Origin
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewTrailerHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Trailer
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewTrailerHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.TimingAllowOriginConfig{
+//	    Origins: []string{"https://example.com", "https://cdn.example.com"},
+//	}
+//	header := goheader.NewTimingAllowOriginHeader(cfg)
+//	fmt.Println(header.Name)   // Timing-Allow-Origin
+//	fmt.Println(header.Values) // ["https://example.com, https://cdn.example.com"]
+func NewTimingAllowOriginHeader(cfg TimingAllowOriginConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         TimingAllowOrigin,
+		Request:      false,
+		Response:     true,
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// TrailerConfig defines the configuration for the Trailer header.
+type TrailerConfig struct {
+	Fields []string // e.g., []string{"Expires", "Content-MD5"}
+}
+
+// String renders the Trailer header value.
+func (cfg TrailerConfig) String() string {
+	return strings.Join(cfg.Fields, ", ")
+}
+
+// NewTrailerHeader creates a new Trailer header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Trailer
+//
+// Example usage:
+//
+//	cfg := goheader.TrailerConfig{Fields: []string{"Expires", "Content-MD5"}}
+//	header := goheader.NewTrailerHeader(cfg)
+//	fmt.Println(header.Name)   // Trailer
+//	fmt.Println(header.Values) // ["Expires, Content-MD5"]
+func NewTrailerHeader(cfg TrailerConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Trailer,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewTransferEncodingHeader creates a new Transfer-Encoding Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding
+// TransferEncodingConfig defines the configuration for the Transfer-Encoding header.
+type TransferEncodingConfig struct {
+	Encodings []string // e.g., []string{"chunked", "gzip"}
+}
+
+// String renders the Transfer-Encoding header value.
+func (cfg TransferEncodingConfig) String() string {
+	return strings.Join(cfg.Encodings, ", ")
+}
+
+// NewTransferEncodingHeader creates a new Transfer-Encoding header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewTransferEncodingHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Transfer-Encoding
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewTransferEncodingHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.TransferEncodingConfig{Encodings: []string{"chunked"}}
+//	header := goheader.NewTransferEncodingHeader(cfg)
+//	fmt.Println(header.Name)   // Transfer-Encoding
+//	fmt.Println(header.Values) // ["chunked"]
+func NewTransferEncodingHeader(cfg TransferEncodingConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         TransferEncoding,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewUpgradeHeader creates a new Upgrade Header with the specified values.

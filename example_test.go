@@ -1199,64 +1199,89 @@ func ExampleNewServiceWorkerNavigationPreloadHeader() {
 // ExampleNewSetCookieHeader is an example function for NewSetCookieHeader.
 func ExampleNewSetCookieHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSetCookieHeader("id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GM")
-	fmt.Println(header)
+	expires := time.Now().Add(24 * time.Hour)
+	cfg := goheader.SetCookieConfig{
+		Name: "sessionId", Value: "abc123", Expires: &expires,
+		Path: "/", Secure: true, HttpOnly: true, SameSite: "Strict",
+	}
+	header := goheader.NewSetCookieHeader(cfg)
+	fmt.Println(header.Values) // ["sessionId=abc123; Expires=Mon, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HttpOnly; SameSite=Strict"]
 }
 
 // ExampleNewSourceMapHeader is an example function for NewSourceMapHeader.
 func ExampleNewSourceMapHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewSourceMapHeader("/static/js/file.js")
-	fmt.Println(header)
+	cfg := goheader.SourceMapConfig{URL: "/path/to/file.js.map"}
+	header := goheader.NewSourceMapHeader(cfg)
+	fmt.Println(header.Values) // ["/path/to/file.js.map"]
 }
 
 // ExampleNewStatusHeader is an example function for NewStatusHeader.
 func ExampleNewStatusHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewStatusHeader("200 OK")
-	fmt.Println(header)
+	cfg := goheader.StatusConfig{Code: 200, Reason: "OK"}
+	header := goheader.NewStatusHeader(cfg)
+	fmt.Println(header.Values) // ["200 OK"]
 }
 
 // ExampleNewStrictTransportSecurityHeader is an example function for NewStrictTransportSecurityHeader.
 func ExampleNewStrictTransportSecurityHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewStrictTransportSecurityHeader("max-age=63072000; includeSubDomains; preload")
-	fmt.Println(header)
+	cfg := goheader.StrictTransportSecurityConfig{
+		MaxAge: 31536000, IncludeSubDomains: true, Preload: true,
+	}
+	header := goheader.NewStrictTransportSecurityHeader(cfg)
+	fmt.Println(header.Values) // ["max-age=31536000; includeSubDomains; preload"]
+}
+
+// ExampleNewSupportsLoadingModeConfig is an example function for NewSupportsLoadingModeHeader.
+func ExampleNewSupportsLoadingModeConfig() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.SupportsLoadingModeConfig{Mode: "credentialed-prerender"}
+	header := goheader.NewSupportsLoadingModeHeader(cfg)
+	fmt.Println(header.Values) // ["credentialed-prerender"]
 }
 
 // ExampleNewTEHeader is an example function for NewTEHeader.
 func ExampleNewTEHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewTEHeader("compress, deflate;q=0.7")
-	fmt.Println(header)
-}
-
-// ExampleNewTimingAllowOriginHeader is an example function for NewTimingAllowOriginHeader.
-func ExampleNewTimingAllowOriginHeader() {
-	// Create a new goheader.Header instance.
-	header := goheader.NewTimingAllowOriginHeader("https://www.example.com")
-	fmt.Println(header)
+	cfg := goheader.TEConfig{Encodings: []string{"trailers", "deflate"}}
+	header := goheader.NewTEHeader(cfg)
+	fmt.Println(header.Values) // ["trailers, deflate"]
 }
 
 // ExampleNewTKHeader is an example function for NewTKHeader.
 func ExampleNewTKHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewTKHeader("T")
-	fmt.Println(header)
+	cfg := goheader.TKConfig{Status: "!"}
+	header := goheader.NewTKHeader(cfg)
+	fmt.Println(header.Values) // ["!"]
+}
+
+// ExampleNewTimingAllowOriginHeader is an example function for NewTimingAllowOriginHeader.
+func ExampleNewTimingAllowOriginHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.TimingAllowOriginConfig{
+		Origins: []string{"https://example.com", "https://cdn.example.com"},
+	}
+	header := goheader.NewTimingAllowOriginHeader(cfg)
+	fmt.Println(header.Values) // ["https://example.com, https://cdn.example.com"]
 }
 
 // ExampleNewTrailerHeader is an example function for NewTrailerHeader.
 func ExampleNewTrailerHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewTrailerHeader("Expires")
-	fmt.Println(header)
+	cfg := goheader.TrailerConfig{Fields: []string{"Expires", "Content-MD5"}}
+	header := goheader.NewTrailerHeader(cfg)
+	fmt.Println(header.Values) // ["Expires, Content-MD5"]
 }
 
 // ExampleNewTransferEncodingHeader is an example function for NewTransferEncodingHeader.
 func ExampleNewTransferEncodingHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewTransferEncodingHeader("gzip", "chunked")
-	fmt.Println(header)
+	cfg := goheader.TransferEncodingConfig{Encodings: []string{"chunked"}}
+	header := goheader.NewTransferEncodingHeader(cfg)
+	fmt.Println(header.Values) // ["chunked"]
 }
 
 // ExampleNewUpgradeHeader is an example function for NewUpgradeHeader.
