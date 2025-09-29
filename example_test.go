@@ -1287,57 +1287,76 @@ func ExampleNewTransferEncodingHeader() {
 // ExampleNewUpgradeHeader is an example function for NewUpgradeHeader.
 func ExampleNewUpgradeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewUpgradeHeader("example/1", "example/2")
-	fmt.Println(header)
+	cfg := goheader.UpgradeConfig{Protocols: []string{"websocket"}}
+	header := goheader.NewUpgradeHeader(cfg)
+	fmt.Println(header.Values) // ["websocket"]
 }
 
 // ExampleNewUpgradeInsecureRequestsHeader is an example function for NewUpgradeInsecureRequestsHeader.
 func ExampleNewUpgradeInsecureRequestsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewUpgradeInsecureRequestsHeader("1")
-	fmt.Println(header)
+	cfg := goheader.UpgradeInsecureRequestsConfig{PreferSecure: true}
+	header := goheader.NewUpgradeInsecureRequestsHeader(cfg)
+	fmt.Println(header.Values) // ["1"]
+}
+
+// ExampleNewUrgencyHeader is an example function for NewUrgencyHeader.
+
+func ExampleNewUrgencyHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.UrgencyConfig{Level: 1, Progressive: true}
+	header := goheader.NewUrgencyHeader(cfg)
+	fmt.Println(header.Values) // ["1; progressive=?1"]
 }
 
 // ExampleNewUserAgentHeader is an example function for NewUserAgentHeader.
 func ExampleNewUserAgentHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewUserAgentHeader("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
-	fmt.Println(header)
+	cfg := goheader.UserAgentConfig{Agent: "MyApp/1.0"}
+	header := goheader.NewUserAgentHeader(cfg)
+	fmt.Println(header.Values) // ["MyApp/1.0"]
 }
 
 // ExampleNewVaryHeader is an example function for NewVaryHeader.
 func ExampleNewVaryHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewVaryHeader("Accept")
-	fmt.Println(header)
+	cfg := goheader.VaryConfig{Headers: []string{"Accept-Encoding", "User-Agent"}}
+	header := goheader.NewVaryHeader(cfg)
+	fmt.Println(header.Values) // ["Accept-Encoding, User-Agent"]
 }
 
 // ExampleNewViaHeader is an example function for NewViaHeader.
 func ExampleNewViaHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewViaHeader("HTTP/1.1 proxy.example.re", "1.1 edge_1")
-	fmt.Println(header)
+	cfg := goheader.ViaConfig{Entries: []string{"1.1 vegur", "2.0 proxy.example.com"}}
+	header := goheader.NewViaHeader(cfg)
+	fmt.Println(header.Values) // ["1.1 vegur, 2.0 proxy.example.com"]
 }
 
 // ExampleNewViewportWidthHeader is an example function for NewViewportWidthHeader.
 func ExampleNewViewportWidthHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewViewportWidthHeader("320")
-	fmt.Println(header)
+	cfg := goheader.ViewportWidthConfig{Width: 1080}
+	header := goheader.NewViewportWidthHeader(cfg)
+	fmt.Println(header.Values) // ["1080"]
 }
 
 // ExampleNewWWWAuthenticateHeader is an example function for NewWWWAuthenticateHeader.
 func ExampleNewWWWAuthenticateHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewWWWAuthenticateHeader("Basic realm=\"Access to the staging site\", charset=\"UTF-8\"")
-	fmt.Println(header)
+	cfg := goheader.WWWAuthenticateConfig{
+		Schemes: []string{`Basic realm="Access to the staging site"`, `Bearer realm="example", error="invalid_token"`},
+	}
+	header := goheader.NewWWWAuthenticateHeader(cfg)
+	fmt.Println(header.Values) // [`Basic realm="Access to the staging site", Bearer realm="example", error="invalid_token"`]
 }
 
 // ExampleNewWantDigestHeader is an example function for NewWantDigestHeader.
 func ExampleNewWantDigestHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewWantDigestHeader("SHA-512;q=0.3, sha-256;q=1, md5;q=0")
-	fmt.Println(header)
+	cfg := goheader.WantDigestConfig{Algorithms: []string{"SHA-256", "MD5;q=0.3"}}
+	header := goheader.NewWantDigestHeader(cfg)
+	fmt.Println(header.Values) // ["SHA-256, MD5;q=0.3"]
 }
 
 // ExampleNewWarningHeader is an example function for NewWarningHeader.

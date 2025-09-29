@@ -419,8 +419,14 @@ const Upgrade = "Upgrade"
 // UpgradeInsecureRequests header field is used to instruct user agents to treat all of a site's insecure URLs (HTTP) as though they have been replaced with secure URLs (HTTPS).
 const UpgradeInsecureRequests = "Upgrade-Insecure-Requests"
 
+// Urgency header field is used with HTTP resource prioritization (e.g., HTTP/3 or priority hints) to indicate the relative priority of a resource.
+const Urgency = "Urgency"
+
 // UserAgent header field is used to provide information about the user agent (client) making the request.
 const UserAgent = "User-Agent"
+
+// VariantKey field is used to describe the specific request parameters used when selecting a variant of a resource.
+const VariantKey = "Variant-Key"
 
 // Vary header field is used to indicate the set of request-header fields that fully determines, while the response is fresh, whether a cache is permitted to use the response to reply to a subsequent request without revalidation.
 const Vary = "Vary"
@@ -5534,148 +5540,317 @@ func NewTransferEncodingHeader(cfg TransferEncodingConfig) Header {
 	}
 }
 
-// NewUpgradeHeader creates a new Upgrade Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade
+// UpgradeConfig defines the configuration for the Upgrade header.
+type UpgradeConfig struct {
+	Protocols []string // e.g., []string{"websocket", "h2c"}
+}
+
+// String renders the Upgrade header value.
+func (cfg UpgradeConfig) String() string {
+	return strings.Join(cfg.Protocols, ", ")
+}
+
+// NewUpgradeHeader creates a new Upgrade header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewUpgradeHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Upgrade
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewUpgradeHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.UpgradeConfig{Protocols: []string{"websocket"}}
+//	header := goheader.NewUpgradeHeader(cfg)
+//	fmt.Println(header.Name)   // Upgrade
+//	fmt.Println(header.Values) // ["websocket"]
+func NewUpgradeHeader(cfg UpgradeConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Upgrade,
 		Request:      true,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewUpgradeInsecureRequestsHeader creates a new Upgrade-Insecure-Requests Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
+// UpgradeInsecureRequestsConfig defines the configuration for the Upgrade-Insecure-Requests header.
+type UpgradeInsecureRequestsConfig struct {
+	PreferSecure bool // true means send "1", false means no preference
+}
+
+// String renders the Upgrade-Insecure-Requests header value.
+func (cfg UpgradeInsecureRequestsConfig) String() string {
+	if cfg.PreferSecure {
+		return "1"
+	}
+	return ""
+}
+
+// NewUpgradeInsecureRequestsHeader creates a new Upgrade-Insecure-Requests header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Upgrade-Insecure-Requests
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewUpgradeInsecureRequestsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Upgrade-Insecure-Requests
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewUpgradeInsecureRequestsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.UpgradeInsecureRequestsConfig{PreferSecure: true}
+//	header := goheader.NewUpgradeInsecureRequestsHeader(cfg)
+//	fmt.Println(header.Name)   // Upgrade-Insecure-Requests
+//	fmt.Println(header.Values) // ["1"]
+func NewUpgradeInsecureRequestsHeader(cfg UpgradeInsecureRequestsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         UpgradeInsecureRequests,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewUserAgentHeader creates a new User-Agent Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+// UrgencyConfig defines the configuration for the Urgency header.
+type UrgencyConfig struct {
+	Level       int  // e.g., 0 (highest) to N (lower priority)
+	Progressive bool // optional: whether progressive rendering is allowed
+}
+
+// String renders the Urgency header value.
+func (cfg UrgencyConfig) String() string {
+	parts := []string{fmt.Sprintf("%d", cfg.Level)}
+	if cfg.Progressive {
+		parts = append(parts, "progressive=?1")
+	}
+	return strings.Join(parts, "; ")
+}
+
+// NewUrgencyHeader creates a new Urgency header from the config.
+// More information: https://www.rfc-editor.org/rfc/rfc9218.html
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewUserAgentHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // User-Agent
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewUserAgentHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.UrgencyConfig{Level: 1, Progressive: true}
+//	header := goheader.NewUrgencyHeader(cfg)
+//	fmt.Println(header.Name)   // Urgency
+//	fmt.Println(header.Values) // ["1; progressive=?1"]
+func NewUrgencyHeader(cfg UrgencyConfig) Header {
+	return Header{
+		Experimental: true,
+		Name:         Urgency,
+		Request:      false,
+		Response:     true,
+		Standard:     false,
+		Values:       []string{cfg.String()},
+	}
+}
+
+// UserAgentConfig defines the configuration for the User-Agent header.
+type UserAgentConfig struct {
+	Agent string // Full User-Agent string
+}
+
+// String renders the User-Agent header value.
+func (cfg UserAgentConfig) String() string {
+	return cfg.Agent
+}
+
+// NewUserAgentHeader creates a new User-Agent header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+//
+// Example usage:
+//
+//	cfg := goheader.UserAgentConfig{Agent: "MyApp/1.0"}
+//	header := goheader.NewUserAgentHeader(cfg)
+//	fmt.Println(header.Name)   // User-Agent
+//	fmt.Println(header.Values) // ["MyApp/1.0"]
+func NewUserAgentHeader(cfg UserAgentConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         UserAgent,
 		Request:      true,
 		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewVaryHeader creates a new Vary Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary
+// VariantKeyConfig defines the configuration for the Variant-Key header.
+type VariantKeyConfig struct {
+	Keys []string // e.g., []string{"lang=en", "user=mobile"}
+}
+
+// String renders the Variant-Key header value.
+func (cfg VariantKeyConfig) String() string {
+	return strings.Join(cfg.Keys, "; ")
+}
+
+// NewVariantKeyHeader creates a new Variant-Key header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Variant-Key
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewVaryHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Vary
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewVaryHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.VariantKeyConfig{Keys: []string{"lang=en", "user=mobile"}}
+//	header := goheader.NewVariantKeyHeader(cfg)
+//	fmt.Println(header.Name)   // Variant-Key
+//	fmt.Println(header.Values) // ["lang=en; user=mobile"]
+func NewVariantKeyHeader(cfg VariantKeyConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         VariantKey,
+		Request:      false,
+		Response:     true,
+		Standard:     false, // Still experimental in some contexts
+		Values:       []string{cfg.String()},
+	}
+}
+
+// VaryConfig defines the configuration for the Vary header.
+type VaryConfig struct {
+	Headers []string // e.g., []string{"Accept-Encoding", "User-Agent"}
+}
+
+// String renders the Vary header value.
+func (cfg VaryConfig) String() string {
+	return strings.Join(cfg.Headers, ", ")
+}
+
+// NewVaryHeader creates a new Vary header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary
+//
+// Example usage:
+//
+//	cfg := goheader.VaryConfig{Headers: []string{"Accept-Encoding", "User-Agent"}}
+//	header := goheader.NewVaryHeader(cfg)
+//	fmt.Println(header.Name)   // Vary
+//	fmt.Println(header.Values) // ["Accept-Encoding, User-Agent"]
+func NewVaryHeader(cfg VaryConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Vary,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewViaHeader creates a new Via Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Via
+// ViaConfig defines the configuration for the Via header.
+type ViaConfig struct {
+	Entries []string // e.g., []string{"1.1 vegur", "2.0 proxy.example.com"}
+}
+
+// String renders the Via header value.
+func (cfg ViaConfig) String() string {
+	return strings.Join(cfg.Entries, ", ")
+}
+
+// NewViaHeader creates a new Via header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Via
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewViaHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Via
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewViaHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ViaConfig{Entries: []string{"1.1 vegur"}}
+//	header := goheader.NewViaHeader(cfg)
+//	fmt.Println(header.Name)   // Via
+//	fmt.Println(header.Values) // ["1.1 vegur"]
+func NewViaHeader(cfg ViaConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Via,
 		Request:      true,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewViewportWidthHeader creates a new Viewport-Width Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Viewport-Width
+// ViewportWidthConfig defines the configuration for the Viewport-Width header.
+type ViewportWidthConfig struct {
+	Width int // Width of the layout viewport in CSS pixels
+}
+
+// String renders the Viewport-Width header value.
+func (cfg ViewportWidthConfig) String() string {
+	if cfg.Width > 0 {
+		return fmt.Sprintf("%d", cfg.Width)
+	}
+	return ""
+}
+
+// NewViewportWidthHeader creates a new Viewport-Width header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Viewport-Width
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewViewportWidthHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Viewport-Width
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewViewportWidthHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.ViewportWidthConfig{Width: 1080}
+//	header := goheader.NewViewportWidthHeader(cfg)
+//	fmt.Println(header.Name)   // Viewport-Width
+//	fmt.Println(header.Values) // ["1080"]
+func NewViewportWidthHeader(cfg ViewportWidthConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         ViewportWidth,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewWWWAuthenticateHeader creates a new WWW-Authenticate Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
+// WWWAuthenticateConfig defines the configuration for the WWW-Authenticate header.
+type WWWAuthenticateConfig struct {
+	Schemes []string // e.g., []string{`Basic realm="Access"`, `Bearer realm="example", error="invalid_token"`}
+}
+
+// String renders the WWW-Authenticate header value.
+func (cfg WWWAuthenticateConfig) String() string {
+	return strings.Join(cfg.Schemes, ", ")
+}
+
+// NewWWWAuthenticateHeader creates a new WWW-Authenticate header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewWWWAuthenticateHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // WWW-Authenticate
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewWWWAuthenticateHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.WWWAuthenticateConfig{
+//	    Schemes: []string{`Basic realm="Access to the staging site"`, `Bearer realm="example", error="invalid_token"`},
+//	}
+//	header := goheader.NewWWWAuthenticateHeader(cfg)
+//	fmt.Println(header.Name)   // WWW-Authenticate
+//	fmt.Println(header.Values) // [`Basic realm="Access to the staging site", Bearer realm="example", error="invalid_token"`]
+func NewWWWAuthenticateHeader(cfg WWWAuthenticateConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         WWWAuthenticate,
 		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewWantDigestHeader creates a new Want-Digest Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Want-Digest
+// WantDigestConfig defines the configuration for the Want-Digest header.
+type WantDigestConfig struct {
+	Algorithms []string // e.g., []string{"SHA-256", "MD5;q=0.3"}
+}
+
+// String renders the Want-Digest header value.
+func (cfg WantDigestConfig) String() string {
+	return strings.Join(cfg.Algorithms, ", ")
+}
+
+// NewWantDigestHeader creates a new Want-Digest header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Want-Digest
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewWantDigestHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Want-Digest
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewWantDigestHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.WantDigestConfig{Algorithms: []string{"SHA-256", "MD5;q=0.3"}}
+//	header := goheader.NewWantDigestHeader(cfg)
+//	fmt.Println(header.Name)   // Want-Digest
+//	fmt.Println(header.Values) // ["SHA-256, MD5;q=0.3"]
+func NewWantDigestHeader(cfg WantDigestConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         WantDigest,
 		Request:      true,
-		Response:     true,
+		Response:     false,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewWarningHeader creates a new Warning Header with the specified values.
