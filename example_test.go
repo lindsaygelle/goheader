@@ -1453,57 +1453,83 @@ func ExampleNewXForwardedForHeader() {
 // ExampleNewXForwardedHostHeader is an example function for NewXForwardedHostHeader.
 func ExampleNewXForwardedHostHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXForwardedHostHeader("id42.example-cdn.com")
-	fmt.Println(header)
+	cfg := goheader.XForwardedHostConfig{Host: "example.com"}
+	header := goheader.NewXForwardedHostHeader(cfg)
+	fmt.Println(header.Values) // ["example.com"]
 }
 
 // ExampleNewXForwardedProtoHeader is an example function for NewXForwardedProtoHeader.
 func ExampleNewXForwardedProtoHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXForwardedProtoHeader("https")
-	fmt.Println(header)
+	cfg := goheader.XForwardedProtoConfig{Proto: "https"}
+	header := goheader.NewXForwardedProtoHeader(cfg)
+	fmt.Println(header.Values) // ["https"]
 }
 
 // ExampleNewXFrameOptionsHeader is an example function for NewXFrameOptionsHeader.
 func ExampleNewXFrameOptionsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXFrameOptionsHeader("SAMEORIGIN")
-	fmt.Println(header)
+	cfg := goheader.XFrameOptionsConfig{Option: "SAMEORIGIN"}
+	header := goheader.NewXFrameOptionsHeader(cfg)
+	fmt.Println(header.Values) // ["SAMEORIGIN"]
 }
 
 // ExampleNewXHTTPMethodOverrideHeader is an example function for NewXHTTPMethodOverrideHeader.
 func ExampleNewXHTTPMethodOverrideHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXHTTPMethodOverrideHeader("DELETE")
-	fmt.Println(header)
+	cfg := goheader.XHTTPMethodOverrideConfig{Method: "DELETE"}
+	header := goheader.NewXHTTPMethodOverrideHeader(cfg)
+	fmt.Println(header.Values) // ["DELETE"]
+}
+
+// NewXPermittedCrossDomainPoliciesHeader is an example function for NewXPermittedCrossDomainPoliciesHeader.
+func ExampleNewXPermittedCrossDomainPoliciesHeader() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.XPermittedCrossDomainPoliciesConfig{Policy: "none"}
+	header := goheader.NewXPermittedCrossDomainPoliciesHeader(cfg)
+	fmt.Println(header.Values) // ["none"]
 }
 
 // ExampleNewXPoweredByHeader is an example function for NewXPoweredByHeader.
 func ExampleNewXPoweredByHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXPoweredByHeader("PHP/5.4.0")
-	fmt.Println(header)
+	cfg := goheader.XPoweredByConfig{Technology: "Express"}
+	header := goheader.NewXPoweredByHeader(cfg)
+	fmt.Println(header.Values) // ["Express"]
 }
 
 // ExampleNewXRedirectByHeader is an example function for NewXRedirectByHeader.
 func ExampleNewXRedirectByHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXRedirectByHeader("WordPress")
-	fmt.Println(header)
+	cfg := goheader.XRedirectByConfig{Source: "WordPress"}
+	header := goheader.NewXRedirectByHeader(cfg)
+	fmt.Println(header.Values) // ["WordPress"]
+
 }
 
 // ExampleNewXRequestIDHeader is an example function for NewXRequestIDHeader.
 func ExampleNewXRequestIDHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXRequestIDHeader("f058ebd6-02f7-4d3f-942e-904344e8cde5")
-	fmt.Println(header)
+	cfg := goheader.XRequestIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+	header := goheader.NewXRequestIDHeader(cfg)
+	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
 }
 
 // ExampleNewXRequestedWithHeader is an example function for NewXRequestedWithHeader.
 func ExampleNewXRequestedWithHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXRequestedWithHeader("XMLHttpRequest")
-	fmt.Println(header)
+	cfg := goheader.XRequestedWithConfig{With: "XMLHttpRequest"}
+	header := goheader.NewXRequestedWithHeader(cfg)
+	fmt.Println(header.Values) // ["XMLHttpRequest"]
+}
+
+// ExampleNewXRobotsTag is an example function for NewXRobotsTagHeader.
+
+func ExampleNewXRobotsTag() {
+	// Create a new goheader.Header instance.
+	cfg := goheader.XRobotsTagConfig{Directives: []string{"noindex", "nofollow"}}
+	header := goheader.NewXRobotsTagHeader(cfg)
+	fmt.Println(header.Values) // ["noindex, nofollow"]
 }
 
 // ExampleNewXUACompatibleHeader is an example function for NewXUACompatibleHeader.

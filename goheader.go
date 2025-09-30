@@ -485,6 +485,9 @@ const XFrameOptions = "X-Frame-Options"
 // XHTTPMethodOverride header field is used to override the method specified in the request line with the method given in the header field.
 const XHTTPMethodOverride = "X-Http-Method-Override"
 
+// XPermittedCrossDomainPolicies header field is used mainly by Adobe products (Flash, PDF readers, etc.).
+const XPermittedCrossDomainPolicies = "X-Permitted-Cross-Domain-Policies"
+
 // XPoweredBy header field is used to indicate the technology (e.g., server framework, language) powering a website.
 const XPoweredBy = "X-Powered-By"
 
@@ -496,6 +499,9 @@ const XRequestID = "X-Request-ID"
 
 // XRequestedWith header field is used to indicate the type of request (e.g., XMLHttpRequest) made by the user agent.
 const XRequestedWith = "X-Requested-With"
+
+// XRobotsTag header field is used to control how search engines index a page.
+const XRobotsTag = "X-Robots-Tag"
 
 // XUACompatible header field is used to control the version of Internet Explorer (IE) that a web page should be rendered as.
 const XUACompatible = "X-UA-Compatible"
@@ -6210,148 +6216,316 @@ func NewXForwardedForHeader(cfg XForwardedForConfig) Header {
 	}
 }
 
-// NewXForwardedHostHeader creates a new X-Forwarded-Host Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
+// XForwardedHostConfig defines the configuration for the X-Forwarded-Host header.
+type XForwardedHostConfig struct {
+	Host string // Original Host requested by the client
+}
+
+// String renders the X-Forwarded-Host header value.
+func (cfg XForwardedHostConfig) String() string {
+	return cfg.Host
+}
+
+// NewXForwardedHostHeader creates a new X-Forwarded-Host header from the config.
+// Note: This is a non-standard header, but widely used in proxy/load balancer setups.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXForwardedHostHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Forwarded-Host
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXForwardedHostHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XForwardedHostConfig{Host: "example.com"}
+//	header := goheader.NewXForwardedHostHeader(cfg)
+//	fmt.Println(header.Name)   // X-Forwarded-Host
+//	fmt.Println(header.Values) // ["example.com"]
+func NewXForwardedHostHeader(cfg XForwardedHostConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XForwardedHost,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard but widely supported
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXForwardedProtoHeader creates a new X-Forwarded-Proto Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
+// XForwardedProtoConfig defines the configuration for the X-Forwarded-Proto header.
+type XForwardedProtoConfig struct {
+	Proto string // Original protocol, e.g., "http" or "https"
+}
+
+// String renders the X-Forwarded-Proto header value.
+func (cfg XForwardedProtoConfig) String() string {
+	return cfg.Proto
+}
+
+// NewXForwardedProtoHeader creates a new X-Forwarded-Proto header from the config.
+// Note: This is a non-standard header, but widely used in proxy/load balancer setups.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXForwardedProtoHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Forwarded-Proto
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXForwardedProtoHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XForwardedProtoConfig{Proto: "https"}
+//	header := goheader.NewXForwardedProtoHeader(cfg)
+//	fmt.Println(header.Name)   // X-Forwarded-Proto
+//	fmt.Println(header.Values) // ["https"]
+func NewXForwardedProtoHeader(cfg XForwardedProtoConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XForwardedProto,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard but widely supported
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXFrameOptionsHeader creates a new X-Frame-Options Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+// XFrameOptionsConfig defines the configuration for the X-Frame-Options header.
+type XFrameOptionsConfig struct {
+	Option string // "DENY", "SAMEORIGIN", or "ALLOW-FROM"
+	URI    string // Required if Option == "ALLOW-FROM"
+}
+
+// String renders the X-Frame-Options header value.
+func (cfg XFrameOptionsConfig) String() string {
+	if cfg.Option == "ALLOW-FROM" && cfg.URI != "" {
+		return fmt.Sprintf("%s %s", cfg.Option, cfg.URI)
+	}
+	return cfg.Option
+}
+
+// NewXFrameOptionsHeader creates a new X-Frame-Options header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXFrameOptionsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Frame-Options
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXFrameOptionsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XFrameOptionsConfig{Option: "SAMEORIGIN"}
+//	header := goheader.NewXFrameOptionsHeader(cfg)
+//	fmt.Println(header.Name)   // X-Frame-Options
+//	fmt.Println(header.Values) // ["SAMEORIGIN"]
+func NewXFrameOptionsHeader(cfg XFrameOptionsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XFrameOptions,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXHTTPMethodOverrideHeader creates a new X-Http-Method-Override Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Http-Method-Override
+// XHTTPMethodOverrideConfig defines the configuration for the X-HTTP-Method-Override header.
+type XHTTPMethodOverrideConfig struct {
+	Method string // The HTTP method to override with, e.g., "PUT", "DELETE", "PATCH"
+}
+
+// String renders the X-HTTP-Method-Override header value.
+func (cfg XHTTPMethodOverrideConfig) String() string {
+	return cfg.Method
+}
+
+// NewXHTTPMethodOverrideHeader creates a new X-HTTP-Method-Override header from the config.
+// Note: This is a non-standard header, but widely supported in APIs.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-HTTP-Method-Override
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXHTTPMethodOverrideHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Http-Method-Override
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXHTTPMethodOverrideHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XHTTPMethodOverrideConfig{Method: "DELETE"}
+//	header := goheader.NewXHTTPMethodOverrideHeader(cfg)
+//	fmt.Println(header.Name)   // X-HTTP-Method-Override
+//	fmt.Println(header.Values) // ["DELETE"]
+func NewXHTTPMethodOverrideHeader(cfg XHTTPMethodOverrideConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XHTTPMethodOverride,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXPoweredByHeader creates a new X-Powered-By Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Powered-By
+// XPermittedCrossDomainPoliciesConfig defines the configuration for the X-Permitted-Cross-Domain-Policies header.
+type XPermittedCrossDomainPoliciesConfig struct {
+	Policy string // "none", "master-only", "by-content-type", "by-ftp-filename", or "all"
+}
+
+// String renders the X-Permitted-Cross-Domain-Policies header value.
+func (cfg XPermittedCrossDomainPoliciesConfig) String() string {
+	return cfg.Policy
+}
+
+// NewXPermittedCrossDomainPoliciesHeader creates a new X-Permitted-Cross-Domain-Policies header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Permitted-Cross-Domain-Policies
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXPoweredByHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Powered-By
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXPoweredByHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XPermittedCrossDomainPoliciesConfig{Policy: "none"}
+//	header := goheader.NewXPermittedCrossDomainPoliciesHeader(cfg)
+//	fmt.Println(header.Name)   // X-Permitted-Cross-Domain-Policies
+//	fmt.Println(header.Values) // ["none"]
+func NewXPermittedCrossDomainPoliciesHeader(cfg XPermittedCrossDomainPoliciesConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         XPermittedCrossDomainPolicies,
+		Request:      false,
+		Response:     true,
+		Standard:     false, // Non-standard but widely supported in legacy Adobe ecosystem
+		Values:       []string{cfg.String()},
+	}
+}
+
+// XPoweredByConfig defines the configuration for the X-Powered-By header.
+type XPoweredByConfig struct {
+	Technology string // The technology or framework name (e.g., "Express", "PHP/7.4.21")
+}
+
+// String renders the X-Powered-By header value.
+func (cfg XPoweredByConfig) String() string {
+	return cfg.Technology
+}
+
+// NewXPoweredByHeader creates a new X-Powered-By header from the config.
+// Note: This is a non-standard header. Use with caution, as it may leak information about your stack.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Powered-By
+//
+// Example usage:
+//
+//	cfg := goheader.XPoweredByConfig{Technology: "PHP/7.4.21"}
+//	header := goheader.NewXPoweredByHeader(cfg)
+//	fmt.Println(header.Name)   // X-Powered-By
+//	fmt.Println(header.Values) // ["PHP/7.4.21"]
+func NewXPoweredByHeader(cfg XPoweredByConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XPoweredBy,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXRedirectByHeader creates a new X-Redirect-By Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Redirect-By
+// XRedirectByConfig defines the configuration for the X-Redirect-By header.
+type XRedirectByConfig struct {
+	Source string // Component or system that triggered the redirect (e.g., "WordPress", "nginx", "load-balancer")
+}
+
+// String renders the X-Redirect-By header value.
+func (cfg XRedirectByConfig) String() string {
+	return cfg.Source
+}
+
+// NewXRedirectByHeader creates a new X-Redirect-By header from the config.
+// Note: This is a non-standard header, mostly used for debugging and transparency.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Redirect-By
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXRedirectByHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Redirect-By
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXRedirectByHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XRedirectByConfig{Source: "WordPress"}
+//	header := goheader.NewXRedirectByHeader(cfg)
+//	fmt.Println(header.Name)   // X-Redirect-By
+//	fmt.Println(header.Values) // ["WordPress"]
+func NewXRedirectByHeader(cfg XRedirectByConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XRedirectBy,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXRequestIDHeader creates a new X-Request-ID Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Request-ID
+// XRequestIDConfig defines the configuration for the X-Request-ID header.
+type XRequestIDConfig struct {
+	ID string // A unique request ID, typically a UUID
+}
+
+// String renders the X-Request-ID header value.
+func (cfg XRequestIDConfig) String() string {
+	return cfg.ID
+}
+
+// NewXRequestIDHeader creates a new X-Request-ID header from the config.
+// Note: This is a non-standard header, but widely adopted in APIs and distributed systems.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Request-ID
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXRequestIDHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Request-ID
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXRequestIDHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XRequestIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+//	header := goheader.NewXRequestIDHeader(cfg)
+//	fmt.Println(header.Name)   // X-Request-ID
+//	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
+func NewXRequestIDHeader(cfg XRequestIDConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XRequestID,
 		Request:      true,
-		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Response:     true,
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXRequestedWithHeader creates a new X-Requested-With Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Requested-With
+// XRequestedWithConfig defines the configuration for the X-Requested-With header.
+type XRequestedWithConfig struct {
+	With string // Typically "XMLHttpRequest", but could be other client identifiers
+}
+
+// String renders the X-Requested-With header value.
+func (cfg XRequestedWithConfig) String() string {
+	return cfg.With
+}
+
+// NewXRequestedWithHeader creates a new X-Requested-With header from the config.
+// Note: This is a non-standard header, but historically common in AJAX applications.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Requested-With
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXRequestedWithHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Requested-With
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXRequestedWithHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XRequestedWithConfig{With: "XMLHttpRequest"}
+//	header := goheader.NewXRequestedWithHeader(cfg)
+//	fmt.Println(header.Name)   // X-Requested-With
+//	fmt.Println(header.Values) // ["XMLHttpRequest"]
+func NewXRequestedWithHeader(cfg XRequestedWithConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XRequestedWith,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
+}
+
+// XRobotsTagConfig defines the configuration for the X-Robots-Tag header.
+type XRobotsTagConfig struct {
+	Directives []string // List of directives, e.g., ["noindex", "nofollow"]
+}
+
+// String renders the X-Robots-Tag header value.
+func (cfg XRobotsTagConfig) String() string {
+	return strings.Join(cfg.Directives, ", ")
+}
+
+// NewXRobotsTagHeader creates a new X-Robots-Tag header from the config.
+// Note: This is a non-standard header, but widely used for SEO and indexing control.
+// More information: https://developers.google.com/search/docs/crawling-indexing/using-robots-meta-tag
+//
+// Example usage:
+//
+//	cfg := goheader.XRobotsTagConfig{Directives: []string{"noindex", "nofollow"}}
+//	header := goheader.NewXRobotsTagHeader(cfg)
+//	fmt.Println(header.Name)   // X-Robots-Tag
+//	fmt.Println(header.Values) // ["noindex, nofollow"]
+func NewXRobotsTagHeader(cfg XRobotsTagConfig) Header {
+	return Header{
+		Experimental: false,
+		Name:         XRobotsTag,
+		Request:      false,
+		Response:     true,
+		Standard:     false, // Non-standard but widely used
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewXUACompatibleHeader creates a new X-UA-Compatible Header with the specified values.
