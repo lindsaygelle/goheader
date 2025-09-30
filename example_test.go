@@ -1573,9 +1573,31 @@ func ExampleWriteHeaders() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Create a new set of goheader.Header instances.
 		headers := []goheader.Header{
-			goheader.NewContentLanguageHeader("en-AU"),
-			goheader.NewContentTypeHeader("application/json"),
-			goheader.NewCookieHeader("language=golang")}
+			goheader.NewContentLanguageHeader(goheader.ContentLanguageConfig{
+				Values: []goheader.ContentLanguageValue{
+					goheader.ContentLanguageValue{
+						Language: "en",
+					},
+				},
+			}),
+			goheader.NewContentTypeHeader(goheader.ContentTypeConfig{
+				MediaType: "application/json",
+				Params: map[string]string{
+					"charset": "UTF-8",
+				},
+			}),
+			goheader.NewCookieHeader(goheader.CookieConfig{
+				Cookies: []goheader.CookieValue{
+					goheader.CookieValue{
+						Name:  "sessionId",
+						Value: "abc123",
+					},
+					goheader.CookieValue{
+						Name:  "theme",
+						Value: "dark"},
+				},
+			}),
+		}
 
 		// Add the headers to the http.ResponseWriter.
 		goheader.WriteHeaders(w, headers...)
