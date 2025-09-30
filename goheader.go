@@ -5853,184 +5853,361 @@ func NewWantDigestHeader(cfg WantDigestConfig) Header {
 	}
 }
 
-// NewWarningHeader creates a new Warning Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
+// WarningEntry represents a single Warning header entry.
+type WarningEntry struct {
+	Code  int        // Warning code (e.g., 110, 112)
+	Agent string     // Agent generating the warning (can be "-" if unknown)
+	Text  string     // Descriptive warning text
+	Date  *time.Time // Optional date in IMF-fixdate format
+}
+
+// String renders a single Warning header entry.
+func (w WarningEntry) String() string {
+	agent := w.Agent
+	if agent == "" {
+		agent = "-"
+	}
+	if w.Date != nil {
+		return fmt.Sprintf("%d %s %q %q", w.Code, agent, w.Text, w.Date.UTC().Format(time.RFC1123))
+	}
+	return fmt.Sprintf("%d %s %q", w.Code, agent, w.Text)
+}
+
+// WarningConfig defines the configuration for the Warning header.
+type WarningConfig struct {
+	Entries []WarningEntry
+}
+
+// String renders the Warning header value.
+func (cfg WarningConfig) String() string {
+	parts := []string{}
+	for _, entry := range cfg.Entries {
+		parts = append(parts, entry.String())
+	}
+	return strings.Join(parts, ", ")
+}
+
+// NewWarningHeader creates a new Warning header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewWarningHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Warning
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewWarningHeader(values ...string) Header {
+// Example usage:
+//
+//	now := time.Now()
+//	cfg := goheader.WarningConfig{
+//	    Entries: []goheader.WarningEntry{
+//	        {Code: 110, Agent: "-", Text: "Response is stale"},
+//	        {Code: 112, Agent: "example.com:8080", Text: "Disconnected operation", Date: &now},
+//	    },
+//	}
+//	header := goheader.NewWarningHeader(cfg)
+//	fmt.Println(header.Name)   // Warning
+//	fmt.Println(header.Values) // ['110 - "Response is stale", 112 example.com:8080 "Disconnected operation" "Mon, 15 Sep 2025 15:00:00 GMT"']
+func NewWarningHeader(cfg WarningConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Warning,
-		Request:      true,
+		Request:      false,
 		Response:     true,
 		Standard:     true,
-		Values:       values}
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewWidthHeader creates a new Width Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Width
+// WidthConfig defines the configuration for the Width header.
+type WidthConfig struct {
+	Pixels int // The intended display width in physical pixels
+}
+
+// String renders the Width header value.
+func (cfg WidthConfig) String() string {
+	if cfg.Pixels > 0 {
+		return fmt.Sprintf("%d", cfg.Pixels)
+	}
+	return ""
+}
+
+// NewWidthHeader creates a new Width header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Width
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewWidthHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // Width
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewWidthHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.WidthConfig{Pixels: 1920}
+//	header := goheader.NewWidthHeader(cfg)
+//	fmt.Println(header.Name)   // Width
+//	fmt.Println(header.Values) // ["1920"]
+func NewWidthHeader(cfg WidthConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         Width,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXATTDeviceIDHeader creates a new X-ATT-DeviceId Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-ATT-DeviceId
+// XATTDeviceIDConfig defines the configuration for the X-ATT-DeviceId header.
+type XATTDeviceIDConfig struct {
+	DeviceID string // e.g., "GT-P7320/P7320XXLPG"
+}
+
+// String renders the X-ATT-DeviceId header value.
+func (cfg XATTDeviceIDConfig) String() string {
+	return cfg.DeviceID
+}
+
+// NewXATTDeviceIDHeader creates a new X-ATT-DeviceId header from the config.
+// Note: This is a non-standard header, historically used by AT&T devices.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-ATT-DeviceId
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXATTDeviceIDHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-ATT-DeviceId
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXATTDeviceIDHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XATTDeviceIDConfig{DeviceID: "GT-P7320/P7320XXLPG"}
+//	header := goheader.NewXATTDeviceIDHeader(cfg)
+//	fmt.Println(header.Name)   // X-ATT-DeviceId
+//	fmt.Println(header.Values) // ["GT-P7320/P7320XXLPG"]
+func NewXATTDeviceIDHeader(cfg XATTDeviceIDConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XATTDeviceID,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard / deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXContentDurationHeader creates a new X-Content-Duration Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Duration
+// XContentDurationConfig defines the configuration for the X-Content-Duration header.
+type XContentDurationConfig struct {
+	Seconds float64 // Duration of the media resource in seconds (can be fractional)
+}
+
+// String renders the X-Content-Duration header value.
+func (cfg XContentDurationConfig) String() string {
+	if cfg.Seconds > 0 {
+		return fmt.Sprintf("%.3f", cfg.Seconds)
+	}
+	return ""
+}
+
+// NewXContentDurationHeader creates a new X-Content-Duration header from the config.
+// Note: This is a non-standard header, mainly used in media servers.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Duration
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXContentDurationHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Content-Duration
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXContentDurationHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XContentDurationConfig{Seconds: 215.3}
+//	header := goheader.NewXContentDurationHeader(cfg)
+//	fmt.Println(header.Name)   // X-Content-Duration
+//	fmt.Println(header.Values) // ["215.300"]
+func NewXContentDurationHeader(cfg XContentDurationConfig) Header {
+	values := []string{}
+	if v := cfg.String(); v != "" {
+		values = append(values, v)
+	}
+
 	return Header{
 		Experimental: false,
 		Name:         XContentDuration,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       values,
+	}
 }
 
-// NewXContentSecurityPolicyHeader creates a new X-Content-Security-Policy Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Security-Policy
+// XContentSecurityPolicyConfig defines the configuration for the X-Content-Security-Policy header.
+type XContentSecurityPolicyConfig struct {
+	Policy string // e.g., "default-src 'self'; script-src example.com"
+}
+
+// String renders the X-Content-Security-Policy header value.
+func (cfg XContentSecurityPolicyConfig) String() string {
+	return cfg.Policy
+}
+
+// NewXContentSecurityPolicyHeader creates a new X-Content-Security-Policy header from the config.
+// Note: This header is deprecated. Use Content-Security-Policy instead.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Security-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXContentSecurityPolicyHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Content-Security-Policy
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXContentSecurityPolicyHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XContentSecurityPolicyConfig{
+//	    Policy: "default-src 'self'; script-src example.com",
+//	}
+//	header := goheader.NewXContentSecurityPolicyHeader(cfg)
+//	fmt.Println(header.Name)   // X-Content-Security-Policy
+//	fmt.Println(header.Values) // ["default-src 'self'; script-src example.com"]
+func NewXContentSecurityPolicyHeader(cfg XContentSecurityPolicyConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XContentSecurityPolicy,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Deprecated / non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXContentTypeOptionsHeader creates a new X-Content-Type-Options Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+// XContentTypeOptionsConfig defines the configuration for the X-Content-Type-Options header.
+type XContentTypeOptionsConfig struct {
+	NoSniff bool // If true, sets the header to "nosniff"
+}
+
+// String renders the X-Content-Type-Options header value.
+func (cfg XContentTypeOptionsConfig) String() string {
+	if cfg.NoSniff {
+		return "nosniff"
+	}
+	return ""
+}
+
+// NewXContentTypeOptionsHeader creates a new X-Content-Type-Options header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXContentTypeOptionsHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Content-Type-Options
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXContentTypeOptionsHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XContentTypeOptionsConfig{NoSniff: true}
+//	header := goheader.NewXContentTypeOptionsHeader(cfg)
+//	fmt.Println(header.Name)   // X-Content-Type-Options
+//	fmt.Println(header.Values) // ["nosniff"]
+func NewXContentTypeOptionsHeader(cfg XContentTypeOptionsConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XContentTypeOptions,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     true,
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXCorrelationIDHeader creates a new X-Correlation-ID Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Correlation-ID
+// XCorrelationIDConfig defines the configuration for the X-Correlation-ID header.
+type XCorrelationIDConfig struct {
+	ID string // A unique correlation ID (often a UUID)
+}
+
+// String renders the X-Correlation-ID header value.
+func (cfg XCorrelationIDConfig) String() string {
+	return cfg.ID
+}
+
+// NewXCorrelationIDHeader creates a new X-Correlation-ID header from the config.
+// Note: This is a non-standard header, but widely used in distributed systems.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Correlation-ID
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXCorrelationIDHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Correlation-ID
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXCorrelationIDHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XCorrelationIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+//	header := goheader.NewXCorrelationIDHeader(cfg)
+//	fmt.Println(header.Name)   // X-Correlation-ID
+//	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
+func NewXCorrelationIDHeader(cfg XCorrelationIDConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XCorrelationID,
-		Request:      false,
+		Request:      true,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXCSRFTokenHeader creates a new X-Csrf-Token Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Csrf-Token
+// XCsrfTokenConfig defines the configuration for the X-Csrf-Token header.
+type XCsrfTokenConfig struct {
+	Token string // CSRF token value
+}
+
+// String renders the X-Csrf-Token header value.
+func (cfg XCsrfTokenConfig) String() string {
+	return cfg.Token
+}
+
+// NewXCsrfTokenHeader creates a new X-Csrf-Token header from the config.
+// Note: This is a non-standard security header used in CSRF protection schemes.
+// More information: https://owasp.org/www-community/attacks/csrf
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXCSRFTokenHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Csrf-Token
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXCSRFTokenHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XCsrfTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
+//	header := goheader.NewXCsrfTokenHeader(cfg)
+//	fmt.Println(header.Name)   // X-Csrf-Token
+//	fmt.Println(header.Values) // ["9f8b7c6d-1234-5678-abcd-9876543210ef"]
+func NewXCsrfTokenHeader(cfg XCsrfTokenConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XCSRFToken,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXDNSPrefetchControlHeader creates a new X-DNS-Prefetch-Control Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
+// XDNSPrefetchControlConfig defines the configuration for the X-DNS-Prefetch-Control header.
+type XDNSPrefetchControlConfig struct {
+	Enable bool // true = "on", false = "off"
+}
+
+// String renders the X-DNS-Prefetch-Control header value.
+func (cfg XDNSPrefetchControlConfig) String() string {
+	if cfg.Enable {
+		return "on"
+	}
+	return "off"
+}
+
+// NewXDNSPrefetchControlHeader creates a new X-DNS-Prefetch-Control header from the config.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXDNSPrefetchControlHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-DNS-Prefetch-Control
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXDNSPrefetchControlHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XDNSPrefetchControlConfig{Enable: false}
+//	header := goheader.NewXDNSPrefetchControlHeader(cfg)
+//	fmt.Println(header.Name)   // X-DNS-Prefetch-Control
+//	fmt.Println(header.Values) // ["off"]
+func NewXDNSPrefetchControlHeader(cfg XDNSPrefetchControlConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XDNSPrefetchControl,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard but widely supported
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXForwardedForHeader creates a new X-Forwarded-For Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+// XForwardedForConfig defines the configuration for the X-Forwarded-For header.
+type XForwardedForConfig struct {
+	IPs []string // List of IP addresses, client first then proxies
+}
+
+// String renders the X-Forwarded-For header value.
+func (cfg XForwardedForConfig) String() string {
+	return strings.Join(cfg.IPs, ", ")
+}
+
+// NewXForwardedForHeader creates a new X-Forwarded-For header from the config.
+// Note: This is a non-standard header, but widely used in proxy/load balancer setups.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXForwardedForHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Forwarded-For
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXForwardedForHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XForwardedForConfig{
+//	    IPs: []string{"203.0.113.195", "70.41.3.18", "150.172.238.178"},
+//	}
+//	header := goheader.NewXForwardedForHeader(cfg)
+//	fmt.Println(header.Name)   // X-Forwarded-For
+//	fmt.Println(header.Values) // ["203.0.113.195, 70.41.3.18, 150.172.238.178"]
+func NewXForwardedForHeader(cfg XForwardedForConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XForwardedFor,
 		Request:      true,
 		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard but widely supported
+		Values:       []string{cfg.String()},
+	}
 }
 
 // NewXForwardedHostHeader creates a new X-Forwarded-Host Header with the specified values.

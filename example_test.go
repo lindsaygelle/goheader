@@ -1362,71 +1362,92 @@ func ExampleNewWantDigestHeader() {
 // ExampleNewWarningHeader is an example function for NewWarningHeader.
 func ExampleNewWarningHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewWarningHeader("112 - \"cache down\" \"Wed, 21 Oct 2015 07:28:00 GMT\"")
-	fmt.Println(header)
+	now := time.Now()
+	cfg := goheader.WarningConfig{
+		Entries: []goheader.WarningEntry{
+			{Code: 110, Agent: "-", Text: "Response is stale"},
+			{Code: 112, Agent: "example.com:8080", Text: "Disconnected operation", Date: &now},
+		},
+	}
+	header := goheader.NewWarningHeader(cfg)
+	fmt.Println(header.Values)
+	// ['110 - "Response is stale", 112 example.com:8080 "Disconnected operation" "Mon, 15 Sep 2025 15:00:00 GMT"']
 }
 
 // ExampleNewWidthHeader is an example function for NewWidthHeader.
 func ExampleNewWidthHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewWidthHeader("1920")
-	fmt.Println(header)
+	cfg := goheader.WidthConfig{Pixels: 1920}
+	header := goheader.NewWidthHeader(cfg)
+	fmt.Println(header.Values) // ["1920"]
 }
 
 // ExampleNewXATTDeviceIDHeader is an example function for NewXATTDeviceIDHeader.
 func ExampleNewXATTDeviceIDHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXATTDeviceIDHeader("GT-P7320/P7320XXLPG")
-	fmt.Println(header)
+	cfg := goheader.XATTDeviceIDConfig{DeviceID: "GT-P7320/P7320XXLPG"}
+	header := goheader.NewXATTDeviceIDHeader(cfg)
+	fmt.Println(header.Values) // ["GT-P7320/P7320XXLPG"]
 }
 
 // ExampleNewXContentDurationHeader is an example function for NewXContentDurationHeader.
 func ExampleNewXContentDurationHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXContentDurationHeader("42.666")
-	fmt.Println(header)
+	cfg := goheader.XContentDurationConfig{Seconds: 215.3}
+	header := goheader.NewXContentDurationHeader(cfg)
+	fmt.Println(header.Values) // ["215.300"]
 }
 
 // ExampleNewXContentSecurityPolicyHeader is an example function for NewXContentSecurityPolicyHeader.
 func ExampleNewXContentSecurityPolicyHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXContentSecurityPolicyHeader("default-src 'self'")
-	fmt.Println(header)
+	cfg := goheader.XContentSecurityPolicyConfig{
+		Policy: "default-src 'self'; script-src example.com",
+	}
+	header := goheader.NewXContentSecurityPolicyHeader(cfg)
+	fmt.Println(header.Values) // ["default-src 'self'; script-src example.com"]
 }
 
 // ExampleNewXContentTypeOptionsHeader is an example function for NewXContentTypeOptionsHeader.
 func ExampleNewXContentTypeOptionsHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXContentTypeOptionsHeader("nosniff")
-	fmt.Println(header)
+	cfg := goheader.XContentTypeOptionsConfig{NoSniff: true}
+	header := goheader.NewXContentTypeOptionsHeader(cfg)
+	fmt.Println(header.Values) // ["nosniff"]
 }
 
 // ExampleNewXCorrelationIDHeader is an example function for NewXCorrelationIDHeader.
 func ExampleNewXCorrelationIDHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXCorrelationIDHeader("f058ebd6-02f7-4d3f-942e-904344e8cde5")
-	fmt.Println(header)
+	cfg := goheader.XCorrelationIDConfig{ID: "123e4567-e89b-12d3-a456-426614174000"}
+	header := goheader.NewXCorrelationIDHeader(cfg)
+	fmt.Println(header.Values) // ["123e4567-e89b-12d3-a456-426614174000"]
 }
 
 // ExampleNewXCSRFTokenHeader is an example function for NewXCSRFTokenHeader.
 func ExampleNewXCSRFTokenHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXCSRFTokenHeader("i8XNjC4b8KVok4uw5RftR38Wgp2BFwql")
-	fmt.Println(header)
+	cfg := goheader.XCsrfTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
+	header := goheader.NewXCsrfTokenHeader(cfg)
+	fmt.Println(header.Values) // ["9f8b7c6d-1234-5678-abcd-9876543210ef"]
 }
 
 // ExampleNewXDNSPrefetchControlHeader is an example function for NewXDNSPrefetchControlHeader.
 func ExampleNewXDNSPrefetchControlHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXDNSPrefetchControlHeader("off")
-	fmt.Println(header)
+	cfg := goheader.XDNSPrefetchControlConfig{Enable: true}
+	header := goheader.NewXDNSPrefetchControlHeader(cfg)
+	fmt.Println(header.Values) // ["on"]
 }
 
 // ExampleNewXForwardedForHeader is an example function for NewXForwardedForHeader.
 func ExampleNewXForwardedForHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXForwardedForHeader("203.0.113.195", "2001:db8:85a3:8d3:1319:8a2e:370:7348")
-	fmt.Println(header)
+	cfg := goheader.XForwardedForConfig{
+		IPs: []string{"203.0.113.195", "70.41.3.18", "150.172.238.178"},
+	}
+	header := goheader.NewXForwardedForHeader(cfg)
+	fmt.Println(header.Values) // ["203.0.113.195, 70.41.3.18, 150.172.238.178"]
 }
 
 // ExampleNewXForwardedHostHeader is an example function for NewXForwardedHostHeader.
