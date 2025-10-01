@@ -2985,7 +2985,7 @@ func (cfg FrontEndHTTPSConfig) String() string {
 	return "off"
 }
 
-// NewFrontEndHTTPsHeader creates a new Front-End-HTTPs header from the config.
+// NewFrontEndHTTPSHeader creates a new Front-End-HTTPs header from the config.
 // Note: This is a non-standard header used primarily by proxies and load balancers.
 //
 // Example usage:
