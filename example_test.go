@@ -856,9 +856,9 @@ func ExampleNewPublicKeyPinsHeader() {
 	// ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
 }
 
-// ExampleNewPublicKeyPinsHeaderReportOnly is an example function for NewPublicKeyPinsReportOnlyHeader.
+// ExampleNewPublicKeyPinsReportOnlyHeader is an example function for NewPublicKeyPinsReportOnlyHeader.
 
-func ExampleNewPublicKeyPinsHeaderReportOnly() {
+func ExampleNewPublicKeyPinsReportOnlyHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.PublicKeyPinsReportOnlyConfig{
 		Pins:              []string{"base64+primary==", "base64+backup=="},
@@ -1235,8 +1235,8 @@ func ExampleNewStrictTransportSecurityHeader() {
 	fmt.Println(header.Values) // ["max-age=31536000; includeSubDomains; preload"]
 }
 
-// ExampleNewSupportsLoadingModeConfig is an example function for NewSupportsLoadingModeHeader.
-func ExampleNewSupportsLoadingModeConfig() {
+// ExampleNewSupportsLoadingModeHeader is an example function for NewSupportsLoadingModeHeader.
+func ExampleNewSupportsLoadingModeHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.SupportsLoadingModeConfig{Mode: "credentialed-prerender"}
 	header := goheader.NewSupportsLoadingModeHeader(cfg)
@@ -1524,9 +1524,9 @@ func ExampleNewXRequestedWithHeader() {
 	fmt.Println(header.Values) // ["XMLHTTPRequest"]
 }
 
-// ExampleNewXRobotsTag is an example function for NewXRobotsTagHeader.
+// ExampleNewXRobotsTagHeader is an example function for NewXRobotsTagHeader.
 
-func ExampleNewXRobotsTag() {
+func ExampleNewXRobotsTagHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.XRobotsTagConfig{Directives: []string{"noindex", "nofollow"}}
 	header := goheader.NewXRobotsTagHeader(cfg)
