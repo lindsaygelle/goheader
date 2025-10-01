@@ -48,8 +48,9 @@ func ExampleNewAcceptCHHeader() {
 // ExampleNewAcceptCHLifetimeHeader is an example function for NewAcceptCHLifetimeHeader.
 func ExampleNewAcceptCHLifetimeHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewAcceptCHLifetimeHeader("86400")
-	fmt.Println(header)
+	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
+	header := goheader.NewAcceptCHLifetimeHeader(cfg)
+	fmt.Println(header.Values) // ["86400"]
 }
 
 // ExampleNewAcceptCharsetHeader is an example function for NewAcceptCharsetHeader.
@@ -619,7 +620,7 @@ func ExampleNewFromHeader() {
 func ExampleNewFrontEndHTTPSHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.FrontEndHTTPSConfig{Enabled: true}
-	header := goheader.NewFrontEndHttpsHeader(cfg)
+	header := goheader.NewFrontEndHTTPSHeader(cfg)
 	fmt.Println(header.Values) // ["on"]
 }
 
@@ -801,8 +802,8 @@ func ExampleNewPreferenceAppliedHeader() {
 	fmt.Println(header.Values) // ["return=minimal"]
 }
 
-// ExampleNewPriorityConfigHeader is an example function for NewPriorityHeader.
-func ExampleNewPriorityConfigHeader() {
+// ExampleNewPriorityHeader is an example function for NewPriorityHeader.
+func ExampleNewPriorityHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.PriorityConfig{Urgency: 3, Incremental: true}
 	header := goheader.NewPriorityHeader(cfg)
@@ -817,8 +818,8 @@ func ExampleNewProxyAuthenticateHeader() {
 	fmt.Println(header.Values) // ["Basic realm=\"Access to internal site\""]
 }
 
-// ExampleNewProxyAuthenticationInfoConfig is an example function for NewProxyAuthenticationInfoConfig
-func ExampleNewProxyAuthenticationInfoConfig() {
+// NewProxyAuthenticationInfoHeader is an example function for NewProxyAuthenticationInfoHeader
+func ExampleNewProxyAuthenticationInfoHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.ProxyAuthenticationInfoConfig{Params: map[string]string{"nextnonce": "abc123", "qop": "auth"}}
 	header := goheader.NewProxyAuthenticationInfoHeader(cfg)
@@ -1202,10 +1203,10 @@ func ExampleNewSetCookieHeader() {
 	expires := time.Now().Add(24 * time.Hour)
 	cfg := goheader.SetCookieConfig{
 		Name: "sessionId", Value: "abc123", Expires: &expires,
-		Path: "/", Secure: true, HttpOnly: true, SameSite: "Strict",
+		Path: "/", Secure: true, HTTPOnly: true, SameSite: "Strict",
 	}
 	header := goheader.NewSetCookieHeader(cfg)
-	fmt.Println(header.Values) // ["sessionId=abc123; Expires=Mon, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HttpOnly; SameSite=Strict"]
+	fmt.Println(header.Values) // ["sessionId=abc123; Expires=Mon, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HTTPOnly; SameSite=Strict"]
 }
 
 // ExampleNewSourceMapHeader is an example function for NewSourceMapHeader.
@@ -1427,8 +1428,8 @@ func ExampleNewXCorrelationIDHeader() {
 // ExampleNewXCSRFTokenHeader is an example function for NewXCSRFTokenHeader.
 func ExampleNewXCSRFTokenHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.XCsrfTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
-	header := goheader.NewXCsrfTokenHeader(cfg)
+	cfg := goheader.XCSRFTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
+	header := goheader.NewXCSRFTokenHeader(cfg)
 	fmt.Println(header.Values) // ["9f8b7c6d-1234-5678-abcd-9876543210ef"]
 }
 
@@ -1518,9 +1519,9 @@ func ExampleNewXRequestIDHeader() {
 // ExampleNewXRequestedWithHeader is an example function for NewXRequestedWithHeader.
 func ExampleNewXRequestedWithHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.XRequestedWithConfig{With: "XMLHttpRequest"}
+	cfg := goheader.XRequestedWithConfig{With: "XMLHTTPRequest"}
 	header := goheader.NewXRequestedWithHeader(cfg)
-	fmt.Println(header.Values) // ["XMLHttpRequest"]
+	fmt.Println(header.Values) // ["XMLHTTPRequest"]
 }
 
 // ExampleNewXRobotsTag is an example function for NewXRobotsTagHeader.
@@ -1535,36 +1536,41 @@ func ExampleNewXRobotsTag() {
 // ExampleNewXUACompatibleHeader is an example function for NewXUACompatibleHeader.
 func ExampleNewXUACompatibleHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXUACompatibleHeader("IE=EmulateIE7")
-	fmt.Println(header)
+	cfg := goheader.XUACompatibleConfig{Mode: "IE=edge"}
+	header := goheader.NewXUACompatibleHeader(cfg)
+	fmt.Println(header.Values) // ["IE=edge"]
 }
 
 // ExampleNewXUIDHHeader is an example function for NewXUIDHHeader.
 func ExampleNewXUIDHHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXUIDHHeader("...")
-	fmt.Println(header)
+	cfg := goheader.XUIDHConfig{ID: "1234567890abcdef"}
+	header := goheader.NewXUIDHHeader(cfg)
+	fmt.Println(header.Values) // ["1234567890abcdef"]
 }
 
 // ExampleNewXWapProfileHeader is an example function for NewXWapProfileHeader.
 func ExampleNewXWapProfileHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXWapProfileHeader("http://wap.samsungmobile.com/uaprof/SGH-I777.xml")
-	fmt.Println(header)
+	cfg := goheader.XWapProfileConfig{URL: "http://wap.samsungmobile.com/uaprof/SGH-I777.xml"}
+	header := goheader.NewXWapProfileHeader(cfg)
+	fmt.Println(header.Values) // ["http://wap.samsungmobile.com/uaprof/SGH-I777.xml"]
 }
 
 // ExampleNewXWebKitCSPHeader is an example function for NewXWebKitCSPHeader.
 func ExampleNewXWebKitCSPHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXWebKitCSPHeader("default-src 'self'")
-	fmt.Println(header)
+	cfg := goheader.XWebKitCSPConfig{Policy: "default-src 'self'; script-src 'self' https://apis.google.com"}
+	header := goheader.NewXWebKitCSPHeader(cfg)
+	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.google.com"]
 }
 
 // ExampleNewXXSSProtectionHeader is an example function for NewXXSSProtectionHeader.
 func ExampleNewXXSSProtectionHeader() {
 	// Create a new goheader.Header instance.
-	header := goheader.NewXXSSProtectionHeader("1; mode=block")
-	fmt.Println(header)
+	cfg := goheader.XXSSProtectionConfig{Enabled: true, Mode: "block"}
+	header := goheader.NewXXSSProtectionHeader(cfg)
+	fmt.Println(header.Values) // ["1; mode=block"]
 }
 
 // ExampleWriteHeaders is an example function for WriteHeaders.

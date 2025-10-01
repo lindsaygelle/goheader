@@ -483,7 +483,7 @@ const XForwardedProto = "X-Forwarded-Proto"
 const XFrameOptions = "X-Frame-Options"
 
 // XHTTPMethodOverride header field is used to override the method specified in the request line with the method given in the header field.
-const XHTTPMethodOverride = "X-Http-Method-Override"
+const XHTTPMethodOverride = "X-HTTP-Method-Override"
 
 // XPermittedCrossDomainPolicies header field is used mainly by Adobe products (Flash, PDF readers, etc.).
 const XPermittedCrossDomainPolicies = "X-Permitted-Cross-Domain-Policies"
@@ -497,7 +497,7 @@ const XRedirectBy = "X-Redirect-By"
 // XRequestID header field is used to uniquely identify a request.
 const XRequestID = "X-Request-ID"
 
-// XRequestedWith header field is used to indicate the type of request (e.g., XMLHttpRequest) made by the user agent.
+// XRequestedWith header field is used to indicate the type of request (e.g., XMLHTTPRequest) made by the user agent.
 const XRequestedWith = "X-Requested-With"
 
 // XRobotsTag header field is used to control how search engines index a page.
@@ -2972,12 +2972,12 @@ func NewFromHeader(cfg FromConfig) Header {
 	}
 }
 
-// FrontEndHTTPSConfig defines the configuration for the Front-End-Https header.
+// FrontEndHTTPSConfig defines the configuration for the Front-End-HTTPs header.
 type FrontEndHTTPSConfig struct {
 	Enabled bool // true = "on", false = "off"
 }
 
-// String renders the Front-End-Https header value.
+// String renders the Front-End-HTTPs header value.
 func (cfg FrontEndHTTPSConfig) String() string {
 	if cfg.Enabled {
 		return "on"
@@ -2985,16 +2985,16 @@ func (cfg FrontEndHTTPSConfig) String() string {
 	return "off"
 }
 
-// NewFrontEndHttpsHeader creates a new Front-End-Https header from the config.
+// NewFrontEndHTTPsHeader creates a new Front-End-HTTPs header from the config.
 // Note: This is a non-standard header used primarily by proxies and load balancers.
 //
 // Example usage:
 //
 //	cfg := goheader.FrontEndHTTPSConfig{Enabled: true}
-//	header := goheader.NewFrontEndHttpsHeader(cfg)
-//	fmt.Println(header.Name)   // Front-End-Https
+//	header := goheader.NewFrontEndHTTPsHeader(cfg)
+//	fmt.Println(header.Name)   // Front-End-HTTPs
 //	fmt.Println(header.Values) // ["on"]
-func NewFrontEndHttpsHeader(cfg FrontEndHTTPSConfig) Header {
+func NewFrontEndHTTPSHeader(cfg FrontEndHTTPSConfig) Header {
 	return Header{
 		Experimental: true,
 		Name:         FrontEndHTTPS,
@@ -5200,7 +5200,7 @@ type SetCookieConfig struct {
 	Domain   string     // Optional Domain
 	Path     string     // Optional Path
 	Secure   bool       // Secure flag
-	HttpOnly bool       // HttpOnly flag
+	HTTPOnly bool       // HTTPOnly flag
 	SameSite string     // Optional: "Strict", "Lax", "None"
 }
 
@@ -5224,8 +5224,8 @@ func (cfg SetCookieConfig) String() string {
 	if cfg.Secure {
 		parts = append(parts, "Secure")
 	}
-	if cfg.HttpOnly {
-		parts = append(parts, "HttpOnly")
+	if cfg.HTTPOnly {
+		parts = append(parts, "HTTPOnly")
 	}
 	if cfg.SameSite != "" {
 		parts = append(parts, "SameSite="+cfg.SameSite)
@@ -5242,11 +5242,11 @@ func (cfg SetCookieConfig) String() string {
 //	expires := time.Now().Add(24 * time.Hour)
 //	cfg := goheader.SetCookieConfig{
 //	    Name: "sessionId", Value: "abc123", Expires: &expires,
-//	    Path: "/", Secure: true, HttpOnly: true, SameSite: "Strict",
+//	    Path: "/", Secure: true, HTTPOnly: true, SameSite: "Strict",
 //	}
 //	header := goheader.NewSetCookieHeader(cfg)
 //	fmt.Println(header.Name)   // Set-Cookie
-//	fmt.Println(header.Values) // ["sessionId=abc123; Expires=...; Path=/; Secure; HttpOnly; SameSite=Strict"]
+//	fmt.Println(header.Values) // ["sessionId=abc123; Expires=...; Path=/; Secure; HTTPOnly; SameSite=Strict"]
 func NewSetCookieHeader(cfg SetCookieConfig) Header {
 	return Header{
 		Experimental: false,
@@ -6119,27 +6119,27 @@ func NewXCorrelationIDHeader(cfg XCorrelationIDConfig) Header {
 	}
 }
 
-// XCsrfTokenConfig defines the configuration for the X-Csrf-Token header.
-type XCsrfTokenConfig struct {
+// XCSRFTokenConfig defines the configuration for the X-Csrf-Token header.
+type XCSRFTokenConfig struct {
 	Token string // CSRF token value
 }
 
 // String renders the X-Csrf-Token header value.
-func (cfg XCsrfTokenConfig) String() string {
+func (cfg XCSRFTokenConfig) String() string {
 	return cfg.Token
 }
 
-// NewXCsrfTokenHeader creates a new X-Csrf-Token header from the config.
+// NewXCSRFTokenHeader creates a new X-Csrf-Token header from the config.
 // Note: This is a non-standard security header used in CSRF protection schemes.
 // More information: https://owasp.org/www-community/attacks/csrf
 //
 // Example usage:
 //
-//	cfg := goheader.XCsrfTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
-//	header := goheader.NewXCsrfTokenHeader(cfg)
+//	cfg := goheader.XCSRFTokenConfig{Token: "9f8b7c6d-1234-5678-abcd-9876543210ef"}
+//	header := goheader.NewXCSRFTokenHeader(cfg)
 //	fmt.Println(header.Name)   // X-Csrf-Token
 //	fmt.Println(header.Values) // ["9f8b7c6d-1234-5678-abcd-9876543210ef"]
-func NewXCsrfTokenHeader(cfg XCsrfTokenConfig) Header {
+func NewXCSRFTokenHeader(cfg XCSRFTokenConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XCSRFToken,
@@ -6468,7 +6468,7 @@ func NewXRequestIDHeader(cfg XRequestIDConfig) Header {
 
 // XRequestedWithConfig defines the configuration for the X-Requested-With header.
 type XRequestedWithConfig struct {
-	With string // Typically "XMLHttpRequest", but could be other client identifiers
+	With string // Typically "XMLHTTPRequest", but could be other client identifiers
 }
 
 // String renders the X-Requested-With header value.
@@ -6482,10 +6482,10 @@ func (cfg XRequestedWithConfig) String() string {
 //
 // Example usage:
 //
-//	cfg := goheader.XRequestedWithConfig{With: "XMLHttpRequest"}
+//	cfg := goheader.XRequestedWithConfig{With: "XMLHTTPRequest"}
 //	header := goheader.NewXRequestedWithHeader(cfg)
 //	fmt.Println(header.Name)   // X-Requested-With
-//	fmt.Println(header.Values) // ["XMLHttpRequest"]
+//	fmt.Println(header.Values) // ["XMLHTTPRequest"]
 func NewXRequestedWithHeader(cfg XRequestedWithConfig) Header {
 	return Header{
 		Experimental: false,
@@ -6528,94 +6528,166 @@ func NewXRobotsTagHeader(cfg XRobotsTagConfig) Header {
 	}
 }
 
-// NewXUACompatibleHeader creates a new X-UA-Compatible Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-UA-Compatible
+// XUACompatibleConfig defines the configuration for the X-UA-Compatible header.
+type XUACompatibleConfig struct {
+	Mode string // Rendering mode, e.g., "IE=edge", "IE=9"
+}
+
+// String renders the X-UA-Compatible header value.
+func (cfg XUACompatibleConfig) String() string {
+	return cfg.Mode
+}
+
+// NewXUACompatibleHeader creates a new X-UA-Compatible header from the config.
+// Note: This is a non-standard, legacy header, ignored by most modern browsers.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-UA-Compatible
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXUACompatibleHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-UA-Compatible
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXUACompatibleHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XUACompatibleConfig{Mode: "IE=edge"}
+//	header := goheader.NewXUACompatibleHeader(cfg)
+//	fmt.Println(header.Name)   // X-UA-Compatible
+//	fmt.Println(header.Values) // ["IE=edge"]
+func NewXUACompatibleHeader(cfg XUACompatibleConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XUACompatible,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard and legacy
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXUIDHHeader creates a new X-UIDH Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-UIDH
+// XUIDHConfig defines the configuration for the X-UIDH header.
+type XUIDHConfig struct {
+	ID string // Unique identifier assigned by the ISP (deprecated, privacy concerns)
+}
+
+// String renders the X-UIDH header value.
+func (cfg XUIDHConfig) String() string {
+	return cfg.ID
+}
+
+// NewXUIDHHeader creates a new X-UIDH header from the config.
+// Note: This is a deprecated, non-standard header associated with ISP tracking.
+// More information: https://en.wikipedia.org/wiki/UIDH
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXUIDHHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-UIDH
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXUIDHHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XUIDHConfig{ID: "1234567890abcdef"}
+//	header := goheader.NewXUIDHHeader(cfg)
+//	fmt.Println(header.Name)   // X-UIDH
+//	fmt.Println(header.Values) // ["1234567890abcdef"]
+func NewXUIDHHeader(cfg XUIDHConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XUIDH,
-		Request:      true,
-		Response:     false,
-		Standard:     false,
-		Values:       values}
+		Request:      false,
+		Response:     true,
+		Standard:     false, // Non-standard and deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXWapProfileHeader creates a new X-Wap-Profile Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Wap-Profile
+// XWapProfileConfig defines the configuration for the X-Wap-Profile header.
+type XWapProfileConfig struct {
+	URL string // URL pointing to the User Agent Profile (UAProf) document
+}
+
+// String renders the X-Wap-Profile header value.
+func (cfg XWapProfileConfig) String() string {
+	return cfg.URL
+}
+
+// NewXWapProfileHeader creates a new X-Wap-Profile header from the config.
+// Note: This is a legacy, non-standard header from the early mobile web era.
+// More information: https://en.wikipedia.org/wiki/UAProf
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXWapProfileHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-Wap-Profile
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXWapProfileHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XWapProfileConfig{URL: "http://wap.samsungmobile.com/uaprof/SGH-I777.xml"}
+//	header := goheader.NewXWapProfileHeader(cfg)
+//	fmt.Println(header.Name)   // X-Wap-Profile
+//	fmt.Println(header.Values) // ["http://wap.samsungmobile.com/uaprof/SGH-I777.xml"]
+func NewXWapProfileHeader(cfg XWapProfileConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XWapProfile,
-		Request:      false,
-		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Request:      true,
+		Response:     false,
+		Standard:     false, // Non-standard and legacy
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXWebKitCSPHeader creates a new X-WebKit-CSP Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-WebKit-CSP
+// XWebKitCSPConfig defines the configuration for the X-WebKit-CSP header.
+type XWebKitCSPConfig struct {
+	Policy string // CSP policy string (e.g., "default-src 'self'; script-src 'self' https://apis.google.com")
+}
+
+// String renders the X-WebKit-CSP header value.
+func (cfg XWebKitCSPConfig) String() string {
+	return cfg.Policy
+}
+
+// NewXWebKitCSPHeader creates a new X-WebKit-CSP header from the config.
+// Note: This is a deprecated, non-standard header. Use Content-Security-Policy instead.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXWebKitCSPHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-WebKit-CSP
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXWebKitCSPHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XWebKitCSPConfig{Policy: "default-src 'self'; script-src 'self' https://apis.google.com"}
+//	header := goheader.NewXWebKitCSPHeader(cfg)
+//	fmt.Println(header.Name)   // X-WebKit-CSP
+//	fmt.Println(header.Values) // ["default-src 'self'; script-src 'self' https://apis.google.com"]
+func NewXWebKitCSPHeader(cfg XWebKitCSPConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XWebKitCSP,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Non-standard and deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
-// NewXXSSProtectionHeader creates a new X-XSS-Protection Header with the specified values.
-// It accepts a variadic number of strings, where each value represents an item to be added to the Header.
-// More information on the HTTP header can be found at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+// XXSSProtectionConfig defines the configuration for the X-XSS-Protection header.
+type XXSSProtectionConfig struct {
+	Enabled bool   // true = "1", false = "0"
+	Mode    string // Optional: "block" or "report=<URL>"
+}
+
+// String renders the X-XSS-Protection header value.
+func (cfg XXSSProtectionConfig) String() string {
+	if !cfg.Enabled {
+		return "0"
+	}
+	if cfg.Mode != "" {
+		return "1; mode=" + cfg.Mode
+	}
+	return "1"
+}
+
+// NewXXSSProtectionHeader creates a new X-XSS-Protection header from the config.
+// Note: This header is deprecated. Modern browsers ignore it.
+// More information: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
 //
-//	// Create a new Header instance.
-//	newHeader := goheader.NewXXSSProtectionHeader("Example", "Values")
-//	fmt.Println(newHeader.Name) // X-XSS-Protection
-//	fmt.Println(newHeader.Value) // ["Example", "Value"]
-func NewXXSSProtectionHeader(values ...string) Header {
+// Example usage:
+//
+//	cfg := goheader.XXSSProtectionConfig{Enabled: true, Mode: "block"}
+//	header := goheader.NewXXSSProtectionHeader(cfg)
+//	fmt.Println(header.Name)   // X-XSS-Protection
+//	fmt.Println(header.Values) // ["1; mode=block"]
+func NewXXSSProtectionHeader(cfg XXSSProtectionConfig) Header {
 	return Header{
 		Experimental: false,
 		Name:         XXSSProtection,
 		Request:      false,
 		Response:     true,
-		Standard:     false,
-		Values:       values}
+		Standard:     false, // Deprecated
+		Values:       []string{cfg.String()},
+	}
 }
 
 // WriteHeaders writes the provided headers to the given http.ResponseWriter object.
