@@ -2435,7 +2435,7 @@ import "github.com/lindsaygelle/goheader"
 
 func main() {
 	// Create a new HTTP header for use in HTTP client.
-	header := goheader.NewXRequestedWithHeader("XMLHttpRequest")
+	header := goheader.NewXRequestedWithHeader("XMLHTTPRequest")
 	fmt.Println(header)
 }
 ```
