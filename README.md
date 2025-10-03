@@ -1,6 +1,6 @@
 # Goheader
-Goheader is a small, focused [Go](https://github.com/golang/go) library that makes HTTP headers simple to define, compose and write. Instead of putting string literals all over your code, you use strongly named constructors (NewContentTypeHeader, NewAcceptHeader, NewStrictTransportSecurityHeader and many more) to build headers in a consistent way. A simple Header type is used to define a name, values and whether or not it is applicable. WriteHeaders then uses this to apply it to http.ResponseWriter.
 
+Goheader is a small, focused [Go](https://github.com/golang/go) library that makes HTTP headers simple to define, compose and write. Instead of putting string literals all over your code, you use strongly named constructors (`NewContentTypeHeader`, `NewAcceptHeader`, `NewStrictTransportSecurityHeader` and many more) to build headers in a consistent way. A simple Header type is used to define a name, values and whether or not it is applicable. `WriteHeaders` then uses this to apply it to `http.ResponseWriter`.
 If you know the header you want, there's a constructor for it. If you need more than one value, add them in. If you want to keep things tidy, collect headers into a slice and write them all at once.
 
 ![Goheader](https://repository-images.githubusercontent.com/398801126/5de79de0-f8f1-4c15-83bb-be249a772b01)
@@ -15,25 +15,29 @@ If you know the header you want, there's a constructor for it. If you need more 
 
 ### Typed constructors for dozens of headers
 Use small config structs for clarity and correctness:
-`NewAcceptHeader(AcceptConfig)`
-`NewAuthorizationHeader(AuthorizationConfig)`,
-`NewContentSecurityPolicyHeader(ContentSecurityPolicyConfig)`,
-`NewStrictTransportSecurityHeader(StrictTransportSecurityConfig)`,
-`NewSetCookieHeader(SetCookieConfig)`,
-`NewReportingEndpointsHeader(ReportingEndpointsConfig)`,
-`NewPermissionsPolicyHeader(PermissionsPolicyConfig)`, and many more.
+Examples:
+- `NewAcceptHeader(AcceptConfig)`
+- `NewAuthorizationHeader(AuthorizationConfig)`
+- `NewContentSecurityPolicyHeader(ContentSecurityPolicyConfig)`
+- `NewStrictTransportSecurityHeader(StrictTransportSecurityConfig)`
+- `NewSetCookieHeader(SetCookieConfig)`
+- `NewReportingEndpointsHeader(ReportingEndpointsConfig)`
+- `NewPermissionsPolicyHeader(PermissionsPolicyConfig)`
+
+And many more.
 
 ### Correct formatting out of the box
 Constructors handle the fiddly bits—q-values, date formatting (Mon, 02 Jan 2006 15:04:05 GMT), CSV joins, params quoting, and directive assembly.
 Examples:
-`NewAcceptEncodingHeader(AcceptEncodingConfig{...})` > `"gzip;q=1.0, br;q=0.8"`
-`NewContentRangeHeader(ContentRangeConfig{...})` > `"bytes 0-499/1234"`
-`NewRefreshHeader(RefreshConfig{...})` > `"5; url=https://example.com/new-page"`
+- `NewAcceptEncodingHeader(AcceptEncodingConfig{...})` > `"gzip;q=1.0, br;q=0.8"`
+- `NewContentRangeHeader(ContentRangeConfig{...})` > `"bytes 0-499/1234"`
+- `NewRefreshHeader(RefreshConfig{...})` > `"5; url=https://example.com/new-page"`
 
 ### Ergonomic multi-value support
 Pass slices for multi-valued headers and get correctly joined output:
-`NewVaryHeader(VaryConfig{Headers: []string{"Accept-Encoding","User-Agent"}})` > `"Accept-Encoding, User-Agent"`
-`NewLinkHeader(LinkConfig{Links: ...})` > `"<...>; rel=\"next\", <...>; rel=\"prev\""`
+Examples
+- `NewVaryHeader(VaryConfig{Headers: []string{"Accept-Encoding","User-Agent"}})` > `"Accept-Encoding, User-Agent"`
+- `NewLinkHeader(LinkConfig{Links: ...})` > `"<...>; rel=\"next\", <...>; rel=\"prev\""`
 
 ### Request/response clarity
 Config names mirror where headers are typically used (request vs response), making intent obvious in code review.
