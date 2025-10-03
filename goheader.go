@@ -258,7 +258,7 @@ const Priority = "Priority"
 const ProxyAuthenticate = "Proxy-Authenticate"
 
 // ProxyAuthenticationInfo header field is used to provide information such as next tokens for Digest authentication or additional parameters.
-const ProxyAuthenticationInfo = "ProxyAuthenticationInfo"
+const ProxyAuthenticationInfo = "Proxy-Authentication-Info"
 
 // ProxyAuthorization header field is used to provide authentication information for proxies that require authentication.
 const ProxyAuthorization = "Proxy-Authorization"
@@ -270,7 +270,7 @@ const ProxyConnection = "Proxy-Connection"
 const PublicKeyPins = "Public-Key-Pins"
 
 // PublicKeyPinsReportOnly header field is used to associate a specific cryptographic public key with a certain web server.
-const PublicKeyPinsReportOnly = "Public-Key-PinsReportOnly"
+const PublicKeyPinsReportOnly = "Public-Key-Pins-Report-Only"
 
 // RTT (Round-Trip Time) header field is used to indicate the round-trip time of the connection.
 const RTT = "RTT"
@@ -465,7 +465,7 @@ const XContentTypeOptions = "X-Content-Type-Options"
 const XCorrelationID = "X-Correlation-ID"
 
 // XCSRFToken header field is used to provide anti-CSRF (Cross-Site Request Forgery) tokens.
-const XCSRFToken = "X-Csrf-Token"
+const XCSRFToken = "X-CSRF-Token"
 
 // XDNSPrefetchControl header field is used to control DNS prefetching.
 const XDNSPrefetchControl = "X-DNS-Prefetch-Control"
@@ -546,12 +546,12 @@ type Header struct {
 //
 //	headers := goheader.NewHeaders(header1, header2)
 //	fmt.Println(headers) // Output: map[Content-Type:[application/json] Authorization:[Bearer Token]]
-func NewHeaders(headers ...*Header) http.Header {
-	HTTPHeader := http.Header{}
-	for _, header := range headers {
-		HTTPHeader[header.Name] = header.Values
+func NewHeaders(headers ...Header) http.Header {
+	header := http.Header{}
+	for _, h := range headers {
+		header[http.CanonicalHeaderKey(h.Name)] = h.Values
 	}
-	return HTTPHeader
+	return header
 }
 
 // AIMValue represents one A-IM token with optional quality and extensions.
@@ -830,7 +830,7 @@ type AcceptDatetimeConfig struct {
 // String renders the Accept-Datetime header value as an RFC 7231 HTTP-date.
 func (cfg AcceptDatetimeConfig) String() string {
 	// RFC1123 is the correct format for HTTP-date (RFC 7231 section 7.1.1.1)
-	return cfg.Datetime.UTC().Format(time.RFC1123)
+	return cfg.Datetime.UTC().Format(http.TimeFormat)
 }
 
 // NewAcceptDatetimeHeader creates a new Accept-Datetime header from the config.
@@ -2542,7 +2542,7 @@ type DateConfig struct {
 
 // String renders the Date header value in RFC 7231 IMF-fixdate format.
 func (cfg DateConfig) String() string {
-	return cfg.Time.UTC().Format(time.RFC1123)
+	return cfg.Time.UTC().Format(http.TimeFormat)
 }
 
 // NewDateHeader creates a new Date header from the config.
@@ -2873,7 +2873,7 @@ type ExpiresConfig struct {
 
 // String renders the Expires header value in RFC 7231 IMF-fixdate format.
 func (cfg ExpiresConfig) String() string {
-	return cfg.Time.UTC().Format(time.RFC1123)
+	return cfg.Time.UTC().Format(http.TimeFormat)
 }
 
 // NewExpiresHeader creates a new Expires header from the config.
@@ -3132,7 +3132,7 @@ type IfModifiedSinceConfig struct {
 
 // String renders the If-Modified-Since header value in RFC 7231 IMF-fixdate format.
 func (cfg IfModifiedSinceConfig) String() string {
-	return cfg.Time.UTC().Format(time.RFC1123)
+	return cfg.Time.UTC().Format(http.TimeFormat)
 }
 
 // NewIfModifiedSinceHeader creates a new If-Modified-Since header from the config.
@@ -3198,7 +3198,7 @@ func (cfg IfRangeConfig) String() string {
 		return cfg.ETag
 	}
 	if !cfg.Date.IsZero() {
-		return cfg.Date.UTC().Format(time.RFC1123)
+		return cfg.Date.UTC().Format(http.TimeFormat)
 	}
 	return ""
 }
@@ -3230,7 +3230,7 @@ type IfUnmodifiedSinceConfig struct {
 
 // String renders the If-Unmodified-Since header value in RFC 7231 IMF-fixdate format.
 func (cfg IfUnmodifiedSinceConfig) String() string {
-	return cfg.Time.UTC().Format(time.RFC1123)
+	return cfg.Time.UTC().Format(http.TimeFormat)
 }
 
 // NewIfUnmodifiedSinceHeader creates a new If-Unmodified-Since header from the config.
@@ -3328,7 +3328,7 @@ type LastModifiedConfig struct {
 
 // String renders the Last-Modified header value in RFC 7231 IMF-fixdate format.
 func (cfg LastModifiedConfig) String() string {
-	return cfg.Time.UTC().Format(time.RFC1123)
+	return cfg.Time.UTC().Format(http.TimeFormat)
 }
 
 // NewLastModifiedHeader creates a new Last-Modified header from the config.
@@ -5210,7 +5210,7 @@ func (cfg SetCookieConfig) String() string {
 	parts = append(parts, fmt.Sprintf("%s=%s", cfg.Name, cfg.Value))
 
 	if cfg.Expires != nil {
-		parts = append(parts, "Expires="+cfg.Expires.UTC().Format(time.RFC1123))
+		parts = append(parts, "Expires="+cfg.Expires.UTC().Format(http.TimeFormat))
 	}
 	if cfg.MaxAge > 0 {
 		parts = append(parts, fmt.Sprintf("Max-Age=%d", cfg.MaxAge))
@@ -5874,7 +5874,7 @@ func (w WarningEntry) String() string {
 		agent = "-"
 	}
 	if w.Date != nil {
-		return fmt.Sprintf("%d %s %q %q", w.Code, agent, w.Text, w.Date.UTC().Format(time.RFC1123))
+		return fmt.Sprintf("%d %s %q %q", w.Code, agent, w.Text, w.Date.UTC().Format(http.TimeFormat))
 	}
 	return fmt.Sprintf("%d %s %q", w.Code, agent, w.Text)
 }
