@@ -39,7 +39,7 @@ Examples
 - `NewVaryHeader(VaryConfig{Headers: []string{"Accept-Encoding","User-Agent"}})` > `"Accept-Encoding, User-Agent"`
 - `NewLinkHeader(LinkConfig{Links: ...})` > `"<...>; rel=\"next\", <...>; rel=\"prev\""`
 
-### Request/response clarity
+### Request & Response clarity
 Config names mirror where headers are typically used (request vs response), making intent obvious in code review.
 
 ### Simple integration
@@ -56,9 +56,104 @@ go get github.com/lindsaygelle/goheader
 Import the package into your Go code:
 
 ```Go
+package main
+
 import (
+	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/lindsaygelle/goheader"
 )
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	// Build headers via typed configs.
+	hContentType := goheader.NewContentTypeHeader(goheader.ContentTypeConfig{
+		MediaType: "application/json",
+		Params:    map[string]string{"charset": "UTF-8"},
+	})
+
+	hAccept := goheader.NewAcceptHeader(goheader.AcceptConfig{
+		Values: []goheader.AcceptValue{
+			{MediaType: "application/json", Quality: 1.0},
+			{MediaType: "text/html", Quality: 0.8, Params: map[string]string{"charset": "utf-8"}},
+		},
+	})
+
+	exp := time.Now().Add(24 * time.Hour)
+	hCookie := goheader.NewSetCookieHeader(goheader.SetCookieConfig{
+		Name: "sessionId", Value: "abc123", Expires: &exp,
+		Path: "/", Secure: true, HTTPOnly: true, SameSite: "Strict",
+	})
+
+	hCSP := goheader.NewContentSecurityPolicyHeader(goheader.ContentSecurityPolicyConfig{
+		Directives: []goheader.CSPDirective{
+			{Directive: "default-src", Sources: []string{"'self'"}},
+			{Directive: "script-src", Sources: []string{"'self'", "https://apis.example.com"}},
+		},
+	})
+
+	hHSTS := goheader.NewStrictTransportSecurityHeader(goheader.StrictTransportSecurityConfig{
+		MaxAge: 31536000, IncludeSubDomains: true, Preload: true,
+	})
+
+	// Apply in one call.
+	goheader.WriteHeaders(w, hContentType, hAccept, hCookie, hCSP, hHSTS)
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"ok": "true"})
+}
+
+func main() { _ = http.ListenAndServe(":8080", http.HandlerFunc(handler)) }
+```
+
+### CORS 
+Example allow specific origin + methods + headers.
+```Go
+cors := []goheader.Header{
+	goheader.NewAccessControlAllowOriginHeader(goheader.AccessControlAllowOriginConfig{
+		Origin: "https://example.com",
+	}),
+	goheader.NewAccessControlAllowMethodsHeader(goheader.AccessControlAllowMethodsConfig{
+		Values: []goheader.AccessControlAllowMethodsValue{{Method: "GET"}, {Method: "POST"}, {Method: "OPTIONS"}},
+	}),
+	goheader.NewAccessControlAllowHeadersHeader(goheader.AccessControlAllowHeadersConfig{
+		Values: []goheader.AccessControlAllowHeadersValue{{Header: "Content-Type"}, {Header: "Authorization"}},
+	}),
+}
+goheader.WriteHeaders(w, cors...)
+```
+
+### Caching
+Example cache HTTP headers.
+```Go
+maxAge := 3600
+goheader.WriteHeaders(w,
+	goheader.NewCacheControlHeader(goheader.CacheControlConfig{
+		Directives: []goheader.CacheControlDirective{
+			{Directive: "max-age", Value: &maxAge},
+			{Directive: "no-cache"},
+		},
+	}),
+)
+```
+
+### Partials
+Example
+```Go
+goheader.WriteHeaders(w,
+	goheader.NewContentRangeHeader(goheader.ContentRangeConfig{
+		Unit: "bytes", Start: 0, End: 499, Size: 1234,
+	}),
+)
+```
+
+### Extending
+```Go
+custom := goheader.Header{
+	Name:       "X-Feature-Flag",
+	Values:     []string{"beta-thing"},
+}
+goheader.WriteHeaders(w, custom)
 ```
 
 ## Docker
