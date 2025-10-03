@@ -52,10 +52,14 @@ You can install it in your Go project using `go get`:
 go get github.com/lindsaygelle/goheader
 ```
 
+```go
+import "github.com/lindsaygelle/goheader"
+```
+
 ## Usage
 Import the package into your Go code:
 
-```Go
+```go
 package main
 
 import (
@@ -106,9 +110,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() { _ = http.ListenAndServe(":8080", http.HandlerFunc(handler)) }
 ```
 
+## Common Recipes
 ### CORS 
-Example allow specific origin + methods + headers.
-```Go
+```go
 cors := []goheader.Header{
 	goheader.NewAccessControlAllowOriginHeader(goheader.AccessControlAllowOriginConfig{
 		Origin: "https://example.com",
@@ -123,9 +127,17 @@ cors := []goheader.Header{
 goheader.WriteHeaders(w, cors...)
 ```
 
-### Caching
-Example cache HTTP headers.
-```Go
+### Security
+```go
+goheader.WriteHeaders(w,
+	goheader.NewReferrerPolicyHeader(goheader.ReferrerPolicyConfig{Policy: "strict-origin-when-cross-origin"}),
+	goheader.NewXContentTypeOptionsHeader(goheader.XContentTypeOptionsConfig{NoSniff: true}),
+	goheader.NewXXSSProtectionHeader(goheader.XXSSProtectionConfig{Enabled: true, Mode: "block"}),
+)
+```
+
+### Cache Control
+```go
 maxAge := 3600
 goheader.WriteHeaders(w,
 	goheader.NewCacheControlHeader(goheader.CacheControlConfig{
@@ -138,8 +150,7 @@ goheader.WriteHeaders(w,
 ```
 
 ### Partials
-Example
-```Go
+```go
 goheader.WriteHeaders(w,
 	goheader.NewContentRangeHeader(goheader.ContentRangeConfig{
 		Unit: "bytes", Start: 0, End: 499, Size: 1234,
@@ -148,7 +159,7 @@ goheader.WriteHeaders(w,
 ```
 
 ### Extending
-```Go
+```go
 custom := goheader.Header{
 	Name:       "X-Feature-Flag",
 	Values:     []string{"beta-thing"},
