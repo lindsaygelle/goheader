@@ -5225,7 +5225,7 @@ func (cfg SetCookieConfig) String() string {
 		parts = append(parts, "Secure")
 	}
 	if cfg.HTTPOnly {
-		parts = append(parts, "HTTPOnly")
+		parts = append(parts, "HttpOnly")
 	}
 	if cfg.SameSite != "" {
 		parts = append(parts, "SameSite="+cfg.SameSite)
