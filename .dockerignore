@@ -1,0 +1,14 @@
+.codespellignore
+.devcontainer
+.dockerignore
+.editorconfig
+.github
+.gitignore
+.vscode
+**/*.yml
+**/*.yaml
+**/*.md
+**/*_test.go
+LICENSE
+NOTICE
+VERSION
