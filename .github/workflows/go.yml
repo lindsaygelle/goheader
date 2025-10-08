@@ -4,17 +4,18 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
-  defaults:
-    run:
-      shell: bash
-  permissions:
-    actions: read
-    contents: read
-    security-events: read
   main:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      actions: read
+      contents: read
+      security-events: read
     steps:
       - run: |
           set -euxo pipefail
