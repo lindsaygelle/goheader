@@ -111,7 +111,7 @@ func main() { _ = http.ListenAndServe(":8080", http.HandlerFunc(handler)) }
 ```
 
 ## Common Recipes
-### CORS 
+### CORS
 ```go
 cors := []goheader.Header{
 	goheader.NewAccessControlAllowOriginHeader(goheader.AccessControlAllowOriginConfig{

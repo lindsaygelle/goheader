@@ -1,0 +1,26 @@
+name: go
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  defaults:
+    run:
+      shell: bash
+  permissions:
+    actions: read
+    contents: read
+    security-events: read
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -euxo pipefail
+          ESCAPED_REPO=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+          TAG="$GITHUB_REF_NAME"
+          MOD_PATH="github.com/${ESCAPED_REPO}"
+          curl -sSf "https://proxy.golang.org/${MOD_PATH}/@v/${TAG}.info"
+          curl -sSf "https://sum.golang.org/lookup/${MOD_PATH}@${TAG}"
+          curl -sS "https://proxy.golang.org/${MOD_PATH}/@v/list" || true
