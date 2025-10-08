@@ -3,7 +3,7 @@ name: go
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   defaults:
@@ -17,5 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          ESCAPED_MODULE=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
-          curl https://proxy.golang.org/github.com/$ESCAPED_MODULE/@v/$GITHUB_REF_NAME.info
+          set -euxo pipefail
+          ESCAPED_REPO=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+          TAG="$GITHUB_REF_NAME"
+          MOD_PATH="github.com/${ESCAPED_REPO}"
+          curl -sSf "https://proxy.golang.org/${MOD_PATH}/@v/${TAG}.info"
+          curl -sSf "https://sum.golang.org/lookup/${MOD_PATH}@${TAG}"
+          curl -sS "https://proxy.golang.org/${MOD_PATH}/@v/list" || true
