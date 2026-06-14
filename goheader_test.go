@@ -1,6 +1,8 @@
 package goheader_test
 
 import (
+	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/lindsaygelle/goheader"
@@ -1363,5 +1365,35 @@ func TestNewXXSSProtectionHeader(t *testing.T) {
 	h := goheader.NewXXSSProtectionHeader(cfg)
 	if h.Name != goheader.XXSSProtection {
 		t.Errorf("expected header name for XXSSProtection")
+	}
+}
+
+func TestNewHeadersAppendsDuplicateValues(t *testing.T) {
+	headers := goheader.NewHeaders(
+		goheader.NewSetCookieHeader(goheader.SetCookieConfig{Name: "a", Value: "1"}),
+		goheader.NewSetCookieHeader(goheader.SetCookieConfig{Name: "b", Value: "2"}),
+	)
+
+	want := []string{"a=1", "b=2"}
+	if !reflect.DeepEqual(headers.Values(goheader.SetCookie), want) {
+		t.Fatalf("expected %v, got %v", want, headers.Values(goheader.SetCookie))
+	}
+}
+
+func TestWriteHeadersAppendsDuplicateValuesAndCanonicalizesKeys(t *testing.T) {
+	recorder := httptest.NewRecorder()
+
+	goheader.WriteHeaders(recorder,
+		goheader.Header{Name: "content-type", Values: []string{"text/plain"}},
+		goheader.Header{Name: "Content-Type", Values: []string{"application/json"}},
+	)
+
+	want := []string{"text/plain", "application/json"}
+	if !reflect.DeepEqual(recorder.Header().Values(goheader.ContentType), want) {
+		t.Fatalf("expected %v, got %v", want, recorder.Header().Values(goheader.ContentType))
+	}
+
+	if _, ok := recorder.Header()["content-type"]; ok {
+		t.Fatalf("expected lowercase content-type key to be canonicalized away, got %v", recorder.Header())
 	}
 }
