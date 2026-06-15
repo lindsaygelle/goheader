@@ -549,9 +549,14 @@ type Header struct {
 func NewHeaders(headers ...Header) http.Header {
 	header := http.Header{}
 	for _, h := range headers {
-		header[http.CanonicalHeaderKey(h.Name)] = h.Values
+		appendHeaderValues(header, h)
 	}
 	return header
+}
+
+func appendHeaderValues(dst http.Header, header Header) {
+	key := http.CanonicalHeaderKey(header.Name)
+	dst[key] = append(dst[key], header.Values...)
 }
 
 // AIMValue represents one A-IM token with optional quality and extensions.
@@ -6713,6 +6718,6 @@ func NewXXSSProtectionHeader(cfg XXSSProtectionConfig) Header {
 func WriteHeaders(writer interface{ Header() http.Header }, headers ...Header) {
 	writerHeaders := writer.Header()
 	for _, header := range headers {
-		writerHeaders[header.Name] = header.Values
+		appendHeaderValues(writerHeaders, header)
 	}
 }
