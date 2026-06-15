@@ -2,10 +2,8 @@
 package goheader_test
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"net/http"
+	"net/http/httptest"
 	"time"
 
 	"github.com/lindsaygelle/goheader"
@@ -14,6 +12,21 @@ import (
 // ExampleNewAIMHeader is an example function for NewAIMHeader.
 func ExampleNewAIMHeader() {
 	// Create a new goheader.Header instance.
+	cfg := goheader.AIMConfig{
+		Values: []goheader.AIMValue{
+			{Token: "gzip", Quality: 1.0},
+			{Token: "vcdiff", Quality: 0.5, Extensions: []string{"custom=1"}},
+		},
+	}
+	header := goheader.NewAIMHeader(cfg)
+	fmt.Println(header.Values[0])
+	// Output:
+	// gzip;q=1.0, vcdiff;q=0.5;custom=1
+}
+
+// ExampleNewAcceptHeader is an example function for NewAcceptHeader.
+func ExampleNewAcceptHeader() {
+	// Create a new goheader.Header instance.
 	cfg := goheader.AcceptConfig{
 		Values: []goheader.AcceptValue{
 			{MediaType: "application/json", Quality: 1.0},
@@ -21,11 +34,13 @@ func ExampleNewAIMHeader() {
 		},
 	}
 	header := goheader.NewAcceptHeader(cfg)
-	fmt.Println(header.Values) // ["application/json;q=1.0, text/html;charset=utf-8;q=0.8"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// application/json, text/html;charset=utf-8;q=0.8
 }
 
-// ExampleNewAcceptHeader is an example function for NewAcceptHeader.
-func ExampleNewAcceptHeader() {
+// ExampleNewAcceptCHHeader is an example function for NewAcceptCHHeader.
+func ExampleNewAcceptCHHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.AcceptCHConfig{
 		Values: []goheader.AcceptCHValue{
@@ -34,15 +49,9 @@ func ExampleNewAcceptHeader() {
 		},
 	}
 	header := goheader.NewAcceptCHHeader(cfg)
-	fmt.Println(header.Values) // ["DPR, Viewport-Width"]
-}
-
-// ExampleNewAcceptCHHeader is an example function for NewAcceptCHHeader.
-func ExampleNewAcceptCHHeader() {
-	// Create a new goheader.Header instance.
-	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
-	header := goheader.NewAcceptCHLifetimeHeader(cfg)
-	fmt.Println(header.Values) // ["86400"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// DPR, Viewport-Width
 }
 
 // ExampleNewAcceptCHLifetimeHeader is an example function for NewAcceptCHLifetimeHeader.
@@ -50,7 +59,9 @@ func ExampleNewAcceptCHLifetimeHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
 	header := goheader.NewAcceptCHLifetimeHeader(cfg)
-	fmt.Println(header.Values) // ["86400"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// 86400
 }
 
 // ExampleNewAcceptCharsetHeader is an example function for NewAcceptCharsetHeader.
@@ -431,7 +442,9 @@ func ExampleNewContentTypeHeader() {
 		Params:    map[string]string{"charset": "UTF-8"},
 	}
 	header := goheader.NewContentTypeHeader(cfg)
-	fmt.Println(header.Values) // ["application/json; charset=UTF-8"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// application/json; charset=UTF-8
 }
 
 // ExampleNewCookieHeader is an example function for NewCookieHeader.
@@ -1200,13 +1213,15 @@ func ExampleNewServiceWorkerNavigationPreloadHeader() {
 // ExampleNewSetCookieHeader is an example function for NewSetCookieHeader.
 func ExampleNewSetCookieHeader() {
 	// Create a new goheader.Header instance.
-	expires := time.Now().Add(24 * time.Hour)
+	expires := time.Date(2025, time.September, 16, 15, 4, 5, 0, time.UTC)
 	cfg := goheader.SetCookieConfig{
 		Name: "sessionId", Value: "abc123", Expires: &expires,
 		Path: "/", Secure: true, HTTPOnly: true, SameSite: "Strict",
 	}
 	header := goheader.NewSetCookieHeader(cfg)
-	fmt.Println(header.Values) // ["sessionId=abc123; Expires=Mon, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HTTPOnly; SameSite=Strict"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// sessionId=abc123; Expires=Tue, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HttpOnly; SameSite=Strict
 }
 
 // ExampleNewSourceMapHeader is an example function for NewSourceMapHeader.
@@ -1575,45 +1590,31 @@ func ExampleNewXXSSProtectionHeader() {
 
 // ExampleWriteHeaders is an example function for WriteHeaders.
 func ExampleWriteHeaders() {
-	// Create a default handler.
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Create a new set of goheader.Header instances.
-		headers := []goheader.Header{
-			goheader.NewContentLanguageHeader(goheader.ContentLanguageConfig{
-				Values: []goheader.ContentLanguageValue{
-					goheader.ContentLanguageValue{
-						Language: "en",
-					},
-				},
-			}),
-			goheader.NewContentTypeHeader(goheader.ContentTypeConfig{
-				MediaType: "application/json",
-				Params: map[string]string{
-					"charset": "UTF-8",
-				},
-			}),
-			goheader.NewCookieHeader(goheader.CookieConfig{
-				Cookies: []goheader.CookieValue{
-					goheader.CookieValue{
-						Name:  "sessionId",
-						Value: "abc123",
-					},
-					goheader.CookieValue{
-						Name:  "theme",
-						Value: "dark"},
-				},
-			}),
-		}
+	recorder := httptest.NewRecorder()
+	headers := []goheader.Header{
+		goheader.NewContentLanguageHeader(goheader.ContentLanguageConfig{
+			Values: []goheader.ContentLanguageValue{
+				{Language: "en"},
+			},
+		}),
+		goheader.NewContentTypeHeader(goheader.ContentTypeConfig{
+			MediaType: "application/json",
+			Params:    map[string]string{"charset": "UTF-8"},
+		}),
+		goheader.NewSetCookieHeader(goheader.SetCookieConfig{
+			Name:  "sessionId",
+			Value: "abc123",
+			Path:  "/",
+		}),
+	}
 
-		// Add the headers to the http.ResponseWriter.
-		goheader.WriteHeaders(w, headers...)
-		// Write the HTTP status code.
-		w.WriteHeader(http.StatusOK)
-		// Write the HTTP response.
-		json.NewEncoder(w).Encode(w.Header())
-	})
-	// Set the port for the server.
-	serverAddress := fmt.Sprintf(":%d", 8080)
-	// Serve content.
-	log.Println(http.ListenAndServe(serverAddress, nil))
+	goheader.WriteHeaders(recorder, headers...)
+
+	fmt.Println(recorder.Header().Get(goheader.ContentLanguage))
+	fmt.Println(recorder.Header().Get(goheader.ContentType))
+	fmt.Println(recorder.Header().Values(goheader.SetCookie)[0])
+	// Output:
+	// en
+	// application/json; charset=UTF-8
+	// sessionId=abc123; Path=/
 }
