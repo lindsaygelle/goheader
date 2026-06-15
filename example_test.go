@@ -875,8 +875,9 @@ func ExampleNewPublicKeyPinsHeader() {
 		ReportURI:         "https://example.com/hpkp-report",
 	}
 	header := goheader.NewPublicKeyPinsHeader(cfg)
-	fmt.Println(header.Values)
-	// ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
+	fmt.Println(header.Values[0])
+	// Output:
+	// pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubDomains; report-uri="https://example.com/hpkp-report"
 }
 
 // ExampleNewPublicKeyPinsReportOnlyHeader is an example function for NewPublicKeyPinsReportOnlyHeader.
@@ -890,8 +891,9 @@ func ExampleNewPublicKeyPinsReportOnlyHeader() {
 		ReportURI:         "https://example.com/hpkp-report",
 	}
 	header := goheader.NewPublicKeyPinsReportOnlyHeader(cfg)
-	fmt.Println(header.Values)
-	// ["pin-sha256=\"base64+primary==\"; pin-sha256=\"base64+backup==\"; max-age=5184000; includeSubDomains; report-uri=\"https://example.com/hpkp-report\""]
+	fmt.Println(header.Values[0])
+	// Output:
+	// pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubDomains; report-uri="https://example.com/hpkp-report"
 }
 
 // ExampleNewRTTHeader is an example function for NewRTTHeader.
@@ -955,8 +957,9 @@ func ExampleNewReportingEndpointsHeader() {
 		},
 	}
 	header := goheader.NewReportingEndpointsHeader(cfg)
-	fmt.Println(header.Values)
-	// ["default=\"https://example.com/reports\", csp=\"https://example.com/csp-reports\""]
+	fmt.Println(header.Values[0])
+	// Output:
+	// csp="https://example.com/csp-reports", default="https://example.com/reports"
 }
 
 // ExampleNewReportToHeader is an example function for NewReportToHeader.
@@ -969,8 +972,9 @@ func ExampleNewReportToHeader() {
 		IncludeSubdomains: true,
 	}
 	header := goheader.NewReportToHeader(cfg)
-	fmt.Println(header.Values)
-	// ['{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}],"include_subdomains":true}']
+	fmt.Println(header.Values[0])
+	// Output:
+	// {"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}],"include_subdomains":true}
 }
 
 // ExampleNewRetryAfterHeader is an example function for NewRetryAfterHeader.
@@ -1025,8 +1029,9 @@ func ExampleNewSecCHUAHeader() {
 		"Google Chrome": "112",
 	}}
 	header := goheader.NewSecCHUAHeader(cfg)
-	fmt.Println(header.Values)
-	// ["\"Chromium\";v=\"112\", \"Google Chrome\";v=\"112\""
+	fmt.Println(header.Values[0])
+	// Output:
+	// "Chromium";v="112", "Google Chrome";v="112"
 }
 
 // ExampleNewSecCHUAArchHeader is an example function for NewSecCHUAArchHeader.
@@ -1065,8 +1070,9 @@ func ExampleNewSecCHUAFullVersionListHeader() {
 		},
 	}
 	header := goheader.NewSecCHUAFullVersionListHeader(cfg)
-	fmt.Println(header.Values)
-	// ["\"Chromium\";v=\"112.0.5615.137\", \"Google Chrome\";v=\"112.0.5615.137\""]
+	fmt.Println(header.Values[0])
+	// Output:
+	// "Chromium";v="112.0.5615.137", "Google Chrome";v="112.0.5615.137"
 }
 
 // ExampleNewSecCHUAMobileHeader is an example function for NewSecCHUAMobileHeader.
@@ -1388,7 +1394,7 @@ func ExampleNewWantDigestHeader() {
 // ExampleNewWarningHeader is an example function for NewWarningHeader.
 func ExampleNewWarningHeader() {
 	// Create a new goheader.Header instance.
-	now := time.Now()
+	now := time.Date(2025, time.September, 15, 15, 0, 0, 0, time.UTC)
 	cfg := goheader.WarningConfig{
 		Entries: []goheader.WarningEntry{
 			{Code: 110, Agent: "-", Text: "Response is stale"},
@@ -1396,8 +1402,9 @@ func ExampleNewWarningHeader() {
 		},
 	}
 	header := goheader.NewWarningHeader(cfg)
-	fmt.Println(header.Values)
-	// ['110 - "Response is stale", 112 example.com:8080 "Disconnected operation" "Mon, 15 Sep 2025 15:00:00 GMT"']
+	fmt.Println(header.Values[0])
+	// Output:
+	// 110 - "Response is stale", 112 example.com:8080 "Disconnected operation" "Mon, 15 Sep 2025 15:00:00 GMT"
 }
 
 // ExampleNewWidthHeader is an example function for NewWidthHeader.
