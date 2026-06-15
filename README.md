@@ -29,7 +29,7 @@ And many more.
 ### Correct formatting out of the box
 Constructors handle the fiddly bits—q-values, date formatting (Mon, 02 Jan 2006 15:04:05 GMT), CSV joins, params quoting, and directive assembly.
 Examples:
-- `NewAcceptEncodingHeader(AcceptEncodingConfig{...})` > `"gzip;q=1.0, br;q=0.8"`
+- `NewAcceptEncodingHeader(AcceptEncodingConfig{...})` > `"gzip, br;q=0.8"`
 - `NewContentRangeHeader(ContentRangeConfig{...})` > `"bytes 0-499/1234"`
 - `NewRefreshHeader(RefreshConfig{...})` > `"5; url=https://example.com/new-page"`
 

@@ -75,7 +75,7 @@ func ExampleNewAcceptCharsetHeader() {
 		},
 	}
 	header := goheader.NewAcceptCharsetHeader(cfg)
-	fmt.Println(header.Values) // ["utf-8;q=1.0, iso-8859-1;q=0.5"]
+	fmt.Println(header.Values) // ["utf-8, iso-8859-1;q=0.5"]
 }
 
 // ExampleNewAcceptDatetimeHeader is an example function for NewAcceptDatetimeHeader.
@@ -98,7 +98,7 @@ func ExampleNewAcceptEncodingHeader() {
 		},
 	}
 	header := goheader.NewAcceptEncodingHeader(cfg)
-	fmt.Println(header.Values) // ["gzip;q=1.0, br;q=0.8"]
+	fmt.Println(header.Values) // ["gzip, br;q=0.8"]
 }
 
 // ExampleNewAcceptLanguageHeader is an example function for NewAcceptLanguageHeader.
@@ -111,7 +111,7 @@ func ExampleNewAcceptLanguageHeader() {
 		},
 	}
 	header := goheader.NewAcceptLanguageHeader(cfg)
-	fmt.Println(header.Values) // ["en-US;q=1.0, fr;q=0.8"]
+	fmt.Println(header.Values) // ["en-US, fr;q=0.8"]
 }
 
 // ExampleNewAcceptPatchHeader is an example function for NewAcceptPatchHeader.

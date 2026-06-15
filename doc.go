@@ -47,7 +47,7 @@
 //
 //	// Build a concrete http.Header map.
 //	h := goheader.NewHeaders(accept, ct)
-//	// Example: map[Accept:[application/json;q=1.0, text/html;charset=utf-8;q=0.8]
+//	// Example: map[Accept:[application/json, text/html;charset=utf-8;q=0.8]
 //	//            Content-Type:[application/json; charset=UTF-8]]
 //
 // Common builders
