@@ -1397,3 +1397,113 @@ func TestWriteHeadersAppendsDuplicateValuesAndCanonicalizesKeys(t *testing.T) {
 		t.Fatalf("expected lowercase content-type key to be canonicalized away, got %v", recorder.Header())
 	}
 }
+
+func TestAcceptHeaderSortsParamsDeterministically(t *testing.T) {
+	header := goheader.NewAcceptHeader(goheader.AcceptConfig{
+		Values: []goheader.AcceptValue{
+			{
+				MediaType: "text/html",
+				Params: map[string]string{
+					"version": "2",
+					"charset": "utf-8",
+				},
+				Quality: 0.8,
+			},
+		},
+	})
+
+	want := []string{"text/html;charset=utf-8;version=2;q=0.8"}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestContentDispositionHeaderSortsParamsDeterministically(t *testing.T) {
+	header := goheader.NewContentDispositionHeader(goheader.ContentDispositionConfig{
+		Type: "attachment",
+		Params: map[string]string{
+			"filename": "report.csv",
+			"size":     "123",
+		},
+	})
+
+	want := []string{`attachment; filename="report.csv"; size="123"`}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestLinkHeaderSortsAttributesDeterministically(t *testing.T) {
+	header := goheader.NewLinkHeader(goheader.LinkConfig{
+		Links: []goheader.LinkEntry{
+			{
+				URL: "https://example.com/page",
+				Attributes: map[string]string{
+					"title": "Page",
+					"rel":   "next",
+				},
+			},
+		},
+	})
+
+	want := []string{`<https://example.com/page>; rel="next"; title="Page"`}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestPermissionsPolicyHeaderSortsDirectivesDeterministically(t *testing.T) {
+	header := goheader.NewPermissionsPolicyHeader(goheader.PermissionsPolicyConfig{
+		Directives: map[string][]string{
+			"microphone":  {},
+			"geolocation": {"self"},
+		},
+	})
+
+	want := []string{"geolocation=(self), microphone=()"}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestProxyAuthenticationInfoHeaderSortsParamsDeterministically(t *testing.T) {
+	header := goheader.NewProxyAuthenticationInfoHeader(goheader.ProxyAuthenticationInfoConfig{
+		Params: map[string]string{
+			"qop":       "auth",
+			"nextnonce": "abc123",
+		},
+	})
+
+	want := []string{`nextnonce="abc123", qop="auth"`}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestReportingEndpointsHeaderSortsEndpointsDeterministically(t *testing.T) {
+	header := goheader.NewReportingEndpointsHeader(goheader.ReportingEndpointsConfig{
+		Endpoints: map[string]string{
+			"csp":     "https://example.com/csp-reports",
+			"default": "https://example.com/reports",
+		},
+	})
+
+	want := []string{`csp="https://example.com/csp-reports", default="https://example.com/reports"`}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
+
+func TestSecCHUAHeaderSortsBrandsDeterministically(t *testing.T) {
+	header := goheader.NewSecCHUAHeader(goheader.SecCHUAConfig{
+		Brands: map[string]string{
+			"Google Chrome": "112",
+			"Chromium":      "112",
+		},
+	})
+
+	want := []string{`"Chromium";v="112", "Google Chrome";v="112"`}
+	if !reflect.DeepEqual(header.Values, want) {
+		t.Fatalf("expected %v, got %v", want, header.Values)
+	}
+}
