@@ -4,6 +4,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/lindsaygelle/goheader"
 )
@@ -17,10 +18,22 @@ func TestNewAIMHeader(t *testing.T) {
 }
 
 func TestNewAcceptHeader(t *testing.T) {
-	cfg := goheader.AcceptConfig{}
+	cfg := goheader.AcceptConfig{
+		Values: []goheader.AcceptValue{
+			{MediaType: "application/json", Quality: 1.0},
+			{MediaType: "text/html", Quality: 0.8, Params: map[string]string{"charset": "utf-8"}},
+		},
+	}
 	h := goheader.NewAcceptHeader(cfg)
 	if h.Name != goheader.Accept {
-		t.Errorf("expected header name for Accept")
+		t.Fatalf("expected header name %q, got %q", goheader.Accept, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept header metadata: %+v", h)
+	}
+	want := []string{"application/json, text/html;charset=utf-8;q=0.8"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -201,10 +214,23 @@ func TestNewAuthorizationHeader(t *testing.T) {
 }
 
 func TestNewCacheControlHeader(t *testing.T) {
-	cfg := goheader.CacheControlConfig{}
+	maxAge := 3600
+	cfg := goheader.CacheControlConfig{
+		Directives: []goheader.CacheControlDirective{
+			{Directive: "max-age", Value: &maxAge},
+			{Directive: "no-cache"},
+		},
+	}
 	h := goheader.NewCacheControlHeader(cfg)
 	if h.Name != goheader.CacheControl {
-		t.Errorf("expected header name for CacheControl")
+		t.Fatalf("expected header name %q, got %q", goheader.CacheControl, h.Name)
+	}
+	if !h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Cache-Control header metadata: %+v", h)
+	}
+	want := []string{"max-age=3600, no-cache"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -305,10 +331,20 @@ func TestNewContentSecurityPolicyReportOnlyHeader(t *testing.T) {
 }
 
 func TestNewContentTypeHeader(t *testing.T) {
-	cfg := goheader.ContentTypeConfig{}
+	cfg := goheader.ContentTypeConfig{
+		MediaType: "application/json",
+		Params:    map[string]string{"charset": "UTF-8"},
+	}
 	h := goheader.NewContentTypeHeader(cfg)
 	if h.Name != goheader.ContentType {
-		t.Errorf("expected header name for ContentType")
+		t.Fatalf("expected header name %q, got %q", goheader.ContentType, h.Name)
+	}
+	if !h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Content-Type header metadata: %+v", h)
+	}
+	want := []string{"application/json; charset=UTF-8"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -1009,10 +1045,26 @@ func TestNewServiceWorkerNavigationPreloadHeader(t *testing.T) {
 }
 
 func TestNewSetCookieHeader(t *testing.T) {
-	cfg := goheader.SetCookieConfig{}
+	expires := time.Date(2025, time.September, 16, 15, 4, 5, 0, time.UTC)
+	cfg := goheader.SetCookieConfig{
+		Name:     "sessionId",
+		Value:    "abc123",
+		Expires:  &expires,
+		Path:     "/",
+		Secure:   true,
+		HTTPOnly: true,
+		SameSite: "Strict",
+	}
 	h := goheader.NewSetCookieHeader(cfg)
 	if h.Name != goheader.SetCookie {
-		t.Errorf("expected header name for SetCookie")
+		t.Fatalf("expected header name %q, got %q", goheader.SetCookie, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Set-Cookie header metadata: %+v", h)
+	}
+	want := []string{"sessionId=abc123; Expires=Tue, 16 Sep 2025 15:04:05 GMT; Path=/; Secure; HttpOnly; SameSite=Strict"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -1033,10 +1085,21 @@ func TestNewStatusHeader(t *testing.T) {
 }
 
 func TestNewStrictTransportSecurityHeader(t *testing.T) {
-	cfg := goheader.StrictTransportSecurityConfig{}
+	cfg := goheader.StrictTransportSecurityConfig{
+		MaxAge:            31536000,
+		IncludeSubDomains: true,
+		Preload:           true,
+	}
 	h := goheader.NewStrictTransportSecurityHeader(cfg)
 	if h.Name != goheader.StrictTransportSecurity {
-		t.Errorf("expected header name for StrictTransportSecurity")
+		t.Fatalf("expected header name %q, got %q", goheader.StrictTransportSecurity, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Strict-Transport-Security header metadata: %+v", h)
+	}
+	want := []string{"max-age=31536000; includeSubDomains; preload"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
