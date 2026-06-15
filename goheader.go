@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
@@ -559,6 +560,23 @@ func appendHeaderValues(dst http.Header, header Header) {
 	dst[key] = append(dst[key], header.Values...)
 }
 
+func sortedMapKeys[V any](values map[string]V) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func joinStringMap(values map[string]string, sep string, format func(string, string) string) string {
+	parts := make([]string, 0, len(values))
+	for _, key := range sortedMapKeys(values) {
+		parts = append(parts, format(key, values[key]))
+	}
+	return strings.Join(parts, sep)
+}
+
 // AIMValue represents one A-IM token with optional quality and extensions.
 type AIMValue struct {
 	Token      string   // The instance manipulation name (e.g., "gzip", "vcdiff")
@@ -633,11 +651,9 @@ func (v AcceptValue) String() string {
 	result := v.MediaType
 
 	if len(v.Params) > 0 {
-		var params []string
-		for k, val := range v.Params {
-			params = append(params, fmt.Sprintf("%s=%s", k, val))
-		}
-		result += ";" + strings.Join(params, ";")
+		result += ";" + joinStringMap(v.Params, ";", func(key, value string) string {
+			return fmt.Sprintf("%s=%s", key, value)
+		})
 	}
 
 	if v.Quality > 0 && v.Quality < 1 {
@@ -986,11 +1002,9 @@ type AcceptPatchValue struct {
 func (v AcceptPatchValue) String() string {
 	result := v.MediaType
 	if len(v.Params) > 0 {
-		var params []string
-		for k, val := range v.Params {
-			params = append(params, fmt.Sprintf("%s=%s", k, val))
-		}
-		result += ";" + strings.Join(params, ";")
+		result += ";" + joinStringMap(v.Params, ";", func(key, value string) string {
+			return fmt.Sprintf("%s=%s", key, value)
+		})
 	}
 	return result
 }
@@ -1044,11 +1058,9 @@ type AcceptPostValue struct {
 func (v AcceptPostValue) String() string {
 	result := v.MediaType
 	if len(v.Params) > 0 {
-		var params []string
-		for k, val := range v.Params {
-			params = append(params, fmt.Sprintf("%s=%s", k, val))
-		}
-		result += ";" + strings.Join(params, ";")
+		result += ";" + joinStringMap(v.Params, ";", func(key, value string) string {
+			return fmt.Sprintf("%s=%s", key, value)
+		})
 	}
 	return result
 }
@@ -1870,11 +1882,9 @@ type ContentDispositionConfig struct {
 func (cfg ContentDispositionConfig) String() string {
 	result := cfg.Type
 	if len(cfg.Params) > 0 {
-		var parts []string
-		for k, v := range cfg.Params {
-			parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
-		}
-		result += "; " + strings.Join(parts, "; ")
+		result += "; " + joinStringMap(cfg.Params, "; ", func(key, value string) string {
+			return fmt.Sprintf(`%s="%s"`, key, value)
+		})
 	}
 	return result
 }
@@ -2248,11 +2258,9 @@ type ContentTypeConfig struct {
 func (cfg ContentTypeConfig) String() string {
 	result := cfg.MediaType
 	if len(cfg.Params) > 0 {
-		var params []string
-		for k, v := range cfg.Params {
-			params = append(params, fmt.Sprintf("%s=%s", k, v))
-		}
-		result += "; " + strings.Join(params, "; ")
+		result += "; " + joinStringMap(cfg.Params, "; ", func(key, value string) string {
+			return fmt.Sprintf("%s=%s", key, value)
+		})
 	}
 	return result
 }
@@ -3366,8 +3374,8 @@ type LinkEntry struct {
 func (e LinkEntry) String() string {
 	var parts []string
 	parts = append(parts, fmt.Sprintf("<%s>", e.URL))
-	for k, v := range e.Attributes {
-		parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
+	for _, key := range sortedMapKeys(e.Attributes) {
+		parts = append(parts, fmt.Sprintf(`%s="%s"`, key, e.Attributes[key]))
 	}
 	return strings.Join(parts, "; ")
 }
@@ -3569,7 +3577,8 @@ type PermissionsPolicyConfig struct {
 // String renders the Permissions-Policy header value.
 func (cfg PermissionsPolicyConfig) String() string {
 	var parts []string
-	for feature, origins := range cfg.Directives {
+	for _, feature := range sortedMapKeys(cfg.Directives) {
+		origins := cfg.Directives[feature]
 		if len(origins) == 0 {
 			parts = append(parts, fmt.Sprintf("%s=()", feature))
 		} else {
@@ -3769,11 +3778,9 @@ type ProxyAuthenticationInfoConfig struct {
 
 // String renders the Proxy-Authentication-Info header value.
 func (cfg ProxyAuthenticationInfoConfig) String() string {
-	var parts []string
-	for k, v := range cfg.Params {
-		parts = append(parts, fmt.Sprintf(`%s="%s"`, k, v))
-	}
-	return strings.Join(parts, ", ")
+	return joinStringMap(cfg.Params, ", ", func(key, value string) string {
+		return fmt.Sprintf(`%s="%s"`, key, value)
+	})
 }
 
 // NewProxyAuthenticationInfoHeader creates a new Proxy-Authentication-Info header from the config.
@@ -4225,11 +4232,9 @@ type ReportingEndpointsConfig struct {
 
 // String renders the Reporting-Endpoints header value.
 func (cfg ReportingEndpointsConfig) String() string {
-	var parts []string
-	for name, url := range cfg.Endpoints {
-		parts = append(parts, fmt.Sprintf(`%s="%s"`, name, url))
-	}
-	return strings.Join(parts, ", ")
+	return joinStringMap(cfg.Endpoints, ", ", func(key, value string) string {
+		return fmt.Sprintf(`%s="%s"`, key, value)
+	})
 }
 
 // NewReportingEndpointsHeader creates a new Reporting-Endpoints header from the config.
@@ -4421,11 +4426,9 @@ type SecCHUAConfig struct {
 
 // String renders the Sec-CH-UA header value.
 func (cfg SecCHUAConfig) String() string {
-	var parts []string
-	for brand, version := range cfg.Brands {
-		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
-	}
-	return strings.Join(parts, ", ")
+	return joinStringMap(cfg.Brands, ", ", func(key, value string) string {
+		return fmt.Sprintf(`"%s";v="%s"`, key, value)
+	})
 }
 
 // NewSecCHUAHeader creates a new Sec-CH-UA header from the config.
@@ -4518,11 +4521,9 @@ type SecCHUAFullVersionConfig struct {
 
 // String renders the Sec-CH-UA-Full-Version header value.
 func (cfg SecCHUAFullVersionConfig) String() string {
-	var parts []string
-	for brand, version := range cfg.Brands {
-		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
-	}
-	return strings.Join(parts, ", ")
+	return joinStringMap(cfg.Brands, ", ", func(key, value string) string {
+		return fmt.Sprintf(`"%s";v="%s"`, key, value)
+	})
 }
 
 // NewSecCHUAFullVersionHeader creates a new Sec-CH-UA-Full-Version header from the config.
@@ -4554,11 +4555,9 @@ type SecCHUAFullVersionListConfig struct {
 
 // String renders the Sec-CH-UA-Full-Version-List header value.
 func (cfg SecCHUAFullVersionListConfig) String() string {
-	var parts []string
-	for brand, version := range cfg.Brands {
-		parts = append(parts, fmt.Sprintf(`"%s";v="%s"`, brand, version))
-	}
-	return strings.Join(parts, ", ")
+	return joinStringMap(cfg.Brands, ", ", func(key, value string) string {
+		return fmt.Sprintf(`"%s";v="%s"`, key, value)
+	})
 }
 
 // NewSecCHUAFullVersionListHeader creates a new Sec-CH-UA-Full-Version-List header from the config.
