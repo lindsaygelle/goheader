@@ -75,7 +75,7 @@ func ExampleNewAcceptCharsetHeader() {
 		},
 	}
 	header := goheader.NewAcceptCharsetHeader(cfg)
-	fmt.Println(header.Values) // ["utf-8;q=1.0, iso-8859-1;q=0.5"]
+	fmt.Println(header.Values) // ["utf-8, iso-8859-1;q=0.5"]
 }
 
 // ExampleNewAcceptDatetimeHeader is an example function for NewAcceptDatetimeHeader.
@@ -98,7 +98,7 @@ func ExampleNewAcceptEncodingHeader() {
 		},
 	}
 	header := goheader.NewAcceptEncodingHeader(cfg)
-	fmt.Println(header.Values) // ["gzip;q=1.0, br;q=0.8"]
+	fmt.Println(header.Values) // ["gzip, br;q=0.8"]
 }
 
 // ExampleNewAcceptLanguageHeader is an example function for NewAcceptLanguageHeader.
@@ -111,7 +111,7 @@ func ExampleNewAcceptLanguageHeader() {
 		},
 	}
 	header := goheader.NewAcceptLanguageHeader(cfg)
-	fmt.Println(header.Values) // ["en-US;q=1.0, fr;q=0.8"]
+	fmt.Println(header.Values) // ["en-US, fr;q=0.8"]
 }
 
 // ExampleNewAcceptPatchHeader is an example function for NewAcceptPatchHeader.
@@ -513,15 +513,17 @@ func ExampleNewDPRHeader() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.DPRConfig{Value: 2.0}
 	header := goheader.NewDPRHeader(cfg)
-	fmt.Println(header.Values) // ["2.0"])
+	fmt.Println(header.Values) // ["2.0"]
 }
 
 // ExampleNewDateHeader is an example function for NewDateHeader.
 func ExampleNewDateHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.DateConfig{Time: time.Now()}
+	cfg := goheader.DateConfig{Time: time.Date(2025, time.September, 15, 15, 4, 5, 0, time.UTC)}
 	header := goheader.NewDateHeader(cfg)
-	fmt.Println(header.Values) // ["Mon, 02 Jan 2006 15:04:05 GMT"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// Mon, 15 Sep 2025 15:04:05 GMT
 }
 
 // ExampleNewDeltaBaseHeader is an example function for NewDeltaBaseHeader.
@@ -603,9 +605,11 @@ func ExampleNewExpectCTHeader() {
 // ExampleNewExpiresHeader is an example function for NewExpiresHeader.
 func ExampleNewExpiresHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.ExpiresConfig{Time: time.Now().Add(24 * time.Hour)}
+	cfg := goheader.ExpiresConfig{Time: time.Date(2025, time.September, 16, 15, 4, 5, 0, time.UTC)}
 	header := goheader.NewExpiresHeader(cfg)
-	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// Tue, 16 Sep 2025 15:04:05 GMT
 }
 
 // ExampleNewForwardedHeader is an example function for NewForwardedHeader.
@@ -672,9 +676,11 @@ func ExampleNewIfMatchHeader() {
 // ExampleNewIfModifiedSinceHeader is an example function for NewIfModifiedSinceHeader.
 func ExampleNewIfModifiedSinceHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.IfModifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+	cfg := goheader.IfModifiedSinceConfig{Time: time.Date(2025, time.September, 15, 15, 4, 5, 0, time.UTC)}
 	header := goheader.NewIfModifiedSinceHeader(cfg)
-	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// Mon, 15 Sep 2025 15:04:05 GMT
 }
 
 // ExampleNewIfNoneMatchHeader is an example function for NewIfNoneMatchHeader.
@@ -696,9 +702,11 @@ func ExampleNewIfRangeHeader() {
 // ExampleNewIfUnmodifiedSinceHeader is an example function for NewIfUnmodifiedSinceHeader.
 func ExampleNewIfUnmodifiedSinceHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.IfUnmodifiedSinceConfig{Time: time.Now().Add(-24 * time.Hour)}
+	cfg := goheader.IfUnmodifiedSinceConfig{Time: time.Date(2025, time.September, 15, 15, 4, 5, 0, time.UTC)}
 	header := goheader.NewIfUnmodifiedSinceHeader(cfg)
-	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// Mon, 15 Sep 2025 15:04:05 GMT
 }
 
 // ExampleNewKeepAliveHeader is an example function for NewKeepAliveHeader.
@@ -720,9 +728,11 @@ func ExampleNewLargeAllocationHeader() {
 // ExampleNewLastModifiedHeader is an example function for NewLastModifiedHeader.
 func ExampleNewLastModifiedHeader() {
 	// Create a new goheader.Header instance.
-	cfg := goheader.LastModifiedConfig{Time: time.Now().Add(-48 * time.Hour)}
+	cfg := goheader.LastModifiedConfig{Time: time.Date(2025, time.September, 14, 15, 4, 5, 0, time.UTC)}
 	header := goheader.NewLastModifiedHeader(cfg)
-	fmt.Println(header.Values) // ["Wed, 21 Oct 2015 07:28:00 GMT"]
+	fmt.Println(header.Values[0])
+	// Output:
+	// Sun, 14 Sep 2025 15:04:05 GMT
 }
 
 // ExampleNewLinkHeader is an example function for NewLinkHeader.
@@ -1091,7 +1101,7 @@ func ExampleNewSecCHUAPlatformVersionHeader() {
 	fmt.Println(header.Values) // ["\"15.4\""]
 }
 
-// ExampleNewSecCHUAPlatformVersionHeader is an example function for NewSecCHUAWoW64Header.
+// ExampleNewSecCHUAWoW64Header is an example function for NewSecCHUAWoW64Header.
 func ExampleNewSecCHUAWoW64Header() {
 	// Create a new goheader.Header instance.
 	cfg := goheader.SecCHUAWoW64Config{WoW64: true}

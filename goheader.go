@@ -690,7 +690,7 @@ func (cfg AcceptConfig) String() string {
 //	}
 //	header := goheader.NewAcceptHeader(cfg)
 //	fmt.Println(header.Name)   // Accept
-//	fmt.Println(header.Values) // ["application/json;q=1.0, text/html;charset=utf-8;q=0.8"]
+//	fmt.Println(header.Values) // ["application/json, text/html;charset=utf-8;q=0.8"]
 func NewAcceptHeader(cfg AcceptConfig) Header {
 	return Header{
 		Experimental: false,
@@ -831,7 +831,7 @@ func (cfg AcceptCharsetConfig) String() string {
 //	}
 //	header := goheader.NewAcceptCharsetHeader(cfg)
 //	fmt.Println(header.Name)   // Accept-Charset
-//	fmt.Println(header.Values) // ["utf-8;q=1.0, iso-8859-1;q=0.5"]
+//	fmt.Println(header.Values) // ["utf-8, iso-8859-1;q=0.5"]
 func NewAcceptCharsetHeader(cfg AcceptCharsetConfig) Header {
 	return Header{
 		Experimental: false,
@@ -922,7 +922,7 @@ func (cfg AcceptEncodingConfig) String() string {
 //	}
 //	header := goheader.NewAcceptEncodingHeader(cfg)
 //	fmt.Println(header.Name)   // Accept-Encoding
-//	fmt.Println(header.Values) // ["gzip;q=1.0, br;q=0.8"]
+//	fmt.Println(header.Values) // ["gzip, br;q=0.8"]
 func NewAcceptEncodingHeader(cfg AcceptEncodingConfig) Header {
 	return Header{
 		Experimental: false,
@@ -980,7 +980,7 @@ func (cfg AcceptLanguageConfig) String() string {
 //	}
 //	header := goheader.NewAcceptLanguageHeader(cfg)
 //	fmt.Println(header.Name)   // Accept-Language
-//	fmt.Println(header.Values) // ["en-US;q=1.0, fr;q=0.8"]
+//	fmt.Println(header.Values) // ["en-US, fr;q=0.8"]
 func NewAcceptLanguageHeader(cfg AcceptLanguageConfig) Header {
 	return Header{
 		Experimental: false,
@@ -5250,7 +5250,7 @@ func (cfg SetCookieConfig) String() string {
 //	}
 //	header := goheader.NewSetCookieHeader(cfg)
 //	fmt.Println(header.Name)   // Set-Cookie
-//	fmt.Println(header.Values) // ["sessionId=abc123; Expires=...; Path=/; Secure; HTTPOnly; SameSite=Strict"]
+//	fmt.Println(header.Values) // ["sessionId=abc123; Expires=...; Path=/; Secure; HttpOnly; SameSite=Strict"]
 func NewSetCookieHeader(cfg SetCookieConfig) Header {
 	return Header{
 		Experimental: false,
