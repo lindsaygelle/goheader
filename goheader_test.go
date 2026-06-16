@@ -38,50 +38,114 @@ func TestNewAcceptHeader(t *testing.T) {
 }
 
 func TestNewAcceptCHHeader(t *testing.T) {
-	cfg := goheader.AcceptCHConfig{}
+	cfg := goheader.AcceptCHConfig{
+		Values: []goheader.AcceptCHValue{
+			{Token: "DPR"},
+			{Token: "Viewport-Width"},
+		},
+	}
 	h := goheader.NewAcceptCHHeader(cfg)
 	if h.Name != goheader.AcceptCH {
-		t.Errorf("expected header name for AcceptCH")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptCH, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-CH header metadata: %+v", h)
+	}
+	want := []string{"DPR, Viewport-Width"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewAcceptCHLifetimeHeader(t *testing.T) {
-	cfg := goheader.AcceptCHLifetimeConfig{}
+	cfg := goheader.AcceptCHLifetimeConfig{Lifetime: 86400}
 	h := goheader.NewAcceptCHLifetimeHeader(cfg)
 	if h.Name != goheader.AcceptCHLifetime {
-		t.Errorf("expected header name for AcceptCHLifetime")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptCHLifetime, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-CH-Lifetime header metadata: %+v", h)
+	}
+	want := []string{"86400"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewAcceptCharsetHeader(t *testing.T) {
-	cfg := goheader.AcceptCharsetConfig{}
+	cfg := goheader.AcceptCharsetConfig{
+		Values: []goheader.AcceptCharsetValue{
+			{Charset: "utf-8", Quality: 1.0},
+			{Charset: "iso-8859-1", Quality: 0.5},
+		},
+	}
 	h := goheader.NewAcceptCharsetHeader(cfg)
 	if h.Name != goheader.AcceptCharset {
-		t.Errorf("expected header name for AcceptCharset")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptCharset, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-Charset header metadata: %+v", h)
+	}
+	want := []string{"utf-8, iso-8859-1;q=0.5"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewAcceptDatetimeHeader(t *testing.T) {
-	cfg := goheader.AcceptDatetimeConfig{}
+	cfg := goheader.AcceptDatetimeConfig{
+		Datetime: time.Date(2023, time.May, 1, 12, 30, 0, 0, time.UTC),
+	}
 	h := goheader.NewAcceptDatetimeHeader(cfg)
 	if h.Name != goheader.AcceptDatetime {
-		t.Errorf("expected header name for AcceptDatetime")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptDatetime, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-Datetime header metadata: %+v", h)
+	}
+	want := []string{"Mon, 01 May 2023 12:30:00 GMT"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewAcceptEncodingHeader(t *testing.T) {
-	cfg := goheader.AcceptEncodingConfig{}
+	cfg := goheader.AcceptEncodingConfig{
+		Values: []goheader.AcceptEncodingValue{
+			{Encoding: "gzip", Quality: 1.0},
+			{Encoding: "br", Quality: 0.8},
+		},
+	}
 	h := goheader.NewAcceptEncodingHeader(cfg)
 	if h.Name != goheader.AcceptEncoding {
-		t.Errorf("expected header name for AcceptEncoding")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptEncoding, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-Encoding header metadata: %+v", h)
+	}
+	want := []string{"gzip, br;q=0.8"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewAcceptLanguageHeader(t *testing.T) {
-	cfg := goheader.AcceptLanguageConfig{}
+	cfg := goheader.AcceptLanguageConfig{
+		Values: []goheader.AcceptLanguageValue{
+			{Language: "en-US", Quality: 1.0},
+			{Language: "fr", Quality: 0.8},
+		},
+	}
 	h := goheader.NewAcceptLanguageHeader(cfg)
 	if h.Name != goheader.AcceptLanguage {
-		t.Errorf("expected header name for AcceptLanguage")
+		t.Fatalf("expected header name %q, got %q", goheader.AcceptLanguage, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Accept-Language header metadata: %+v", h)
+	}
+	want := []string{"en-US, fr;q=0.8"}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
