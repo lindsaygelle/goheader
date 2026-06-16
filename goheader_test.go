@@ -733,18 +733,42 @@ func TestNewProxyConnectionHeader(t *testing.T) {
 }
 
 func TestNewPublicKeyPinsHeader(t *testing.T) {
-	cfg := goheader.PublicKeyPinsConfig{}
+	cfg := goheader.PublicKeyPinsConfig{
+		Pins:              []string{"base64+primary==", "base64+backup=="},
+		MaxAge:            5184000,
+		IncludeSubDomains: true,
+		ReportURI:         "https://example.com/hpkp-report",
+	}
 	h := goheader.NewPublicKeyPinsHeader(cfg)
 	if h.Name != goheader.PublicKeyPins {
-		t.Errorf("expected header name for PublicKeyPins")
+		t.Fatalf("expected header name %q, got %q", goheader.PublicKeyPins, h.Name)
+	}
+	if h.Request || !h.Response || h.Standard || h.Experimental {
+		t.Fatalf("unexpected Public-Key-Pins header metadata: %+v", h)
+	}
+	want := []string{`pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubDomains; report-uri="https://example.com/hpkp-report"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewPublicKeyPinsReportOnlyHeader(t *testing.T) {
-	cfg := goheader.PublicKeyPinsReportOnlyConfig{}
+	cfg := goheader.PublicKeyPinsReportOnlyConfig{
+		Pins:              []string{"base64+primary==", "base64+backup=="},
+		MaxAge:            5184000,
+		IncludeSubDomains: true,
+		ReportURI:         "https://example.com/hpkp-report",
+	}
 	h := goheader.NewPublicKeyPinsReportOnlyHeader(cfg)
 	if h.Name != goheader.PublicKeyPinsReportOnly {
-		t.Errorf("expected header name for PublicKeyPinsReportOnly")
+		t.Fatalf("expected header name %q, got %q", goheader.PublicKeyPinsReportOnly, h.Name)
+	}
+	if h.Request || !h.Response || h.Standard || h.Experimental {
+		t.Fatalf("unexpected Public-Key-Pins-Report-Only header metadata: %+v", h)
+	}
+	want := []string{`pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubDomains; report-uri="https://example.com/hpkp-report"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -797,18 +821,42 @@ func TestNewReplayNonceHeader(t *testing.T) {
 }
 
 func TestNewReportToHeader(t *testing.T) {
-	cfg := goheader.ReportToConfig{}
+	cfg := goheader.ReportToConfig{
+		Group:             "csp-endpoint",
+		MaxAge:            10886400,
+		Endpoints:         []string{"https://example.com/csp-reports"},
+		IncludeSubdomains: true,
+	}
 	h := goheader.NewReportToHeader(cfg)
 	if h.Name != goheader.ReportTo {
-		t.Errorf("expected header name for ReportTo")
+		t.Fatalf("expected header name %q, got %q", goheader.ReportTo, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Report-To header metadata: %+v", h)
+	}
+	want := []string{`{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://example.com/csp-reports"}],"include_subdomains":true}`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
 func TestNewReportingEndpointsHeader(t *testing.T) {
-	cfg := goheader.ReportingEndpointsConfig{}
+	cfg := goheader.ReportingEndpointsConfig{
+		Endpoints: map[string]string{
+			"default": "https://example.com/reports",
+			"csp":     "https://example.com/csp-reports",
+		},
+	}
 	h := goheader.NewReportingEndpointsHeader(cfg)
 	if h.Name != goheader.ReportingEndpoints {
-		t.Errorf("expected header name for ReportingEndpoints")
+		t.Fatalf("expected header name %q, got %q", goheader.ReportingEndpoints, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Reporting-Endpoints header metadata: %+v", h)
+	}
+	want := []string{`csp="https://example.com/csp-reports", default="https://example.com/reports"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -853,10 +901,22 @@ func TestNewSecCHPrefersReducedTransparencyHeader(t *testing.T) {
 }
 
 func TestNewSecCHUAHeader(t *testing.T) {
-	cfg := goheader.SecCHUAConfig{}
+	cfg := goheader.SecCHUAConfig{
+		Brands: map[string]string{
+			"Chromium":      "112",
+			"Google Chrome": "112",
+		},
+	}
 	h := goheader.NewSecCHUAHeader(cfg)
 	if h.Name != goheader.SecCHUA {
-		t.Errorf("expected header name for SecCHUA")
+		t.Fatalf("expected header name %q, got %q", goheader.SecCHUA, h.Name)
+	}
+	if !h.Request || h.Response || !h.Standard || !h.Experimental {
+		t.Fatalf("unexpected Sec-CH-UA header metadata: %+v", h)
+	}
+	want := []string{`"Chromium";v="112", "Google Chrome";v="112"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -885,10 +945,22 @@ func TestNewSecCHUAFullVersionHeader(t *testing.T) {
 }
 
 func TestNewSecCHUAFullVersionListHeader(t *testing.T) {
-	cfg := goheader.SecCHUAFullVersionListConfig{}
+	cfg := goheader.SecCHUAFullVersionListConfig{
+		Brands: map[string]string{
+			"Chromium":      "112.0.5615.137",
+			"Google Chrome": "112.0.5615.137",
+		},
+	}
 	h := goheader.NewSecCHUAFullVersionListHeader(cfg)
 	if h.Name != goheader.SecCHUAFullVersionList {
-		t.Errorf("expected header name for SecCHUAFullVersionList")
+		t.Fatalf("expected header name %q, got %q", goheader.SecCHUAFullVersionList, h.Name)
+	}
+	if !h.Request || h.Response || h.Standard || !h.Experimental {
+		t.Fatalf("unexpected Sec-CH-UA-Full-Version-List header metadata: %+v", h)
+	}
+	want := []string{`"Chromium";v="112.0.5615.137", "Google Chrome";v="112.0.5615.137"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
@@ -1232,10 +1304,23 @@ func TestNewWantDigestHeader(t *testing.T) {
 }
 
 func TestNewWarningHeader(t *testing.T) {
-	cfg := goheader.WarningConfig{}
+	now := time.Date(2025, time.September, 15, 15, 0, 0, 0, time.UTC)
+	cfg := goheader.WarningConfig{
+		Entries: []goheader.WarningEntry{
+			{Code: 110, Agent: "-", Text: "Response is stale"},
+			{Code: 112, Agent: "example.com:8080", Text: "Disconnected operation", Date: &now},
+		},
+	}
 	h := goheader.NewWarningHeader(cfg)
 	if h.Name != goheader.Warning {
-		t.Errorf("expected header name for Warning")
+		t.Fatalf("expected header name %q, got %q", goheader.Warning, h.Name)
+	}
+	if h.Request || !h.Response || !h.Standard || h.Experimental {
+		t.Fatalf("unexpected Warning header metadata: %+v", h)
+	}
+	want := []string{`110 - "Response is stale", 112 example.com:8080 "Disconnected operation" "Mon, 15 Sep 2025 15:00:00 GMT"`}
+	if !reflect.DeepEqual(h.Values, want) {
+		t.Fatalf("expected values %v, got %v", want, h.Values)
 	}
 }
 
